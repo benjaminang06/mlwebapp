@@ -1,0 +1,512 @@
+Miya, the Moonlight Archer	1	Marksman	Finisher/Damage	Gold Lane	Azrya Woodlands	
+10800 Battle Points 10800
+399 tickets 399
+2016
+Hero021-icon	Balmond, the Bloody Beast	2	Fighter	Damage/Regen	Jungling	The Barren Lands	
+6500 Battle Points 6500
+299 Diamonds 299
+2016
+Hero031-icon	Saber, the Wandering Sword	3	Assassin	Charge/Finisher	Jungling/Roaming	Laboratory 1718	
+6500 Battle Points 6500
+299 Diamonds 299
+2016
+Hero041-icon	Alice, the Queen of Blood	4	Mage/Tank	Charge/Regen	EXP Lane/Jungling	The Barren Lands	
+15000 Battle Points 15000
+399 Diamonds 399
+2016
+Hero051-icon	Nana, the Sweet Leonin	5	Mage	Poke/Burst	Mid Lane	Azrya Woodlands	
+6500 Battle Points 6500
+299 Diamonds 299
+2016
+Hero061-icon	Tigreal, the Warrior of Dawn	6	Tank	Crowd Control	Roaming	Moniyan Empire	
+6500 Battle Points 6500
+299 Diamonds 299
+2016
+Hero071-icon	Alucard, the Demon Hunter	7	Fighter/Assassin	Chase/Damage	Jungling	Moniyan Empire	
+15000 Battle Points 15000
+399 tickets 399
+2016
+Hero081-icon	Karina, the Shadow Blade	8	Assassin	Finisher/Magic Damage	Jungling	Azrya Woodlands	
+32000 Battle Points 32000
+599 Diamonds 599
+2016
+Hero091-icon	Akai, the Panda Warrior	9	Tank	Guard/Crowd Control	Roaming/Jungling	Cadia Riverlands	
+32000 Battle Points 32000
+599 tickets 599
+2016
+Hero101-icon	Franco, the Frozen Warrior	10	Tank	Initiator/Control	Roaming	Northern Vale	
+32000 Battle Points 32000
+749 tickets 749
+2016
+Hero111-icon	Bane, the Frozen King	11	Fighter/Mage	Push/Burst	Jungling/EXP Lane	Northern Vale	
+6500 Battle Points 6500
+299 Diamonds 299
+2016
+Hero121-icon	Bruno, the Protector	12	Marksman	Finisher/Burst	Gold Lane	Agelta Drylands	
+15000 Battle Points 15000
+399 Diamonds 399
+2016
+Hero131-icon	Clint, the West Justice	13	Marksman	Finisher/Burst	Gold Lane	Agelta Drylands	
+15000 Battle Points 15000
+399 Diamonds 399
+2016
+Hero141-icon	Rafaela, the Wings of Holiness	14	Support	Regen/Guard	Roaming	Moniyan Empire	
+6500 Battle Points 6500
+299 Diamonds 299
+2016
+Hero151-icon	Eudora, the Lightning Weaver	15	Mage	Control/Burst	Mid Lane	Northern Vale	
+2000 Battle Points 2000
+399 Diamonds 399
+2016
+Hero161-icon	Zilong, the Spear of Dragon	16	Fighter/Assassin	Chase/Damage	EXP Lane	Cadia Riverlands	
+15000 Battle Points 15000
+399 tickets 399
+9 September 2016
+Hero171-icon	Fanny, the Blade Dancer	17	Assassin	Chase/Finisher	Jungling	Moniyan Empire	
+24000 Battle Points 24000
+499 Diamonds 499
+30 September 2016
+Hero181-icon	Layla, the Energy Gunner	18	Marksman	Finisher/Damage	Gold Lane	Agelta Drylands	
+2000 Battle Points 2000
+299 Diamonds 299
+23 September 2016
+Hero191-icon	Minotaur, the Son of Minos	19	Tank/Support	Crowd Control	Roaming	Agelta Drylands	
+15000 Battle Points 15000
+399 Diamonds 399
+14 October 2016
+Hero201-icon	Lolita, the Steel Elf	20	Support/Tank	Guard/Crowd Control	Roaming	Agelta Drylands	
+32000 Battle Points 32000
+599 Diamonds 599
+28 October 2016
+Hero211-icon	Hayabusa, the Crimson Shadow	21	Assassin	Chase/Burst	Jungling	Cadia Riverlands	
+32000 Battle Points 32000
+599 Diamonds 599
+4 November 2016
+Hero221-icon	Freya, the Valkyrie	22	Fighter	Chase/Damage	EXP Lane	Northern Vale	
+599 Diamonds 599
+November 2016
+Hero231-icon	Gord, the Professor of the Mystics	23	Mage	Poke/Burst	Mid Lane	Northern Vale	
+24000 Battle Points 24000
+499 tickets 499
+November 2016
+Hero241-icon	Natalia, the Bright Claw	24	Assassin	Chase/Finisher	Roaming	Moniyan Empire	
+32000 Battle Points 32000
+599 Diamonds 599
+December 2016
+Hero251-icon	Kagura, the Onmyouji Master	25	Mage	Poke/Finisher	Mid Lane	Cadia Riverlands	
+32000 Battle Points 32000
+599 Diamonds 599
+December 2016
+Hero261-icon	Chou, the Kung Fu Boy	26	Fighter	Chase/Control	EXP Lane/Roaming	Eruditio	
+24000 Battle Points 24000
+499 Diamonds 499
+December 2016
+Hero271-icon	Sun, the Monkey King	27	Fighter	Push/Damage	EXP Lane/Jungling	Cadia Riverlands	
+32000 Battle Points 32000
+599 Diamonds 599
+December 2016
+Hero281-icon	Alpha, the Blade of Enmity	28	Fighter	Charge/Damage	Jungling/EXP Lane	Agelta Drylands	
+32000 Battle Points 32000
+599 Diamonds 599
+January 2017
+Hero291-icon	Ruby, the Little Red Hood	29	Fighter	Crowd Control/Regen	EXP Lane	Moniyan Empire	
+32000 Battle Points 32000
+599 Diamonds 599
+2017
+Hero301-icon	Yi Sun-shin, the Paenlong Legend	30	Assassin/Marksman	Finisher/Chase	Jungling	Cadia Riverlands	
+32000 Battle Points 32000
+599 Diamonds 599
+2017
+Hero311-icon	Moskov, the Spear of Quiescence	31	Marksman	Finisher/Chase	Gold Lane	Agelta Drylands	
+32000 Battle Points 32000
+399 Diamonds 399
+2017
+Hero321-icon	Johnson, the Wild Engine	32	Tank/Support	Support/Crowd Control	Roaming	Agelta Drylands	
+32000 Battle Points 32000
+599 Diamonds 599
+14 March 2017
+Hero331-icon	Cyclops, the Starsoul Magician	33	Mage	Poke/Control	Mid Lane	Nebula Chronorift	
+15000 Battle Points 15000
+399 Diamonds 399
+2017
+Hero341-icon	Estes, the Moon Elf King	34	Support	Regen/Guard	Roaming	Azrya Woodlands	
+24000 Battle Points 24000
+499 Diamonds 499
+2017
+Hero351-icon	Hilda, the Power of Megalith	35	Fighter/Tank	Damage/Regen	Roaming/EXP Lane	Northern Vale	
+24000 Battle Points 24000
+499 Diamonds 499
+2017
+Hero361-icon	Aurora, the Maiden of the Glacier	36	Mage	Crowd Control/Poke	Mid Lane	Northern Vale	
+24000 Battle Points 24000
+499 Diamonds 499
+2017
+Hero371-icon	Lapu-Lapu, the Courageous Blade	37	Fighter	Chase/Burst	EXP Lane	Vonetis Islands	
+32000 Battle Points 32000
+599 Diamonds 599
+2017
+Hero381-icon	Vexana, the Shimmer of Hope	38	Mage	Poke/Control	Mid Lane	The Barren Lands	
+32000 Battle Points 32000
+599 Diamonds 599
+2017
+Hero391-icon	Roger, the Dire Wolf Hunter	39	Fighter/Marksman	Finisher/Burst	Jungling	Moniyan Empire	
+24000 Battle Points 24000
+499 Diamonds 499
+25 June 2017
+Hero401-icon	Karrie, the Lost Star	40	Marksman	Finisher/Damage	Gold Lane	Alaghat	
+24000 Battle Points 24000
+499 Diamonds 499
+2017
+Hero411-icon	Gatotkaca, the Mighty Legend	41	Tank/Fighter	Crowd Control/Burst	Roaming/EXP Lane	Nebula Chronorift	
+32000 Battle Points 32000
+599 Diamonds 599
+July 2017
+Hero421-icon	Harley, the Mage Genius	42	Assassin/Mage	Burst/Poke	Jungling	Northern Vale	
+32000 Battle Points 32000
+599 Diamonds 599
+29 July 2017
+Hero431-icon	Irithel, the Jungle Heart	43	Marksman	Finisher/Burst	Gold Lane	Azrya Woodlands	
+32000 Battle Points 32000
+599 Diamonds 599
+2017
+Hero441-icon	Grock, the Fortress Titan	44	Tank/Fighter	Crowd Control/Initiator	Roaming	The Barren Lands	
+32000 Battle Points 32000
+599 Diamonds 599
+2017
+Hero451-icon	Argus, the Dark Angel	45	Fighter	Charge/Burst	EXP Lane	The Barren Lands	
+32000 Battle Points 32000
+599 Diamonds 599
+2017
+Hero461-icon	Odette, the Swan Princess	46	Mage	Burst/Poke	Mid Lane	Moniyan Empire	
+20 lucky gems 20
+120 hero fragments 120
+29 September 2017
+Hero471-icon	Lancelot, the Blade of Roses	47	Assassin	Chase/Burst	Jungling	Moniyan Empire	
+32000 Battle Points 32000
+599 Diamonds 599
+2017
+Hero481-icon	Diggie, the Timekeeper	48	Support	Guard/Poke	Roaming	Agelta Drylands	
+24000 Battle Points 24000
+499 Diamonds 499
+19 November 2017
+Hero491-icon	Hylos, the Grand Warden	49	Tank	Guard/Initiator	Roaming	Agelta Drylands	
+32000 Battle Points 32000
+599 Diamonds 599
+2017
+Hero501-icon	Zhask, the King of Swarms	50	Mage	Chase/Damage	Mid Lane	Kastiya	
+32000 Battle Points 32000
+599 Diamonds 599
+2017
+Hero511-icon	Helcurt, the Shadowbringer	51	Assassin	Push/Burst	Jungling	The Barren Lands	
+32000 Battle Points 32000
+599 Diamonds 599
+2017
+Hero521-icon	Pharsa, the Wings of Vengeance	52	Mage	Burst/Poke	Mid Lane	The Barren Lands	
+32000 Battle Points 32000
+599 Diamonds 599
+27 December 2017
+Hero531-icon	Lesley, the Deadly Sniper	53	Marksman/Assassin	Finisher/Burst	Gold Lane	Moniyan Empire	
+32000 Battle Points 32000
+599 Diamonds 599
+January 2018
+Hero541-icon	Jawhead, the Steel Sweetheart	54	Fighter	Charge/Burst	EXP Lane/Jungling	Laboratory 1718	
+32000 Battle Points 32000
+599 Diamonds 599
+January 2018
+Hero551-icon	Angela, the Bunnylove	55	Support	Guard/Support	Roaming	Laboratory 1718	
+24000 Battle Points 24000
+499 Diamonds 499
+6 February 2018
+Hero561-icon	Gusion, the Holy Blade	56	Assassin	Burst/Magic Damage	Jungling	Moniyan Empire	
+32000 Battle Points 32000
+599 Diamonds 599
+2018
+Hero571-icon	Valir, the Son of Flames	57	Mage	Damage/Guard	Mid Lane	Agelta Drylands	
+32000 Battle Points 32000
+599 Diamonds 599
+2018
+Hero581-icon	Martis, the Ashura King	58	Fighter	Finisher/Charge	Jungling	Nebula Chronorift	
+32000 Battle Points 32000
+599 Diamonds 599
+2018
+Hero591-icon	Uranus, the Aesthereal Defender	59	Tank	Regen	EXP Lane	Celestial Palace	
+32000 Battle Points 32000
+599 Diamonds 599
+2018
+Hero601-icon	Hanabi, the Scarlet Flower	60	Marksman	Finisher/Damage	Gold Lane	Cadia Riverlands	
+32000 Battle Points 32000
+599 Diamonds 599
+17 April 2018
+Hero611-icon	Chang'e, the Moon Palace Immortal	61	Mage	Poke/Burst	Mid Lane	Cadia Riverlands	
+32000 Battle Points 32000
+599 Diamonds 599
+120 hero fragments 120
+30 May 2018
+Hero621-icon	Kaja, the Nazar King	62	Support/Fighter	Control/Charge	Roaming	Celestial Palace	
+32000 Battle Points 32000
+599 Diamonds 599
+25 April 2018
+Hero631-icon	Selena, the Abyssal Witch	63	Assassin/Mage	Initiator/Finisher	Roaming/Mid Lane	The Barren Lands	
+32000 Battle Points 32000
+599 Diamonds 599
+10 July 2018
+Hero641-icon	Aldous, the Soul Contractor	64	Fighter	Burst/Support	EXP Lane	Agelta Drylands	
+32000 Battle Points 32000
+599 Diamonds 599
+24 July 2018
+Hero651-icon	Claude, the Master Thief	65	Marksman	Burst/Chase	Gold Lane	Los Pecados	
+32000 Battle Points 32000
+599 Diamonds 599
+7 August 2018
+Hero661-icon	Vale, the Windtalker	66	Mage	Burst/Crowd Control	Mid Lane	Agelta Drylands	
+32000 Battle Points 32000
+599 Diamonds 599
+29 January 2019
+Hero671-icon	Leomord, the Sworn Sword	67	Fighter	Chase/Burst	Jungling	The Barren Lands	
+32000 Battle Points 32000
+599 Diamonds 599
+2018
+Hero681-icon	Lunox, the Twilight Goddess	68	Mage	Burst/Damage	Mid Lane	Agelta Drylands	
+32000 Battle Points 32000
+599 Diamonds 599
+2018
+Hero691-icon	Hanzo, the Akuma Ninja	69	Assassin	Burst/Poke	Jungling	Cadia Riverlands	
+32000 Battle Points 32000
+599 Diamonds 599
+4 December 2018
+Hero701-icon	Belerick, the Guard of Nature	70	Tank	Crowd Control/Regen	Roaming	Agelta Drylands	
+32000 Battle Points 32000
+599 Diamonds 599
+17 August 2018
+Hero711-icon	Kimmy, the Jetpack Rebel	71	Marksman/Mage	Damage/Magic Damage	Gold Lane	Moniyan Empire	
+32000 Battle Points 32000
+599 Diamonds 599
+2018
+Hero721-icon	Thamuz, the Lord Lava	72	Fighter	Chase/Damage	EXP Lane	The Barren Lands	
+32000 Battle Points 32000
+599 Diamonds 599
+2018
+Hero731-icon	Harith, the Time Traveler	73	Mage	Chase/Damage	Mid Lane/Gold Lane	Moniyan Empire	
+32000 Battle Points 32000
+599 Diamonds 599
+November 2018
+Hero741-icon	Minsitthar, the Courageous Warrior	74	Fighter	Initiator/Crowd Control	EXP Lane/Roaming	Cadia Riverlands	
+32000 Battle Points 32000
+599 Diamonds 599
+2018
+Hero751-icon	Kadita, the Ocean Goddess	75	Mage/Assassin	Burst/Charge	Mid Lane	Vonetis Islands	
+32000 Battle Points 32000
+599 Diamonds 599
+18 December 2018
+Hero761-icon	Faramis, the Soul Binder	76	Support/Mage	Guard/Charge	Mid Lane	The Barren Lands	
+32000 Battle Points 32000
+599 Diamonds 599
+18 May 2019
+Hero771-icon	Badang, the Tribal Warrior	77	Fighter	Charge/Burst	EXP Lane	Vonetis Islands	
+32000 Battle Points 32000
+599 Diamonds 599
+15 January 2019
+Hero781-icon	Khufra, the Desert Tyrant	78	Tank	Initiator/Crowd Control	Roaming	Agelta Drylands	
+32000 Battle Points 32000
+599 Diamonds 599
+12 March 2019
+Hero791-icon	Granger, the Death Chanter	79	Marksman	Burst/Finisher	Jungling/Gold Lane	Moniyan Empire	
+32000 Battle Points 32000
+599 Diamonds 599
+23 April 2019
+Hero801-icon	Guinevere, the Ms. Violet	80	Fighter	Burst/Magic Damage	EXP Lane	Moniyan Empire	
+32000 Battle Points 32000
+599 Diamonds 599
+21 February 2019
+Hero811-icon	Esmeralda, the Astrologer	81	Tank/Mage	Regen/Mixed Damage	EXP Lane	Agelta Drylands	
+32000 Battle Points 32000
+599 Diamonds 599
+3 April 2019
+Hero821-icon	Terizla, the Executioner	82	Fighter/Tank	Burst/Crowd Control	EXP Lane	The Barren Lands	
+32000 Battle Points 32000
+599 Diamonds 599
+4 June 2019
+Hero831-icon	X.Borg, the Firaga Armor	83	Fighter	Regen/Burst	EXP Lane	Agelta Drylands	
+32000 Battle Points 32000
+599 Diamonds 599
+9 August 2019
+Hero841-icon	Ling, the Cyan Finch	84	Assassin	Chase/Burst	Jungling	Cadia Riverlands	
+32000 Battle Points 32000
+599 Diamonds 599
+24 November 2019
+Hero851-icon	Dyrroth, the Prince of the Abyss	85	Fighter	Charge/Burst	EXP Lane/Jungling	The Barren Lands	
+32000 Battle Points 32000
+599 Diamonds 599
+25 June 2019
+Hero861-icon	Lylia, the Little Witch	86	Mage	Push/Damage	Mid Lane	Northern Vale	
+32000 Battle Points 32000
+599 Diamonds 599
+23 July 2019
+Hero871-icon	Baxia, the Mystic Tortoise	87	Tank	Support/Damage	Jungling	Cadia Riverlands	
+32000 Battle Points 32000
+599 Diamonds 599
+8 October 2019
+Hero881-icon	Masha, the Wild-oats Fist	88	Fighter/Tank	Push/Damage	EXP Lane	Northern Vale	
+32000 Battle Points 32000
+599 Diamonds 599
+17 September 2019
+Hero891-icon	Wanwan, the Agile Tiger	89	Marksman	Finisher/Burst	Gold Lane	Cadia Riverlands	
+32000 Battle Points 32000
+599 Diamonds 599
+26 November 2019
+Hero901-icon	Silvanna, the Imperial Knightess	90	Fighter	Initiator/Magic Damage	EXP Lane	Moniyan Empire	
+32000 Battle Points 32000
+599 Diamonds 599
+17 December 2019
+Hero911-icon	Cecilion, the Embrace of Night	91	Mage	Poke/Burst	Mid Lane	Moniyan Empire	
+32000 Battle Points 32000
+599 Diamonds 599
+12 February 2020
+Hero921-icon	Carmilla, the Shadow of Twilight	92	Support/Tank	Crowd Control/Damage	Roaming	Moniyan Empire	
+32000 Battle Points 32000
+599 Diamonds 599
+17 January 2020
+Hero931-icon	Atlas, the Ocean Gladiator	93	Tank	Crowd Control/Initiator	Roaming	Northern Vale	
+32000 Battle Points 32000
+599 Diamonds 599
+20 March 2020
+Hero941-icon	Popol and Kupa, the Icefield Companions	94	Marksman	Push/Burst	Jungling/Gold Lane	Northern Vale	
+32000 Battle Points 32000
+599 Diamonds 599
+21 April 2020
+Hero951-icon	Yu Zhong, the Black Dragon	95	Fighter	Regen/Damage	EXP Lane	Cadia Riverlands	
+32000 Battle Points 32000
+599 Diamonds 599
+2020
+Hero961-icon	Luo Yi, the Yin-yang Geomancer	96	Mage	Support/Crowd Control	Mid Lane	Cadia Riverlands	
+32000 Battle Points 32000
+599 Diamonds 599
+16 May 2020
+Hero971-icon	Benedetta, the Shadow Ranger	97	Assassin/Fighter	Chase/Burst	EXP Lane	The Barren Lands	
+32000 Battle Points 32000
+599 Diamonds 599
+7 November 2020
+Hero981-icon	Khaleed, the Desert Scimitar	98	Fighter	Damage/Regen	EXP Lane	Agelta Drylands	
+32000 Battle Points 32000
+599 Diamonds 599
+7 August 2020
+Hero991-icon	Barats, the Dino Rider	99	Tank/Fighter	Damage/Crowd Control	Jungling	Agelta Drylands	
+32000 Battle Points 32000
+599 Diamonds 599
+18 September 2020
+Hero1001-icon	Brody, the Lone Star	100	Marksman	Burst/Finisher	Gold Lane	The Barren Lands	
+32000 Battle Points 32000
+599 Diamonds 599
+16 October 2020
+Hero1011-icon	Yve, the Astrowarden	101	Mage	Burst/Poke	Mid Lane	Northern Vale	
+32000 Battle Points 32000
+599 Diamonds 599
+12 February 2021
+Hero1021-icon	Mathilda, the Swift Plume	102	Support/Assassin	Initiator/Guard	Roaming	Los Pecados	
+32000 Battle Points 32000
+599 Diamonds 599
+12 December 2020
+Hero1031-icon	Paquito, the Heavenly Fist	103	Fighter/Assassin	Chase/Damage	EXP Lane	The Barren Lands	
+32000 Battle Points 32000
+599 Diamonds 599
+15 January 2021
+Hero1041-icon	Gloo, the Swamp Spirits	104	Tank	Regen/Control	EXP Lane/Roaming	Azrya Woodlands	
+32000 Battle Points 32000
+599 Diamonds 599
+16 April 2021
+Hero1051-icon	Beatrix, the Dawnbreak Soldier	105	Marksman	Finisher/Damage	Gold Lane	Agelta Drylands	
+32000 Battle Points 32000
+599 Diamonds 599
+19 March 2021
+Hero1061-icon	Phoveus, the Chains of Sin	106	Fighter	Regen/Damage	EXP Lane	The Barren Lands	
+32000 Battle Points 32000
+599 Diamonds 599
+11 May 2021
+Hero1071-icon	Natan, the Spacetime Walker	107	Marksman	Burst/Magic Damage	Gold Lane	Agelta Drylands	
+32000 Battle Points 32000
+599 Diamonds 599
+23 July 2021
+Hero1081-icon	Aulus, the Warrior of Ferocity	108	Fighter	Damage/Crowd Control	Jungling	The Barren Lands	
+32000 Battle Points 32000
+599 Diamonds 599
+31 August 2021
+Hero1091-icon	Aamon, the Duke of Shards	109	Assassin	Chase/Magic Damage	Jungling	Moniyan Empire	
+32000 Battle Points 32000
+599 Diamonds 599
+25 October 2021
+Hero1101-icon	Valentina, the Prophetess of the Night	110	Mage	Burst/Finisher	Mid Lane	Moniyan Empire	
+32000 Battle Points 32000
+599 Diamonds 599
+25 November 2021
+Hero1111-icon	Edith, the Ancient Guard	111	Tank/Marksman	Control/Burst	EXP Lane/Roaming	Sanctum Island	
+32000 Battle Points 32000
+599 Diamonds 599
+24 December 2021
+Hero1121-icon	Floryn, the Budding Hope	112	Support	Poke/Guard	Roaming	Agelta Drylands	
+32000 Battle Points 32000
+599 Diamonds 599
+22 September 2021
+Hero1131-icon	Yin, the Martial Genius	113	Fighter/Assassin	Burst/Control	Jungling/EXP Lane	Cadia Riverlands	
+32000 Battle Points 32000
+599 Diamonds 599
+18 January 2022
+Hero1141-icon	Melissa, the Cursed Needle	114	Marksman	Finisher/Damage	Gold Lane	Moniyan Empire	
+32000 Battle Points 32000
+599 Diamonds 599
+22 February 2022
+Hero1151-icon	Xavier, the Defier of Light	115	Mage	Damage/Guard	Mid Lane	Moniyan Empire	
+32000 Battle Points 32000
+599 Diamonds 599
+22 March 2022
+Hero1161-icon	Julian, the Scarlet Raven	116	Fighter/Mage	Chase/Magic Damage	Jungling	Moniyan Empire	
+32000 Battle Points 32000
+599 Diamonds 599
+24 May 2022
+Hero1171-icon	Fredrinn, the Rogue Appraiser	117	Fighter/Tank	Damage/Chase	Jungling	Los Pecados	
+32000 Battle Points 32000
+599 Diamonds 599
+12 August 2022
+Hero1181-icon	Joy, the Flash of Miracle	118	Assassin	Chase/Damage	Jungling	Azrya Woodlands	
+32000 Battle Points 32000
+599 Diamonds 599
+18 November 2022
+Hero1191-icon	Novaria, the Star Rebel	119	Mage	Burst/Poke	Mid Lane	Agelta Drylands	
+32000 Battle Points 32000
+599 Diamonds 599
+16 May 2023
+Hero1201-icon	Arlott, the Lone Lancer	120	Fighter/Assassin	Charge/Burst	EXP Lane	Moniyan Empire	
+32000 Battle Points 32000
+599 Diamonds 599
+14 February 2023
+Hero1211-icon	Ixia, the Arclight Outlaw	121	Marksman	Finisher/Damage	Gold Lane	Agelta Drylands	
+32000 Battle Points 32000
+599 Diamonds 599
+8 July 2023
+Hero1221-icon	Nolan, the Cosmic Wayfinder	122	Assassin	Chase/Burst	Jungling	Agelta Drylands	
+32000 Battle Points 32000
+599 Diamonds 599
+30 September 2023
+Hero1231-icon	Cici, the Buoyant Performer	123	Fighter	Damage/Regen	EXP Lane	Moniyan Empire	
+32000 Battle Points 32000
+599 Diamonds 599
+27 December 2023
+Hero1241-icon	Chip, the Phase Technician	124	Support/Tank	Support/Crowd Control	Roaming	Laboratory 1718	
+32000 Battle Points 32000
+599 Diamonds 599
+16 March 2024
+Hero1251-icon	Zhuxin, the Beacon of Spirits	125	Mage	Damage/Crowd Control	Mid Lane	Cadia Riverlands	
+32000 Battle Points 32000
+599 Diamonds 599
+29 June 2024
+Hero1261-icon	Suyou, the Mask of the Immortal	126	Assassin/Fighter	Chase/Burst	Jungling/EXP Lane	Cadia Riverlands	
+32000 Battle Points 32000
+599 Diamonds 599
+21 September 2024
+Hero1271-icon	Lukas, the Beast of Light	127	Fighter	Regen/Damage	EXP Lane	Moniyan Empire	
+32000 Battle Points 32000
+599 Diamonds 599
+21 December 2024
+Hero1281-icon	Kalea, the Surging Wave	128	Support/Fighter	Control/Regen	EXP Lane	Vonetis Sea	
+32000 Battle Points 32000
+599 Diamonds 599
+TBA
