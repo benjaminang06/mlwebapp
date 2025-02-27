@@ -1,0 +1,37 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static %}
+
+{% block extrahead %}
+    {{ block.super }}
+    <style>
+        .match-select-form {
+            max-width: 800px;
+            margin: 20px auto;
+        }
+        .match-select-form select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+        .submit-row {
+            text-align: right;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    <h1>{{ title }}</h1>
+    <p>Select a match to bulk add player statistics.</p>
+    
+    <div class="match-select-form">
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <div class="submit-row">
+                <input type="submit" value="Continue" class="default" />
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

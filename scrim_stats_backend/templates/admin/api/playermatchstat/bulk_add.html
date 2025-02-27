@@ -1,0 +1,276 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static %}
+
+{% block extrahead %}
+    {{ block.super }}
+    <style>
+        .stats-form-container {
+            max-width: 1400px;
+            margin: 20px auto;
+        }
+        .team-section {
+            margin-bottom: 40px;
+            background: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+        .team-header {
+            background: #f8f8f8;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+            border-radius: 5px 5px 0 0;
+        }
+        .player-form {
+            padding: 15px;
+            border: 1px solid #eee;
+            margin-bottom: 15px;
+            display: grid;
+            grid-template-columns: 2.5fr 2.5fr 1fr 1fr 1fr 1.5fr 1.5fr 1.5fr 1.5fr;
+            grid-gap: 10px;
+            align-items: center;
+            background: #f9f9f9;
+            border-radius: 4px;
+        }
+        .player-form label {
+            display: none;
+        }
+        .form-header {
+            display: grid;
+            grid-template-columns: 2.5fr 2.5fr 1fr 1fr 1fr 1.5fr 1.5fr 1.5fr 1.5fr;
+            grid-gap: 10px;
+            font-weight: bold;
+            padding: 0 15px;
+            margin-bottom: 10px;
+        }
+        .form-header div {
+            padding: 8px 0;
+        }
+        .submit-row {
+            text-align: right;
+            margin-top: 30px;
+        }
+        .player-form input, .player-form select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .player-form input[type="number"] {
+            text-align: center;
+        }
+        .player-select-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .add-player-button {
+            background: none;
+            border: none;
+            color: #447e9b;
+            cursor: pointer;
+            font-size: 20px;
+            padding: 0;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .add-player-button:hover {
+            color: #36638e;
+        }
+        .hero-input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Filter player dropdowns by team
+            const ourTeamForms = document.querySelectorAll('.team-our .player-form');
+            const opponentTeamForms = document.querySelectorAll('.team-opponent .player-form');
+            
+            // Add "Add New Player" button to each player select
+            document.querySelectorAll('select[name$="-player"]').forEach(select => {
+                // Wrap the select in a div for layout
+                const parent = select.parentNode;
+                
+                // Create wrapper if not already wrapped
+                if (!parent.classList.contains('player-select-wrapper')) {
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'player-select-wrapper';
+                    parent.insertBefore(wrapper, select);
+                    wrapper.appendChild(select);
+                    
+                    // Add the button
+                    const addButton = document.createElement('button');
+                    addButton.type = 'button';
+                    addButton.className = 'add-player-button';
+                    addButton.innerHTML = '<span title="Add New Player">+</span>';
+                    addButton.addEventListener('click', function() {
+                        window.open('/admin/api/player/add/', '_blank');
+                    });
+                    wrapper.appendChild(addButton);
+                }
+            });
+            
+            // Pre-filter our team player selects
+            ourTeamForms.forEach((form, index) => {
+                const playerSelect = form.querySelector('select[name$="-player"]');
+                if (playerSelect) {
+                    // Get our team player IDs as an array of numbers
+                    const ourTeamPlayerIds = [];
+                    {% for player in our_team_players %}
+                        ourTeamPlayerIds.push({{ player.player_id }});
+                    {% endfor %}
+                    
+                    // Show only our team players in the dropdown
+                    Array.from(playerSelect.options).forEach(option => {
+                        if (option.value && !ourTeamPlayerIds.includes(parseInt(option.value))) {
+                            option.style.display = 'none';
+                        }
+                    });
+                }
+            });
+            
+            // Pre-filter opponent team player selects
+            opponentTeamForms.forEach((form, index) => {
+                const playerSelect = form.querySelector('select[name$="-player"]');
+                if (playerSelect) {
+                    // Get opponent team player IDs as an array of numbers
+                    const opponentTeamPlayerIds = [];
+                    {% for player in opponent_team_players %}
+                        opponentTeamPlayerIds.push({{ player.player_id }});
+                    {% endfor %}
+                    
+                    // Show only opponent team players in the dropdown
+                    Array.from(playerSelect.options).forEach(option => {
+                        if (option.value && !opponentTeamPlayerIds.includes(parseInt(option.value))) {
+                            option.style.display = 'none';
+                        }
+                    });
+                }
+            });
+            
+            // Replace hero text fields with datalist-enabled inputs
+            document.querySelectorAll('input[name$="-hero_played"]').forEach(input => {
+                // Add the datalist association
+                input.setAttribute('list', 'hero-list');
+                input.classList.add('hero-input');
+            });
+            
+            // Remove any extra/empty text boxes
+            document.querySelectorAll('.player-form > div:empty').forEach(emptyDiv => {
+                emptyDiv.remove();
+            });
+            
+            // Remove any duplicate extra inputs that appear below player rows
+            document.querySelectorAll('.player-form + input, .player-form + div:not(.player-form)').forEach(elem => {
+                if (!elem.classList.contains('player-form')) {
+                    elem.remove();
+                }
+            });
+        });
+    </script>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    <h1>{{ title }}</h1>
+    <p>Enter statistics for all players in this match. All fields with * are required.</p>
+    
+    <!-- Add hero datalist using Hero model data -->
+    <datalist id="hero-list">
+        <!-- Get heroes dynamically from the database -->
+        {% for hero in heroes %}
+        <option value="{{ hero.name }}">
+        {% endfor %}
+    </datalist>
+    
+    <div class="stats-form-container">
+        <form method="post">
+            {% csrf_token %}
+            {{ formset.management_form }}
+            
+            <div class="team-section team-our">
+                <div class="team-header">
+                    <h2>{{ match.our_team }} (Our Team)</h2>
+                </div>
+                
+                <div class="form-header">
+                    <div>Player*</div>
+                    <div>Hero Played*</div>
+                    <div>Kills*</div>
+                    <div>Deaths*</div>
+                    <div>Assists*</div>
+                    <div>Damage Dealt</div>
+                    <div>Turret Damage</div>
+                    <div>Damage Taken</div>
+                    <div>Gold Earned</div>
+                </div>
+                
+                {% for form in formset.forms %}
+                    {% if forloop.counter0 < 5 %}
+                        <div class="player-form">
+                            {% for field in form.visible_fields %}
+                                {% if field.name != 'hero' %}
+                                <div>
+                                    {{ field.errors }}
+                                    {{ field }}
+                                </div>
+                                {% endif %}
+                            {% endfor %}
+                            {% for hidden in form.hidden_fields %}
+                                {{ hidden }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+            
+            <div class="team-section team-opponent">
+                <div class="team-header">
+                    <h2>{{ match.opponent_team }} (Opponent Team)</h2>
+                </div>
+                
+                <div class="form-header">
+                    <div>Player*</div>
+                    <div>Hero Played*</div>
+                    <div>Kills*</div>
+                    <div>Deaths*</div>
+                    <div>Assists*</div>
+                    <div>Damage Dealt</div>
+                    <div>Turret Damage</div>
+                    <div>Damage Taken</div>
+                    <div>Gold Earned</div>
+                </div>
+                
+                {% for form in formset.forms %}
+                    {% if forloop.counter0 >= 5 and forloop.counter0 < 10 %}
+                        <div class="player-form">
+                            {% for field in form.visible_fields %}
+                                {% if field.name != 'hero' %}
+                                <div>
+                                    {{ field.errors }}
+                                    {{ field }}
+                                </div>
+                                {% endif %}
+                            {% endfor %}
+                            {% for hidden in form.hidden_fields %}
+                                {{ hidden }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+            
+            <div class="submit-row">
+                <input type="submit" value="Save All Player Stats" class="default" />
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %} 

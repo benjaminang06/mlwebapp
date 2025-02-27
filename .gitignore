@@ -1,0 +1,24 @@
+# Virtual Environment
+esports_env/
+venv/
+env/
+
+# Compiled files
+__pycache__/
+*.pyc
+*.pyo
+
+# Database
+db.sqlite3
+
+# Static and media files (optional)
+static/
+media/
+
+# Node.js (if applicable)
+node_modules/
+
+# IDE and OS files
+.vscode/
+.DS_Store
+
