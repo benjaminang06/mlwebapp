@@ -177,6 +177,26 @@ class Player(models.Model):
         """Get the player's current primary team (most recent with no left_date)"""
         current_membership = self.team_history.filter(left_date=None).first()
         return current_membership.team if current_membership else None
+        
+    def count_mvps(self):
+        """Count the number of times this player has been MVP"""
+        return self.awards.filter(award_type='MVP').count()
+        
+    def count_mvp_losses(self):
+        """Count the number of times this player has been MVP of the losing team"""
+        return self.awards.filter(award_type='MVP_LOSS').count()
+        
+    def get_award_stats(self):
+        """Get a summary of all awards this player has received"""
+        from django.db.models import Count
+        
+        # Count awards by type
+        award_counts = self.awards.values('award_type').annotate(count=Count('award_type'))
+        
+        # Format into a dictionary
+        return {
+            item['award_type']: item['count'] for item in award_counts
+        }
 
 class PlayerAlias(models.Model):
     """
@@ -347,6 +367,28 @@ class Match(models.Model):
             if update_fields is None or 'score_details' not in update_fields:
                 self.calculate_score_details()
 
+    def get_mvp(self):
+        """Returns the player with the highest KDA on the winning team."""
+        # Determine winning team based on match_outcome
+        winning_team = self.our_team if self.match_outcome == 'VICTORY' else self.opponent_team
+        winning_stats = PlayerMatchStat.objects.filter(
+            match=self,
+            team=winning_team
+        ).order_by('-computed_kda').first()
+        
+        return winning_stats.player if winning_stats else None
+    
+    def get_mvp_loss(self):
+        """Returns the player with the highest KDA on the losing team."""
+        # Determine losing team based on match_outcome
+        losing_team = self.opponent_team if self.match_outcome == 'VICTORY' else self.our_team
+        losing_stats = PlayerMatchStat.objects.filter(
+            match=self,
+            team=losing_team
+        ).order_by('-computed_kda').first()
+        
+        return losing_stats.player if losing_stats else None
+
 class PlayerMatchStat(models.Model):
     """
     Represents the performance statistics of a specific player in a specific match.
@@ -358,7 +400,6 @@ class PlayerMatchStat(models.Model):
     team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='match_stats')
     role_played = models.CharField(max_length=50, blank=True, null=True)
     hero_played = models.CharField(max_length=100)
-    hero = models.ForeignKey('Hero', on_delete=models.SET_NULL, null=True, blank=True, related_name='player_stats')
     kills = models.IntegerField()
     deaths = models.IntegerField()
     assists = models.IntegerField()
@@ -422,6 +463,7 @@ class PlayerTeamHistory(models.Model):
 
 # Add a TeamManager model with roles
 class TeamManagerRole(models.Model):
+    """Define roles for team managers"""
     ROLE_CHOICES = [
         ('head_coach', 'Head Coach'),
         ('assistant', 'Assistant Coach'),
@@ -436,40 +478,153 @@ class TeamManagerRole(models.Model):
     class Meta:
         unique_together = ['team', 'user']
 
-class HeroPairingStats(models.Model):
-    """Track statistics for pairs of heroes played together"""
-    hero1 = models.CharField(max_length=50)
-    hero2 = models.CharField(max_length=50)
-    team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='hero_pairings')
-    matches_played = models.IntegerField(default=0)
-    matches_won = models.IntegerField(default=0)
+class MatchAward(models.Model):
+    """Tracks awards given to players in matches such as MVP, MVP Loss, etc."""
+    AWARD_TYPE_CHOICES = [
+        ('MVP', 'Most Valuable Player'),
+        ('MVP_LOSS', 'Most Valuable Player (Losing Team)'),
+        ('MOST_DAMAGE', 'Highest Damage'),
+        ('MOST_GOLD', 'Highest Gold'),
+        ('MOST_TURRET_DAMAGE', 'Most Turret Damage'),
+        ('MOST_DAMAGE_TAKEN', 'Most Damage Taken'),
+        ('BEST_KDA', 'Best KDA Ratio'),
+        ('MOST_KILLS', 'Most Kills'),
+        ('MOST_ASSISTS', 'Most Assists'),
+        ('LEAST_DEATHS', 'Least Deaths'),
+    ]
     
-    @property
-    def win_rate(self):
-        if self.matches_played == 0:
-            return 0
-        return self.matches_won / self.matches_played
-        
-    class Meta:
-        unique_together = ['hero1', 'hero2', 'team']
-
-class PlayerRoleStats(models.Model):
-    """Track player performance in specific roles"""
-    player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name='role_stats')
-    role = models.CharField(max_length=20)
-    matches_played = models.IntegerField(default=0)
-    total_kills = models.IntegerField(default=0)
-    total_deaths = models.IntegerField(default=0)
-    total_assists = models.IntegerField(default=0)
+    match = models.ForeignKey(Match, on_delete=models.CASCADE, related_name='awards')
+    player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name='awards')
+    award_type = models.CharField(max_length=20, choices=AWARD_TYPE_CHOICES)
+    stat_value = models.FloatField(null=True, blank=True, help_text="The relevant stat value (e.g., KDA for MVP)")
     
-    @property
-    def average_kda(self):
-        if self.matches_played == 0:
-            return 0
-        return (self.total_kills + self.total_assists) / max(1, self.total_deaths)
-        
     class Meta:
-        unique_together = ['player', 'role']
+        unique_together = ['match', 'award_type']
+        
+    def __str__(self):
+        return f"{self.get_award_type_display()} - {self.player.current_ign} ({self.match})"
+    
+    @classmethod
+    def assign_match_awards(cls, match):
+        """Calculate and assign all awards for a match"""
+        # Clear existing awards for this match
+        cls.objects.filter(match=match).delete()
+        
+        # Get all player stats for this match
+        all_stats = PlayerMatchStat.objects.filter(match=match)
+        if not all_stats.exists():
+            return  # No stats to calculate awards from
+            
+        # Get stats separated by team
+        winning_team = match.our_team if match.match_outcome == 'VICTORY' else match.opponent_team
+        losing_team = match.opponent_team if match.match_outcome == 'VICTORY' else match.our_team
+        
+        winning_team_stats = all_stats.filter(team=winning_team)
+        losing_team_stats = all_stats.filter(team=losing_team)
+        
+        # Assign MVP (highest KDA on winning team)
+        if winning_team_stats.exists():
+            mvp_stat = winning_team_stats.order_by('-computed_kda').first()
+            cls.objects.create(
+                match=match,
+                player=mvp_stat.player,
+                award_type='MVP',
+                stat_value=mvp_stat.computed_kda
+            )
+        
+        # Assign MVP Loss (highest KDA on losing team)
+        if losing_team_stats.exists():
+            mvp_loss_stat = losing_team_stats.order_by('-computed_kda').first()
+            cls.objects.create(
+                match=match,
+                player=mvp_loss_stat.player,
+                award_type='MVP_LOSS',
+                stat_value=mvp_loss_stat.computed_kda
+            )
+        
+        # Best KDA across all players
+        best_kda_stat = all_stats.order_by('-computed_kda').first()
+        cls.objects.create(
+            match=match,
+            player=best_kda_stat.player,
+            award_type='BEST_KDA',
+            stat_value=best_kda_stat.computed_kda
+        )
+        
+        # Most kills
+        most_kills_stat = all_stats.order_by('-kills').first()
+        cls.objects.create(
+            match=match,
+            player=most_kills_stat.player,
+            award_type='MOST_KILLS',
+            stat_value=float(most_kills_stat.kills)
+        )
+        
+        # Most assists
+        most_assists_stat = all_stats.order_by('-assists').first()
+        cls.objects.create(
+            match=match,
+            player=most_assists_stat.player,
+            award_type='MOST_ASSISTS',
+            stat_value=float(most_assists_stat.assists)
+        )
+        
+        # Least deaths (minimum 1 death to avoid ties at 0)
+        least_deaths_stats = all_stats.filter(deaths__gt=0).order_by('deaths')
+        if least_deaths_stats.exists():
+            least_deaths_stat = least_deaths_stats.first()
+            cls.objects.create(
+                match=match,
+                player=least_deaths_stat.player,
+                award_type='LEAST_DEATHS',
+                stat_value=float(least_deaths_stat.deaths)
+            )
+        
+        # Optional stats that might not be recorded in every match
+        
+        # Most damage dealt
+        damage_dealt_stats = all_stats.exclude(damage_dealt__isnull=True).filter(damage_dealt__gt=0)
+        if damage_dealt_stats.exists():
+            most_damage_stat = damage_dealt_stats.order_by('-damage_dealt').first()
+            cls.objects.create(
+                match=match,
+                player=most_damage_stat.player,
+                award_type='MOST_DAMAGE',
+                stat_value=float(most_damage_stat.damage_dealt)
+            )
+        
+        # Most gold earned
+        gold_stats = all_stats.exclude(gold_earned__isnull=True).filter(gold_earned__gt=0)
+        if gold_stats.exists():
+            most_gold_stat = gold_stats.order_by('-gold_earned').first()
+            cls.objects.create(
+                match=match,
+                player=most_gold_stat.player,
+                award_type='MOST_GOLD',
+                stat_value=float(most_gold_stat.gold_earned)
+            )
+        
+        # Most turret damage
+        turret_damage_stats = all_stats.exclude(turret_damage__isnull=True).filter(turret_damage__gt=0)
+        if turret_damage_stats.exists():
+            most_turret_damage_stat = turret_damage_stats.order_by('-turret_damage').first()
+            cls.objects.create(
+                match=match,
+                player=most_turret_damage_stat.player,
+                award_type='MOST_TURRET_DAMAGE',
+                stat_value=float(most_turret_damage_stat.turret_damage)
+            )
+        
+        # Most damage taken
+        damage_taken_stats = all_stats.exclude(damage_taken__isnull=True).filter(damage_taken__gt=0)
+        if damage_taken_stats.exists():
+            most_damage_taken_stat = damage_taken_stats.order_by('-damage_taken').first()
+            cls.objects.create(
+                match=match,
+                player=most_damage_taken_stat.player,
+                award_type='MOST_DAMAGE_TAKEN',
+                stat_value=float(most_damage_taken_stat.damage_taken)
+            )
 
 class Hero(models.Model):
     """Represents playable heroes/champions in the game"""

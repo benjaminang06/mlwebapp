@@ -27,7 +27,7 @@
             border: 1px solid #eee;
             margin-bottom: 15px;
             display: grid;
-            grid-template-columns: 2.5fr 2.5fr 1fr 1fr 1fr 1.5fr 1.5fr 1.5fr 1.5fr;
+            grid-template-columns: 2.5fr 2.5fr 1.5fr 1fr 1fr 1fr 1fr 1.5fr 1.5fr 1.5fr 1.5fr;
             grid-gap: 10px;
             align-items: center;
             background: #f9f9f9;
@@ -38,7 +38,7 @@
         }
         .form-header {
             display: grid;
-            grid-template-columns: 2.5fr 2.5fr 1fr 1fr 1fr 1.5fr 1.5fr 1.5fr 1.5fr;
+            grid-template-columns: 2.5fr 2.5fr 1.5fr 1fr 1fr 1fr 1fr 1.5fr 1.5fr 1.5fr 1.5fr;
             grid-gap: 10px;
             font-weight: bold;
             padding: 0 15px;
@@ -64,6 +64,7 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            position: relative;
         }
         .add-player-button {
             background: none;
@@ -86,9 +87,308 @@
             border: 1px solid #ddd;
             border-radius: 4px;
         }
+        .auto-save-status {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: #e0f7fa;
+            padding: 8px 12px;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            z-index: 1000;
+            display: none;
+            transition: opacity 0.3s;
+        }
+        .errornote {
+            background: #ffeaee;
+            border: 1px solid #f8d7da;
+            color: #b94a48;
+            padding: 12px 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        .field-error {
+            color: #b94a48;
+            font-size: 12px;
+            margin-top: 5px;
+            display: block;
+        }
+        input.error, select.error {
+            border-color: #b94a48 !important;
+            background-color: #fff8f8;
+        }
+        .warningnote {
+            background: #fcf8e3;
+            border: 1px solid #faebcc;
+            color: #8a6d3b;
+            padding: 12px 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        .field-warning {
+            color: #8a6d3b;
+            font-size: 12px;
+            margin-top: 5px;
+            display: block;
+        }
+        input.warning, select.warning {
+            border-color: #faebcc !important;
+            background-color: #fffdf7;
+        }
+        /* Style for disabled options */
+        select option:disabled {
+            color: #999;
+            background-color: #f0f0f0;
+            font-style: italic;
+        }
+        /* Tooltip for disabled player message */
+        .player-disabled-tooltip {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: #ffefd5;
+            color: #885a00;
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            margin-top: 5px;
+            z-index: 100;
+            display: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            width: 200px;
+        }
+        select:focus + .player-disabled-tooltip {
+            display: block;
+        }
     </style>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            const matchId = '{{ match.match_id }}';
+            const storageKey = `playerStats_${matchId}`;
+            const formElement = document.querySelector('.stats-form-container form');
+            let statusTimeout;
+            
+            // Create auto-save status notification element
+            const saveStatus = document.createElement('div');
+            saveStatus.className = 'auto-save-status';
+            saveStatus.innerText = 'Progress saved';
+            document.body.appendChild(saveStatus);
+            
+            // Function to show save status briefly
+            function showSaveStatus() {
+                saveStatus.style.display = 'block';
+                clearTimeout(statusTimeout);
+                statusTimeout = setTimeout(() => {
+                    saveStatus.style.display = 'none';
+                }, 2000);
+            }
+            
+            // Function to save form data to localStorage
+            function saveFormData() {
+                const formData = {};
+                
+                // Save all input and select field values
+                document.querySelectorAll('.player-form input, .player-form select').forEach(field => {
+                    formData[field.name] = field.value;
+                });
+                
+                // Store in localStorage
+                localStorage.setItem(storageKey, JSON.stringify(formData));
+                showSaveStatus();
+            }
+            
+            // Function to load form data from localStorage
+            function loadFormData() {
+                const savedData = localStorage.getItem(storageKey);
+                if (savedData) {
+                    const formData = JSON.parse(savedData);
+                    
+                    // Set all input and select values
+                    Object.keys(formData).forEach(fieldName => {
+                        const field = document.querySelector(`[name="${fieldName}"]`);
+                        if (field) {
+                            field.value = formData[fieldName];
+                        }
+                    });
+                    
+                    // Update player selection restrictions after loading data
+                    updatePlayerSelections();
+                }
+            }
+            
+            // Add event listener to save form data when inputs change
+            document.querySelectorAll('.player-form input, .player-form select').forEach(field => {
+                field.addEventListener('change', saveFormData);
+                field.addEventListener('input', saveFormData);
+            });
+            
+            // Validate form before submission
+            formElement.addEventListener('submit', function(e) {
+                let hasErrors = false;
+                let hasWarnings = false;
+                
+                // Create error message element if it doesn't exist
+                let errorContainer = document.getElementById('form-errors');
+                if (!errorContainer) {
+                    errorContainer = document.createElement('div');
+                    errorContainer.id = 'form-errors';
+                    errorContainer.className = 'errornote';
+                    errorContainer.style.display = 'none';
+                    formElement.parentNode.insertBefore(errorContainer, formElement);
+                }
+                
+                // Create warnings container
+                let warningContainer = document.getElementById('form-warnings');
+                if (!warningContainer) {
+                    warningContainer = document.createElement('div');
+                    warningContainer.id = 'form-warnings';
+                    warningContainer.className = 'warningnote';
+                    warningContainer.style.display = 'none';
+                    formElement.parentNode.insertBefore(warningContainer, formElement);
+                }
+                
+                // Reset messages
+                errorContainer.innerHTML = '';
+                errorContainer.style.display = 'none';
+                warningContainer.innerHTML = '';
+                warningContainer.style.display = 'none';
+                document.querySelectorAll('.field-error, .field-warning').forEach(el => el.remove());
+                
+                // Get currently entered players
+                const playersInForm = new Set();
+                document.querySelectorAll('select[name$="-player"]').forEach(select => {
+                    if (select.value) {
+                        playersInForm.add(select.value);
+                    }
+                });
+                
+                // Check for players that already have stats
+                const existingPlayerIds = [
+                    {% for stat in existing_stats %}
+                    {{ stat.player.player_id }},
+                    {% endfor %}
+                ];
+                
+                const playersWithStats = [];
+                existingPlayerIds.forEach(id => {
+                    if (playersInForm.has(id.toString())) {
+                        // Find player name
+                        const playerSelect = document.querySelector(`select[name$="-player"] option[value="${id}"]`);
+                        if (playerSelect) {
+                            playersWithStats.push(playerSelect.textContent.trim());
+                        }
+                    }
+                });
+                
+                if (playersWithStats.length > 0) {
+                    warningContainer.innerHTML = `<p><strong>Warning:</strong> The following players already have stats for this match which will be overridden: <strong>${playersWithStats.join(', ')}</strong></p>`;
+                    warningContainer.style.display = 'block';
+                    hasWarnings = true;
+                }
+                
+                // Helper function to add error to a field
+                function addFieldError(field, message) {
+                    field.classList.add('error');
+                    const errorSpan = document.createElement('span');
+                    errorSpan.className = 'field-error';
+                    errorSpan.style.color = 'red';
+                    errorSpan.style.fontSize = '12px';
+                    errorSpan.style.display = 'block';
+                    errorSpan.textContent = message;
+                    field.parentNode.appendChild(errorSpan);
+                    hasErrors = true;
+                }
+                
+                // Helper function to add warning to a field
+                function addFieldWarning(field, message) {
+                    field.classList.add('warning');
+                    const warningSpan = document.createElement('span');
+                    warningSpan.className = 'field-warning';
+                    warningSpan.style.color = '#856404';
+                    warningSpan.style.fontSize = '12px';
+                    warningSpan.style.display = 'block';
+                    warningSpan.textContent = message;
+                    field.parentNode.appendChild(warningSpan);
+                }
+                
+                // Track which players have been filled out
+                const ourTeamFilled = [];
+                const opponentTeamFilled = [];
+                
+                // Check each form - only validate rows that have a player selected
+                document.querySelectorAll('.player-form').forEach((form, index) => {
+                    const playerSelect = form.querySelector('select[name$="-player"]');
+                    const heroInput = form.querySelector('input[name$="-hero_played"]');
+                    const roleSelect = form.querySelector('select[name$="-role_played"]');
+                    const killsInput = form.querySelector('input[name$="-kills"]');
+                    const deathsInput = form.querySelector('input[name$="-deaths"]');
+                    const assistsInput = form.querySelector('input[name$="-assists"]');
+                    const kdaInput = form.querySelector('input[name$="-computed_kda"]');
+                    const isOurTeam = index < 5; // First 5 forms are for our team
+                    
+                    // Only validate if a player is selected
+                    if (playerSelect && playerSelect.value) {
+                        // Record which player rows have data
+                        if (isOurTeam) {
+                            ourTeamFilled.push(index);
+                        } else {
+                            opponentTeamFilled.push(index - 5);
+                        }
+                        
+                        // Add warnings for incomplete fields but don't prevent submission
+                        if (!heroInput.value) {
+                            addFieldWarning(heroInput, "Hero is recommended");
+                        }
+                        if (!roleSelect || !roleSelect.value) {
+                            // Add a warning for missing role if a player is selected
+                            if (roleSelect) {
+                                addFieldWarning(roleSelect, "Role is recommended");
+                            }
+                        }
+                        if (!killsInput.value) {
+                            killsInput.value = 0; // Default to 0
+                        }
+                        if (!deathsInput.value) {
+                            deathsInput.value = 0; // Default to 0
+                        }
+                        if (!assistsInput.value) {
+                            assistsInput.value = 0; // Default to 0
+                        }
+                        if (!kdaInput.value) {
+                            // Add a warning for missing KDA value
+                            addFieldWarning(kdaInput, "KDA value is required");
+                            hasErrors = true;
+                        }
+                    }
+                });
+                
+                // Show informational message if no players are entered but allow submission
+                if (ourTeamFilled.length === 0 && opponentTeamFilled.length === 0) {
+                    warningContainer.innerHTML += "<p>No player stats are being submitted.</p>";
+                    warningContainer.style.display = 'block';
+                    hasWarnings = true;
+                }
+                
+                if (hasErrors) {
+                    e.preventDefault();
+                    window.scrollTo(0, 0);
+                } else {
+                    // Ask for confirmation if overriding existing stats
+                    if (hasWarnings && playersWithStats.length > 0) {
+                        if (!confirm("Warning: You are about to override existing stats for some players. Continue?")) {
+                            e.preventDefault();
+                            return;
+                        }
+                    }
+                    
+                    // Clear localStorage on successful submission
+                    localStorage.removeItem(storageKey);
+                }
+            });
+            
+            // Load saved form data on page load
+            loadFormData();
+            
             // Filter player dropdowns by team
             const ourTeamForms = document.querySelectorAll('.team-our .player-form');
             const opponentTeamForms = document.querySelectorAll('.team-opponent .player-form');
@@ -123,8 +423,10 @@
                 if (playerSelect) {
                     // Get our team player IDs as an array of numbers
                     const ourTeamPlayerIds = [];
+                    
+                    // Get the player IDs from the server (rendered by Django) - DO NOT CHANGE THIS COMMENT
                     {% for player in our_team_players %}
-                        ourTeamPlayerIds.push({{ player.player_id }});
+                    ourTeamPlayerIds.push(parseInt("{{ player.player_id }}"));
                     {% endfor %}
                     
                     // Show only our team players in the dropdown
@@ -142,8 +444,10 @@
                 if (playerSelect) {
                     // Get opponent team player IDs as an array of numbers
                     const opponentTeamPlayerIds = [];
+                    
+                    // Get the player IDs from the server (rendered by Django) - DO NOT CHANGE THIS COMMENT
                     {% for player in opponent_team_players %}
-                        opponentTeamPlayerIds.push({{ player.player_id }});
+                    opponentTeamPlayerIds.push(parseInt("{{ player.player_id }}"));
                     {% endfor %}
                     
                     // Show only opponent team players in the dropdown
@@ -161,6 +465,64 @@
                 input.setAttribute('list', 'hero-list');
                 input.classList.add('hero-input');
             });
+            
+            // Prevent selecting the same player twice
+            function updatePlayerSelections() {
+                // Get all player select elements
+                const playerSelects = document.querySelectorAll('select[name$="-player"]');
+                
+                // Get selected players
+                const selectedPlayers = new Set();
+                playerSelects.forEach(select => {
+                    if (select.value) {
+                        selectedPlayers.add(select.value);
+                    }
+                });
+                
+                // For each select, disable options that are selected in other selects
+                playerSelects.forEach(select => {
+                    Array.from(select.options).forEach(option => {
+                        // Skip the empty option
+                        if (!option.value) return;
+                        
+                        // If this option is selected in this select, don't disable it
+                        if (select.value === option.value) {
+                            option.disabled = false;
+                            return;
+                        }
+                        
+                        // Disable if selected elsewhere
+                        option.disabled = selectedPlayers.has(option.value);
+                    });
+                    
+                    // Check if this select has any disabled options
+                    const hasDisabledOptions = Array.from(select.options).some(option => option.disabled);
+                    
+                    // Add or remove tooltip message
+                    let tooltip = select.parentNode.querySelector('.player-disabled-tooltip');
+                    if (hasDisabledOptions) {
+                        if (!tooltip) {
+                            tooltip = document.createElement('div');
+                            tooltip.className = 'player-disabled-tooltip';
+                            tooltip.textContent = 'Some players are already selected in other rows';
+                            select.parentNode.appendChild(tooltip);
+                        }
+                    } else if (tooltip) {
+                        tooltip.remove();
+                    }
+                });
+            }
+            
+            // Add change listeners to all player selects
+            document.querySelectorAll('select[name$="-player"]').forEach(select => {
+                select.addEventListener('change', () => {
+                    updatePlayerSelections();
+                    saveFormData(); // Also save to localStorage when player changes
+                });
+            });
+            
+            // Initialize player selection restrictions on page load
+            updatePlayerSelections();
             
             // Remove any extra/empty text boxes
             document.querySelectorAll('.player-form > div:empty').forEach(emptyDiv => {
@@ -203,9 +565,11 @@
                 <div class="form-header">
                     <div>Player*</div>
                     <div>Hero Played*</div>
+                    <div>Role Played</div>
                     <div>Kills*</div>
                     <div>Deaths*</div>
                     <div>Assists*</div>
+                    <div>KDA*</div>
                     <div>Damage Dealt</div>
                     <div>Turret Damage</div>
                     <div>Damage Taken</div>
@@ -216,12 +580,10 @@
                     {% if forloop.counter0 < 5 %}
                         <div class="player-form">
                             {% for field in form.visible_fields %}
-                                {% if field.name != 'hero' %}
                                 <div>
                                     {{ field.errors }}
                                     {{ field }}
                                 </div>
-                                {% endif %}
                             {% endfor %}
                             {% for hidden in form.hidden_fields %}
                                 {{ hidden }}
@@ -239,9 +601,11 @@
                 <div class="form-header">
                     <div>Player*</div>
                     <div>Hero Played*</div>
+                    <div>Role Played</div>
                     <div>Kills*</div>
                     <div>Deaths*</div>
                     <div>Assists*</div>
+                    <div>KDA*</div>
                     <div>Damage Dealt</div>
                     <div>Turret Damage</div>
                     <div>Damage Taken</div>
@@ -252,12 +616,10 @@
                     {% if forloop.counter0 >= 5 and forloop.counter0 < 10 %}
                         <div class="player-form">
                             {% for field in form.visible_fields %}
-                                {% if field.name != 'hero' %}
                                 <div>
                                     {{ field.errors }}
                                     {{ field }}
                                 </div>
-                                {% endif %}
                             {% endfor %}
                             {% for hidden in form.hidden_fields %}
                                 {{ hidden }}

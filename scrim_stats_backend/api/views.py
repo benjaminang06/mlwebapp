@@ -12,6 +12,7 @@ from django.contrib.auth.models import User
 from rest_framework import generics
 from django.http import JsonResponse
 from django.contrib.admin.views.decorators import staff_member_required
+from .utils import get_player_role_stats, get_hero_pairing_stats
 
 # Create your views here.
 
@@ -648,3 +649,41 @@ def get_scrim_group_admin_data(request, scrim_group_id):
         })
     except ScrimGroup.DoesNotExist:
         return JsonResponse({'error': 'Scrim group not found'}, status=404)
+
+class PlayerRoleStatsView(APIView):
+    """
+    API endpoint for computed player role statistics
+    """
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get(self, request, format=None):
+        player_id = request.query_params.get('player_id')
+        role = request.query_params.get('role')
+        
+        # Get computed stats
+        stats = get_player_role_stats(player_id, role)
+        
+        # Convert to list for API response
+        stats_list = list(stats)
+        
+        return Response(stats_list)
+
+
+class HeroPairingStatsView(APIView):
+    """
+    API endpoint for computed hero pairing statistics
+    """
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get(self, request, format=None):
+        team_id = request.query_params.get('team_id')
+        hero1 = request.query_params.get('hero1')
+        hero2 = request.query_params.get('hero2')
+        
+        # Get computed stats
+        stats = get_hero_pairing_stats(team_id, hero1, hero2)
+        
+        # Convert to list for API response
+        stats_list = list(stats.values())
+        
+        return Response(stats_list)

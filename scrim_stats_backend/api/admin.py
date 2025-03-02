@@ -12,10 +12,10 @@ from .models import (
     FileUpload, 
     PlayerTeamHistory,
     TeamManagerRole,
-    HeroPairingStats,
-    PlayerRoleStats,
+    MatchAward,
     Hero
 )
+from .forms import MatchAdminForm, ScrimGroupAdminForm  # Import both custom forms
 from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import path
@@ -24,6 +24,9 @@ from django.contrib import messages
 from django.forms import formset_factory, BaseFormSet
 from django.db import transaction
 from django.http import HttpResponseRedirect
+from django.utils.safestring import mark_safe
+from django.urls import reverse
+from django.utils.html import format_html
 
 # Register Team model
 @admin.register(Team)
@@ -130,92 +133,6 @@ class PlayerAliasAdmin(admin.ModelAdmin):
     list_display = ('player', 'alias')
     search_fields = ('alias', 'player__current_ign')
 
-# Modify the ScrimGroupAdminForm
-class ScrimGroupAdminForm(forms.ModelForm):
-    team1 = forms.ModelChoiceField(
-        queryset=Team.objects.all(),
-        required=False,
-        label="Home Team",
-        help_text="Your team"
-    )
-    
-    team2 = forms.ModelChoiceField(
-        queryset=Team.objects.all(),
-        required=False,
-        label="Opponent Team",
-        help_text="The team you're playing against"
-    )
-    
-    # Add the create new opponent option
-    create_new_opponent = forms.BooleanField(
-        required=False,
-        initial=False,
-        label="Create new opponent team",
-        help_text="Check this to create a new opponent team"
-    )
-    
-    # Fields for the new opponent team
-    new_opponent_name = forms.CharField(
-        required=False, 
-        max_length=100,
-        label="New opponent name"
-    )
-    new_opponent_abbreviation = forms.CharField(
-        required=False, 
-        max_length=10,
-        label="New opponent abbreviation"
-    )
-    new_opponent_category = forms.ChoiceField(
-        required=False,
-        choices=[
-            ('Collegiate', 'Collegiate'),
-            ('Amateur', 'Amateur'),
-            ('Professional', 'Professional')
-        ],
-        label="Team category"
-    )
-    
-    # Make name field optional - we'll auto-generate it
-    scrim_group_name = forms.CharField(
-        max_length=200,
-        required=False, 
-        label="Scrim Group Name (Optional)",
-        help_text="Leave blank to auto-generate from date and teams"
-    )
-    
-    class Meta:
-        model = ScrimGroup
-        fields = ['scrim_group_name', 'start_date', 'notes']
-        
-    def clean(self):
-        cleaned_data = super().clean()
-        
-        # Validate new opponent fields if creating a new team
-        create_new = cleaned_data.get('create_new_opponent')
-        if create_new:
-            name = cleaned_data.get('new_opponent_name')
-            abbr = cleaned_data.get('new_opponent_abbreviation')
-            
-            if not name:
-                self.add_error('new_opponent_name', 'Required when creating a new team')
-            if not abbr:
-                self.add_error('new_opponent_abbreviation', 'Required when creating a new team')
-        
-        # Always generate a name based on teams and date, unless manually overridden
-        team1 = cleaned_data.get('team1')
-        team2 = cleaned_data.get('team2')
-        start_date = cleaned_data.get('start_date')
-        
-        # We'll handle team2 creation in the admin's save_related method
-        # Here we just validate basic fields
-        
-        if not cleaned_data.get('scrim_group_name') and team1 and team2 and start_date:
-            date_str = date_format(start_date, format="m/d/y")
-            suggested_name = f"{date_str} {team1.team_abbreviation} VS {team2.team_abbreviation}"
-            cleaned_data['scrim_group_name'] = suggested_name
-            
-        return cleaned_data
-
 # Register ScrimGroup model with the custom form
 @admin.register(ScrimGroup)
 class ScrimGroupAdmin(admin.ModelAdmin):
@@ -225,54 +142,25 @@ class ScrimGroupAdmin(admin.ModelAdmin):
     
     # Use fieldsets to visually separate sections
     fieldsets = (
-        ('Scrim Details', {
-            'fields': ('start_date', 'team1'),
-            'description': 'Select the date and your team for this scrim'
+        ('Basic Information', {
+            'fields': ('start_date', 'scrim_group_name', 'notes')
         }),
-        ('Opponent Team', {
-            'fields': ('team2', 'create_new_opponent'),
-            'description': 'Select an existing opponent or create a new one'
-        }),
-        ('New Opponent Details', {
-            'fields': ('new_opponent_name', 'new_opponent_abbreviation', 'new_opponent_category'),
-            'classes': ('collapse',),
-            'description': 'Fill these fields if creating a new opponent team'
-        }),
-        ('Additional Information', {
-            'fields': ('scrim_group_name', 'notes'),
-            'description': 'The name will be auto-generated, but you can override it if needed'
+        ('Teams', {
+            'fields': ('team1', 'team2'),
+            'description': 'Select or create teams for this scrim'
         }),
     )
     
-    def save_form(self, request, form, change):
-        """Handle new opponent team creation"""
-        # Save the form as usual
-        instance = super().save_form(request, form, change)
-        
-        # If creating a new opponent team
-        if form.cleaned_data.get('create_new_opponent'):
-            # Create the new team
-            new_team = Team.objects.create(
-                team_name=form.cleaned_data['new_opponent_name'],
-                team_abbreviation=form.cleaned_data['new_opponent_abbreviation'],
-                team_category=form.cleaned_data['new_opponent_category'],
-                is_opponent_only=True
-            )
-            
-            # We'll use this team when building the scrim name
-            form.cleaned_data['team2'] = new_team
-            
-            # Regenerate the scrim name if needed
-            if not instance.scrim_group_name and form.cleaned_data.get('team1') and form.cleaned_data.get('start_date'):
-                team1 = form.cleaned_data['team1']
-                start_date = form.cleaned_data['start_date']
-                date_str = date_format(start_date, format="m/d/y")
-                instance.scrim_group_name = f"{date_str} {team1.team_abbreviation} VS {new_team.team_abbreviation}"
-        
-        return instance
-    
     class Media:
-        js = ('admin/js/scrimgroup_admin.js',)
+        css = {
+            'all': ('https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css',)
+        }
+        js = (
+            'admin/jquery.init.js',
+            'https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js',
+            'https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js',
+            'admin/js/scrimgroup_admin.js',
+        )
 
 # Let's create an inline opponent team form for the match admin
 class OpponentTeamInlineForm(forms.ModelForm):
@@ -285,193 +173,91 @@ class OpponentTeamInlineForm(forms.ModelForm):
         # Set the is_opponent_only field to True for any team created here
         self.instance.is_opponent_only = True
 
-# Enhanced Match form with support for external matches
-class MatchAdminForm(forms.ModelForm):
-    # Add a date-only field
-    match_date = forms.DateField(
-        required=True,
-        widget=admin.widgets.AdminDateWidget(),
-        label="Match Date",
-        help_text="The date when the match occurred"
-    )
-    
-    # Formatted duration field
-    formatted_duration = forms.CharField(
-        required=False,
-        max_length=8,
-        label="Match Duration",
-        help_text="Enter duration in format HH:MM:SS (e.g., 00:16:21)",
-        widget=forms.TextInput(attrs={'placeholder': '00:16:21'})
-    )
-    
-    # Add field to indicate if this is an external match (not involving our team)
-    is_external_match = forms.BooleanField(
-        required=False,
-        initial=False,
-        label="External Match",
-        help_text="Check this if this match doesn't involve your team (e.g., scouting other teams)"
-    )
-    
-    # Fields for team 1 (if external match)
-    create_new_team1 = forms.BooleanField(
-        required=False,
-        initial=False,
-        label="Create new team 1",
-        help_text="Check this to create a new team"
-    )
-    
-    new_team1_name = forms.CharField(
-        required=False, 
-        max_length=100,
-        label="New team name"
-    )
-    
-    new_team1_abbreviation = forms.CharField(
-        required=False, 
-        max_length=10,
-        label="New team abbreviation"
-    )
-    
-    new_team1_category = forms.ChoiceField(
-        required=False,
-        choices=[
-            ('Collegiate', 'Collegiate'),
-            ('Amateur', 'Amateur'),
-            ('Professional', 'Professional')
-        ],
-        label="Team category"
-    )
-    
-    # Keep existing opponent team fields
-    create_new_opponent = forms.BooleanField(
-        required=False,
-        initial=False,
-        label="Create new opponent team",
-        help_text="Check this to create a new opponent team"
-    )
-    
-    # Other existing fields...
-    
-    class Meta:
-        model = Match
-        fields = '__all__'
-        
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        
-        # Set initial value for the date field
-        if self.instance and self.instance.pk and self.instance.match_date:
-            self.fields['match_date'].initial = self.instance.match_date
-        
-        # Set initial value for formatted duration field
-        if self.instance and self.instance.pk and self.instance.match_duration:
-            total_seconds = self.instance.match_duration.total_seconds()
-            hours, remainder = divmod(total_seconds, 3600)
-            minutes, seconds = divmod(remainder, 60)
-            
-            # Format as HH:MM:SS
-            self.fields['formatted_duration'].initial = f"{int(hours):02d}:{int(minutes):02d}:{int(seconds):02d}"
-    
-    def clean(self):
-        cleaned_data = super().clean()
-        
-        # Auto-populate from scrim_group
-        # ...
-        
-        # Check if it's an external match
-        is_external = cleaned_data.get('is_external_match')
-        
-        if is_external:
-            # If external match, validate team1 setup
-            if cleaned_data.get('create_new_team1'):
-                if not cleaned_data.get('new_team1_name'):
-                    self.add_error('new_team1_name', 'Required when creating a new team')
-                if not cleaned_data.get('new_team1_abbreviation'):
-                    self.add_error('new_team1_abbreviation', 'Required when creating a new team')
-            elif not cleaned_data.get('our_team'):
-                self.add_error('our_team', 'You must select Team 1 or create a new one')
-        
-        # Rest of validation...
-        
-        return cleaned_data
-
 @admin.register(Match)
 class MatchAdmin(admin.ModelAdmin):
-    form = MatchAdminForm
-    list_display = ('match_date', 'get_team1', 'get_team2', 'match_outcome', 'scrim_type', 'get_duration', 'is_external_match')
-    search_fields = ('our_team__team_name', 'opponent_team__team_name')
-    list_filter = ('match_outcome', 'scrim_type', 'our_team', 'match_date', 'is_external_match')
+    form = MatchAdminForm  # Use our custom form
+    list_display = ('__str__', 'match_date', 'get_team1', 'get_team2', 'match_outcome', 'scrim_type', 'get_duration', 'is_external_match', 'mvp_display', 'mvp_loss_display')
+    search_fields = ('our_team__team_name', 'opponent_team__team_name', 'scrim_group__scrim_group_name')
+    list_filter = ('match_outcome', 'scrim_type', 'our_team', 'match_date', 'is_external_match', 'team_side')
     date_hierarchy = 'match_date'
+    readonly_fields = ('created_at', 'updated_at', 'get_match_awards')
     
-    def get_fields(self, request, obj=None):
-        """
-        Dynamically determine which fields to include based on whether
-        we're adding a new match or editing an existing one
-        """
-        # Base fields that are always included
-        base_fields = [
-            'scrim_group', 'match_date', 'is_external_match', 'our_team', 'opponent_team',
-            'scrim_type', 'match_outcome', 'team_side', 'general_notes', 'formatted_duration',
-        ]
+    def mvp_display(self, obj):
+        mvp = obj.get_mvp()
+        if mvp:
+            kda = PlayerMatchStat.objects.filter(
+                match=obj,
+                player=mvp
+            ).first().computed_kda
+            return f"{mvp.current_ign} (KDA: {kda})"
+        return "-"
+    mvp_display.short_description = "MVP"
+    
+    def mvp_loss_display(self, obj):
+        mvp_loss = obj.get_mvp_loss()
+        if mvp_loss:
+            kda = PlayerMatchStat.objects.filter(
+                match=obj,
+                player=mvp_loss
+            ).first().computed_kda
+            return f"{mvp_loss.current_ign} (KDA: {kda})"
+        return "-"
+    mvp_loss_display.short_description = "MVP Loss"
+    
+    def get_match_awards(self, obj):
+        """Display all awards for this match in a readable format"""
+        if not obj.pk:
+            return "Awards will be calculated when the match is saved."
+            
+        awards = MatchAward.objects.filter(match=obj).select_related('player')
+        if not awards.exists():
+            return "No awards calculated yet."
+            
+        html = ['<table style="width:100%"><tr><th>Award</th><th>Player</th><th>Value</th></tr>']
         
-        # Only include custom team creation fields when adding, not editing
-        if obj is None:  # Adding a new match
-            team_creation_fields = [
-                'create_new_team1', 'new_team1_name', 'new_team1_abbreviation', 'new_team1_category',
-                'create_new_opponent', 'new_opponent_name', 'new_opponent_abbreviation', 'new_opponent_category'
-            ]
-            return base_fields + team_creation_fields
-        
-        # For editing, just return the base fields
-        return base_fields
+        for award in awards:
+            formatted_value = f"{award.stat_value:.2f}" if award.stat_value is not None else "N/A"
+            award_name = award.get_award_type_display()
+            player_name = award.player.current_ign
+            
+            html.append(f'<tr><td>{award_name}</td><td>{player_name}</td><td>{formatted_value}</td></tr>')
+            
+        html.append('</table>')
+        return mark_safe(''.join(html))
+    get_match_awards.short_description = "Match Awards"
     
     def get_fieldsets(self, request, obj=None):
-        """Dynamically adjust fieldsets based on whether it's an external match"""
-        common_fieldsets = [
+        """Add the awards section only when editing an existing match"""
+        fieldsets = [
             ('Match Details', {
-                'fields': ('scrim_group', 'match_date', 'is_external_match')
+                'fields': ('scrim_group', 'match_date', 'formatted_duration', 'game_number', 'is_external_match')
             }),
-            ('Match Outcome', {
-                'fields': ('scrim_type', 'match_outcome', 'team_side', 'general_notes')
+            ('Teams', {
+                'fields': ('our_team', 'opponent_team', 'team_side')
             }),
-            ('Duration', {
-                'fields': ('formatted_duration',),
-                'description': 'Enter the total duration of this match in format HH:MM:SS'
-            }),
+            ('Results', {
+                'fields': ('match_outcome', 'scrim_type', 'general_notes')
+            })
         ]
         
-        # Add team-specific fieldsets
-        if obj is None:  # Adding a new match
-            if request.GET.get('is_external_match') == 'true':
-                team_fieldsets = [
-                    ('Team 1', {
-                        'fields': ('our_team', 'create_new_team1', 'new_team1_name', 'new_team1_abbreviation', 'new_team1_category')
-                    }),
-                    ('Team 2', {
-                        'fields': ('opponent_team', 'create_new_opponent', 'new_opponent_name', 'new_opponent_abbreviation', 'new_opponent_category')
-                    }),
-                ]
-            else:
-                team_fieldsets = [
-                    ('Teams', {
-                        'fields': ('our_team', 'opponent_team'),
-                        'description': 'Select your team and opponent team'
-                    }),
-                    ('Create New Opponent', {
-                        'classes': ('collapse',),
-                        'fields': ('create_new_opponent', 'new_opponent_name', 'new_opponent_abbreviation', 'new_opponent_category')
-                    }),
-                ]
-        else:  # Editing an existing match - simpler fieldsets
-            team_fieldsets = [
-                ('Teams', {
-                    'fields': ('our_team', 'opponent_team'),
-                    'description': 'Match teams'
-                }),
-            ]
+        # Add awards section for existing matches
+        if obj and obj.pk:
+            fieldsets.append(
+                ('Match Awards', {
+                    'fields': ('get_match_awards',),
+                    'classes': ('collapse',),
+                    'description': 'Awards calculated based on player statistics'
+                })
+            )
+            
+        fieldsets.append(
+            ('Metadata', {
+                'fields': ('created_at', 'updated_at'),
+                'classes': ('collapse',)
+            })
+        )
         
-        # Combine and return the fieldsets
-        return common_fieldsets[:1] + team_fieldsets + common_fieldsets[1:]
+        return fieldsets
     
     def get_team1(self, obj):
         """Get team 1 with indication if it's our team"""
@@ -495,30 +281,10 @@ class MatchAdmin(admin.ModelAdmin):
     
     def save_model(self, request, obj, form, change):
         """
-        Save the match with special handling for team creation and duration
+        Save the match with special handling for duration
         """
         if not change:  # Only set the user when creating a new object
             obj.submitted_by = request.user
-        
-        # Handle team1 creation if needed
-        if form.cleaned_data.get('is_external_match') and form.cleaned_data.get('create_new_team1'):
-            team1 = Team.objects.create(
-                team_name=form.cleaned_data['new_team1_name'],
-                team_abbreviation=form.cleaned_data['new_team1_abbreviation'],
-                team_category=form.cleaned_data['new_team1_category'],
-                is_opponent_only=True
-            )
-            obj.our_team = team1
-        
-        # Handle opponent team creation if needed
-        if form.cleaned_data.get('create_new_opponent'):
-            team2 = Team.objects.create(
-                team_name=form.cleaned_data['new_opponent_name'],
-                team_abbreviation=form.cleaned_data['new_opponent_abbreviation'],
-                team_category=form.cleaned_data['new_opponent_category'],
-                is_opponent_only=True
-            )
-            obj.opponent_team = team2
         
         # Handle the formatted duration
         formatted_duration = form.cleaned_data.get('formatted_duration')
@@ -540,40 +306,59 @@ class MatchAdmin(admin.ModelAdmin):
         
         # Save the object
         obj.save()
+        
+        # Assign awards if there are player stats
+        if obj.player_stats.exists():
+            MatchAward.assign_match_awards(obj)
     
     class Media:
-        js = ('admin/js/match_admin.js',)
+        css = {
+            'all': ('https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css',)
+        }
+        js = (
+            'admin/jquery.init.js',
+            'https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js',
+            'https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js',
+            'admin/js/match_admin.js',
+        )
 
 # Add this class for the individual player stat form
 class PlayerStatForm(forms.Form):
     player = forms.ModelChoiceField(
         queryset=Player.objects.all(),
-        required=True
+        required=False
     )
     hero_played = forms.CharField(
         max_length=100,
-        required=True
+        required=False
     )
-    hero = forms.ModelChoiceField(
-        queryset=Hero.objects.all(),
+    # Use Player model ROLE_CHOICES, filtering out non-player roles
+    role_played = forms.ChoiceField(
+        choices=[('', '---------')] + [(role[0], role[1]) for role in Player.ROLE_CHOICES 
+                                     if role[0] not in ['FLEX', 'COACH', 'ANALYST']],
         required=False,
-        label="Select Hero (Optional)",
-        help_text="Choose from existing heroes or type a name above"
+        label="Role Played"
     )
     kills = forms.IntegerField(
         min_value=0,
-        required=True,
+        required=False,
         initial=0
     )
     deaths = forms.IntegerField(
         min_value=0,
-        required=True,
+        required=False,
         initial=0
     )
     assists = forms.IntegerField(
         min_value=0,
-        required=True,
+        required=False,
         initial=0
+    )
+    computed_kda = forms.FloatField(
+        min_value=0,
+        required=False,
+        initial=0,
+        help_text="Enter the KDA value from the game"
     )
     damage_dealt = forms.IntegerField(
         required=False,
@@ -606,22 +391,71 @@ class PlayerStatForm(forms.Form):
 class BasePlayerStatFormSet(BaseFormSet):
     def clean(self):
         """
-        Validate that at least one player has been entered
-        and each player is only entered once
+        Validate:
+        1. Each player is only entered once
+        2. Only one player per team plays each role
+        3. Only one player across both teams plays each hero
         """
         if any(self.errors):
             return
         
         players = []
+        # Track role assignments by team
+        our_team_roles = {}
+        opponent_team_roles = {}
+        # Track hero assignments across both teams
+        heroes_played = {}
+        
         for form in self.forms:
-            if form.cleaned_data:
-                player = form.cleaned_data.get('player')
-                if player in players:
-                    raise forms.ValidationError(f"Player {player} is listed multiple times.")
-                players.append(player)
+            # Skip empty forms
+            if not form.cleaned_data or not form.cleaned_data.get('player'):
+                continue
                 
-        if len(players) == 0:
-            raise forms.ValidationError("At least one player must be entered.")
+            player = form.cleaned_data.get('player')
+            role = form.cleaned_data.get('role_played')
+            hero = form.cleaned_data.get('hero_played')
+            is_our_team = form.cleaned_data.get('is_our_team', False)
+            
+            # Check for duplicate players
+            if player in players:
+                raise forms.ValidationError(f"Player {player} is listed multiple times.")
+            players.append(player)
+            
+            # Check for duplicate roles within the same team
+            if role and role != '':
+                if is_our_team:
+                    if role in our_team_roles:
+                        raise forms.ValidationError(
+                            f"Role '{role}' is already assigned to {our_team_roles[role]} on your team."
+                        )
+                    our_team_roles[role] = player
+                else:
+                    if role in opponent_team_roles:
+                        raise forms.ValidationError(
+                            f"Role '{role}' is already assigned to {opponent_team_roles[role]} on the opponent team."
+                        )
+                    opponent_team_roles[role] = player
+            
+            # Check for duplicate heroes across both teams
+            if hero and hero != '':
+                if hero in heroes_played:
+                    raise forms.ValidationError(
+                        f"Hero '{hero}' is already being played by {heroes_played[hero]}."
+                    )
+                heroes_played[hero] = player
+
+    def is_empty_form(self, form):
+        """
+        Check if a form is completely empty
+        """
+        if not form.cleaned_data:
+            return True
+        
+        # Consider the form empty if no player is selected
+        if not form.cleaned_data.get('player'):
+            return True
+        
+        return False
 
 # Modify the PlayerMatchStat admin to add the bulk add view
 @admin.register(PlayerMatchStat)
@@ -673,11 +507,19 @@ class PlayerMatchStatAdmin(admin.ModelAdmin):
         """Second screen to add all player stats for the selected match"""
         match = get_object_or_404(Match, match_id=match_id)
         
-        # Create a formset with 10 forms - 5 for each team
+        # Check for existing stats to prepopulate
+        existing_stats = PlayerMatchStat.objects.filter(match=match)
+        
+        # Create a formset with appropriate number of extra forms
+        # We always use 10 forms but make them optional
         PlayerStatFormSet = formset_factory(
             PlayerStatForm, 
             formset=BasePlayerStatFormSet,
-            extra=10
+            extra=10,
+            max_num=10,  # Set max_num to limit the number of forms
+            validate_max=True,  # Validate the max_num
+            min_num=0,  # No minimum required
+            validate_min=False  # Don't validate min
         )
         
         # Get our team and opponent team players
@@ -691,9 +533,6 @@ class PlayerMatchStatAdmin(admin.ModelAdmin):
             team_history__left_date=None
         ).order_by('current_ign')
         
-        # Check for existing stats to prepopulate
-        existing_stats = PlayerMatchStat.objects.filter(match=match)
-        
         if request.method == 'POST':
             formset = PlayerStatFormSet(request.POST)
             if formset.is_valid():
@@ -703,38 +542,77 @@ class PlayerMatchStatAdmin(admin.ModelAdmin):
                         existing_stats.delete()
                         
                         # Save all the new stats
+                        stats_saved = 0
                         for form in formset:
-                            if form.cleaned_data:
-                                # Only save forms that have data
-                                PlayerMatchStat.objects.create(
-                                    match=match,
-                                    player=form.cleaned_data['player'],
-                                    hero_played=form.cleaned_data['hero_played'],
-                                    hero=form.cleaned_data.get('hero'),
-                                    role_played=form.cleaned_data.get('role_played'),
-                                    kills=form.cleaned_data['kills'],
-                                    deaths=form.cleaned_data['deaths'],
-                                    assists=form.cleaned_data['assists'],
-                                    damage_dealt=form.cleaned_data.get('damage_dealt'),
-                                    turret_damage=form.cleaned_data.get('turret_damage'),
-                                    damage_taken=form.cleaned_data.get('damage_taken'),
-                                    gold_earned=form.cleaned_data.get('gold_earned'),
-                                    is_our_team=form.cleaned_data['is_our_team']
-                                )
+                            # Skip empty forms
+                            if formset.is_empty_form(form):
+                                continue
+                            
+                            if form.cleaned_data and form.cleaned_data.get('player'):
+                                # Determine which team to assign based on is_our_team flag
+                                is_our_team = form.cleaned_data.get('is_our_team', False)
+                                team = match.our_team if is_our_team else match.opponent_team
+                                
+                                # Set default values for missing fields, but don't include is_our_team
+                                # since it's not a field in the PlayerMatchStat model
+                                kills = form.cleaned_data.get('kills', 0)
+                                deaths = form.cleaned_data.get('deaths', 0)
+                                assists = form.cleaned_data.get('assists', 0)
+                                
+                                # Use the user-provided computed_kda value instead of calculating it
+                                # If not provided, default to 0
+                                computed_kda = form.cleaned_data.get('computed_kda', 0)
+                                
+                                stats_data = {
+                                    'match': match,
+                                    'player': form.cleaned_data['player'],
+                                    'team': team,  # Set the team correctly
+                                    'hero_played': form.cleaned_data.get('hero_played', ''),
+                                    'role_played': form.cleaned_data.get('role_played', ''),
+                                    'kills': kills,
+                                    'deaths': deaths,
+                                    'assists': assists,
+                                    'computed_kda': computed_kda,  # Use the provided computed_kda
+                                    'damage_dealt': form.cleaned_data.get('damage_dealt', 0),
+                                    'turret_damage': form.cleaned_data.get('turret_damage', 0),
+                                    'damage_taken': form.cleaned_data.get('damage_taken', 0),
+                                    'gold_earned': form.cleaned_data.get('gold_earned', 0)
+                                    # is_our_team is just used for determining the team, not stored in the model
+                                }
+                                
+                                # Create the player match stat
+                                PlayerMatchStat.objects.create(**stats_data)
+                                stats_saved += 1
                         
-                        # Update match stats
-                        match.calculate_score_details(save=True)
+                        # Update match stats if any stats were saved
+                        if stats_saved > 0:
+                            match.calculate_score_details(save=True)
+                            # Assign awards after calculating score details
+                            MatchAward.assign_match_awards(match)
                         
-                    messages.success(request, f"Successfully saved stats for {match}")
+                        # Customize message based on number of stats saved
+                        if stats_saved == 0:
+                            messages.info(request, f"No player stats were submitted for {match}")
+                        else:
+                            messages.success(request, f"Successfully saved {stats_saved} player stats for {match}")
+                        
                     return HttpResponseRedirect("../../")
                 except Exception as e:
                     messages.error(request, f"Error saving player stats: {str(e)}")
+            else:
+                # Display formset errors to help debugging
+                for i, form in enumerate(formset):
+                    for field, errors in form.errors.items():
+                        messages.error(request, f"Form {i+1} - {field}: {', '.join(errors)}")
+                if formset.non_form_errors():
+                    for error in formset.non_form_errors():
+                        messages.error(request, f"Formset Error: {error}")
         else:
-            # Initialize the forms - first 5 for our team, second 5 for opponent
+            # Initialize the forms based on existing stats or create new empty forms
             initial_data = []
             
-            # Add forms for existing stats if any
             if existing_stats.exists():
+                # Initialize with existing stats
                 for stat in existing_stats:
                     initial_data.append({
                         'player': stat.player,
@@ -743,26 +621,29 @@ class PlayerMatchStatAdmin(admin.ModelAdmin):
                         'kills': stat.kills,
                         'deaths': stat.deaths,
                         'assists': stat.assists,
+                        'computed_kda': stat.computed_kda,  # Include the computed_kda from the database
                         'damage_dealt': stat.damage_dealt,
                         'turret_damage': stat.turret_damage,
                         'damage_taken': stat.damage_taken,
                         'gold_earned': stat.gold_earned,
-                        'is_our_team': stat.is_our_team,
+                        'is_our_team': stat.is_for_our_team()
                     })
+                
+                # Add empty forms to reach exactly 10 total forms
+                while len(initial_data) < 10:
+                    # Add empty forms with the is_our_team field set correctly
+                    if len(initial_data) < 5:
+                        initial_data.append({'is_our_team': True})
+                    else:
+                        initial_data.append({'is_our_team': False})
             else:
                 # Initialize 5 forms for our team
                 for i in range(5):
-                    initial_data.append({
-                        'player': None,
-                        'is_our_team': True
-                    })
+                    initial_data.append({'is_our_team': True})
                 
                 # Initialize 5 forms for opponent team
                 for i in range(5):
-                    initial_data.append({
-                        'player': None,
-                        'is_our_team': False
-                    })
+                    initial_data.append({'is_our_team': False})
             
             formset = PlayerStatFormSet(initial=initial_data)
         
@@ -800,20 +681,6 @@ class TeamManagerRoleAdmin(admin.ModelAdmin):
     list_filter = ('team',)
     search_fields = ('user__username',)
 
-# Register HeroPairingStats model
-@admin.register(HeroPairingStats)
-class HeroPairingStatsAdmin(admin.ModelAdmin):
-    list_display = ('hero1', 'hero2', 'team', 'matches_played', 'matches_won')
-    list_filter = ('team',)
-    search_fields = ('hero1', 'hero2')
-
-# Register PlayerRoleStats model
-@admin.register(PlayerRoleStats)
-class PlayerRoleStatsAdmin(admin.ModelAdmin):
-    list_display = ('player', 'role', 'matches_played')
-    list_filter = ('role',)
-    search_fields = ('player__current_ign',)
-
 # Register Hero model with admin
 @admin.register(Hero)
 class HeroAdmin(admin.ModelAdmin):
@@ -821,3 +688,11 @@ class HeroAdmin(admin.ModelAdmin):
     search_fields = ('name', 'role')
     list_filter = ('role',)
     ordering = ('name',)
+
+# Register MatchAward model
+@admin.register(MatchAward)
+class MatchAwardAdmin(admin.ModelAdmin):
+    list_display = ('match', 'player', 'award_type', 'stat_value')
+    list_filter = ('award_type',)
+    search_fields = ('player__current_ign', 'match__scrim_group__scrim_group_name')
+    readonly_fields = ('match', 'player', 'award_type', 'stat_value')

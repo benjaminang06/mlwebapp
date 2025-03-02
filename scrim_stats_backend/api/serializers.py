@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import Team, Player, PlayerAlias, ScrimGroup, Match, PlayerMatchStat, FileUpload, PlayerTeamHistory, TeamManagerRole, HeroPairingStats, PlayerRoleStats
+from .models import Team, Player, PlayerAlias, ScrimGroup, Match, PlayerMatchStat, FileUpload, PlayerTeamHistory, TeamManagerRole
 from django.utils import timezone
 from django.contrib.auth.password_validation import validate_password
 
@@ -301,21 +301,4 @@ class TeamManagerRoleSerializer(serializers.ModelSerializer):
     class Meta:
         model = TeamManagerRole
         fields = ['id', 'team', 'user', 'user_details', 'role']
-        read_only_fields = ['id']
-
-class HeroPairingStatsSerializer(serializers.ModelSerializer):
-    win_rate = serializers.FloatField(read_only=True)
-    
-    class Meta:
-        model = HeroPairingStats
-        fields = ['id', 'hero1', 'hero2', 'team', 'matches_played', 'matches_won', 'win_rate']
-        read_only_fields = ['id']
-
-class PlayerRoleStatsSerializer(serializers.ModelSerializer):
-    average_kda = serializers.FloatField(read_only=True)
-    
-    class Meta:
-        model = PlayerRoleStats
-        fields = ['id', 'player', 'role', 'matches_played', 'total_kills', 
-                 'total_deaths', 'total_assists', 'average_kda']
         read_only_fields = ['id'] 
