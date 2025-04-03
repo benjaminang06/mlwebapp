@@ -1,0 +1,433 @@
+WARNING 2025-03-26 12:44:40,913 log Not Found: /
+WARNING 2025-03-26 12:44:40,914 basehttp "GET / HTTP/1.1" 404 3095
+WARNING 2025-03-26 12:44:41,244 log Not Found: /favicon.ico
+WARNING 2025-03-26 12:44:41,244 basehttp "GET /favicon.ico HTTP/1.1" 404 3227
+WARNING 2025-03-26 12:44:46,627 log Not Found: /diagnostic-exam/
+WARNING 2025-03-26 12:44:46,628 basehttp "GET /diagnostic-exam/ HTTP/1.1" 404 3246
+WARNING 2025-03-26 12:45:13,810 log Not Found: /admin
+WARNING 2025-03-26 12:45:13,811 basehttp "GET /admin HTTP/1.1" 404 3203
+WARNING 2025-03-26 12:47:25,163 log Not Found: /favicon.ico
+WARNING 2025-03-26 12:47:25,163 basehttp "GET /favicon.ico HTTP/1.1" 404 3227
+WARNING 2025-03-26 13:21:00,590 basehttp "GET /static/admin/js/match_admin.js HTTP/1.1" 404 1929
+WARNING 2025-03-26 13:21:00,591 basehttp "GET /static/admin/jquery.init.js HTTP/1.1" 404 1920
+WARNING 2025-03-26 13:21:04,004 basehttp "GET /static/admin/jquery.init.js HTTP/1.1" 404 1920
+WARNING 2025-03-26 13:21:04,006 basehttp "GET /static/admin/js/match_admin.js HTTP/1.1" 404 1929
+ERROR 2025-03-26 13:22:00,181 log Internal Server Error: /admin/api/playermatchstat/bulk-add/1/
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/django/template/backends/django.py", line 33, in get_template
+    return Template(self.engine.get_template(template_name), self)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/django/template/engine.py", line 175, in get_template
+    template, origin = self.find_template(template_name)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/django/template/engine.py", line 161, in find_template
+    raise TemplateDoesNotExist(name, tried=tried)
+django.template.exceptions.TemplateDoesNotExist: widgets/hero_select.html
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/django/template/backends/django.py", line 61, in render
+    return self.template.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/django/template/base.py", line 175, in render
+    return self._render(context)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/django/template/base.py", line 167, in _render
+    return self.nodelist.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/django/template/base.py", line 1005, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/django/template/base.py", line 1005, in <listcomp>
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/django/template/base.py", line 966, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/django/template/loader_tags.py", line 157, in render
+    return compiled_parent._render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/django/template/base.py", line 167, in _render
+    return self.nodelist.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/django/template/base.py", line 1005, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/django/template/base.py", line 1005, in <listcomp>
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/django/template/base.py", line 966, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/django/template/loader_tags.py", line 157, in render
+    return compiled_parent._render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/django/template/base.py", line 167, in _render
+    return self.nodelist.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/django/template/base.py", line 1005, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/django/template/base.py", line 1005, in <listcomp>
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/django/template/base.py", line 966, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/django/template/loader_tags.py", line 63, in render
+    result = block.nodelist.render(context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/django/template/base.py", line 1005, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/django/template/base.py", line 1005, in <listcomp>
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/django/template/base.py", line 966, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/django/template/defaulttags.py", line 238, in render
+    nodelist.append(node.render_annotated(context))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/django/template/base.py", line 966, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/django/template/defaulttags.py", line 321, in render
+    return nodelist.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/django/template/base.py", line 1005, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/django/template/base.py", line 1005, in <listcomp>
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/django/template/base.py", line 966, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/django/template/defaulttags.py", line 238, in render
+    nodelist.append(node.render_annotated(context))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/django/template/base.py", line 966, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/django/template/base.py", line 1070, in render
+    return render_value_in_context(output, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/django/template/base.py", line 1047, in render_value_in_context
+    value = str(value)
+            ^^^^^^^^^^
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/django/utils/html.py", line 475, in <lambda>
+    klass.__str__ = lambda self: mark_safe(klass_str(self))
+                                           ^^^^^^^^^^^^^^^
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/django/forms/boundfield.py", line 34, in __str__
+    return self.as_widget()
+           ^^^^^^^^^^^^^^^^
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/django/forms/boundfield.py", line 107, in as_widget
+    return widget.render(
+           ^^^^^^^^^^^^^^
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/django/forms/widgets.py", line 281, in render
+    return self._render(self.template_name, context, renderer)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/django/forms/widgets.py", line 286, in _render
+    return mark_safe(renderer.render(template_name, context))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/django/forms/renderers.py", line 28, in render
+    template = self.get_template(template_name)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/django/forms/renderers.py", line 34, in get_template
+    return self.engine.get_template(template_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/django/template/backends/django.py", line 35, in get_template
+    reraise(exc, self)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/django/template/backends/django.py", line 84, in reraise
+    raise new from exc
+django.template.exceptions.TemplateDoesNotExist: widgets/hero_select.html
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/django/utils/decorators.py", line 134, in _wrapper_view
+    response = view_func(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/django/views/decorators/cache.py", line 62, in _wrapper_view_func
+    response = view_func(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/django/contrib/admin/sites.py", line 242, in inner
+    return view(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/scrim_stats_backend/api/admin.py", line 671, in bulk_add_stats_view
+    return render(request, 'admin/api/playermatchstat/bulk_add.html', context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/django/shortcuts.py", line 24, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/django/template/loader.py", line 62, in render_to_string
+    return template.render(context, request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/django/template/backends/django.py", line 63, in render
+    reraise(exc, self.backend)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/django/template/backends/django.py", line 84, in reraise
+    raise new from exc
+django.template.exceptions.TemplateDoesNotExist: widgets/hero_select.html
+ERROR 2025-03-26 13:22:00,185 basehttp "GET /admin/api/playermatchstat/bulk-add/1/ HTTP/1.1" 500 382727
+WARNING 2025-03-27 01:16:53,866 log Not Found: /admin/api/playermatchstat/bulk-add/
+WARNING 2025-03-27 01:16:53,867 basehttp "GET /admin/api/playermatchstat/bulk-add/ HTTP/1.1" 404 6238
+WARNING 2025-03-27 01:17:12,707 basehttp "GET /static/admin/js/match_admin.js HTTP/1.1" 404 1929
+WARNING 2025-03-27 01:17:12,708 basehttp "GET /static/admin/jquery.init.js HTTP/1.1" 404 1920
+WARNING 2025-03-27 01:17:15,699 basehttp "GET /static/admin/js/match_admin.js HTTP/1.1" 404 1929
+WARNING 2025-03-27 01:17:15,700 basehttp "GET /static/admin/jquery.init.js HTTP/1.1" 404 1920
+WARNING 2025-03-27 01:17:26,865 basehttp "GET /static/admin/jquery.init.js HTTP/1.1" 404 1920
+WARNING 2025-03-27 01:17:26,865 basehttp "GET /static/admin/js/scrimgroup_admin.js HTTP/1.1" 404 1944
+WARNING 2025-03-27 01:17:52,241 basehttp "GET /static/admin/js/match_admin.js HTTP/1.1" 404 1929
+WARNING 2025-03-27 01:17:52,243 basehttp "GET /static/admin/jquery.init.js HTTP/1.1" 404 1920
+WARNING 2025-03-27 01:18:05,204 basehttp "GET /static/admin/jquery.init.js HTTP/1.1" 404 1920
+WARNING 2025-03-27 01:18:05,205 basehttp "GET /static/admin/js/match_admin.js HTTP/1.1" 404 1929
+WARNING 2025-03-27 01:18:24,416 basehttp "GET /static/admin/jquery.init.js HTTP/1.1" 404 1920
+WARNING 2025-03-27 01:18:24,417 basehttp "GET /static/admin/js/match_admin.js HTTP/1.1" 404 1929
+WARNING 2025-03-27 01:19:56,079 basehttp "GET /static/admin/js/match_admin.js HTTP/1.1" 404 1929
+WARNING 2025-03-27 01:19:56,080 basehttp "GET /static/admin/jquery.init.js HTTP/1.1" 404 1920
+WARNING 2025-03-27 01:20:15,548 basehttp "GET /static/admin/js/match_admin.js HTTP/1.1" 404 1929
+WARNING 2025-03-27 01:20:15,549 basehttp "GET /static/admin/jquery.init.js HTTP/1.1" 404 1920
+WARNING 2025-03-27 01:20:27,411 basehttp "GET /static/admin/jquery.init.js HTTP/1.1" 404 1920
+WARNING 2025-03-27 01:20:27,411 basehttp "GET /static/admin/js/match_admin.js HTTP/1.1" 404 1929
+WARNING 2025-03-27 01:20:37,182 basehttp "GET /static/admin/jquery.init.js HTTP/1.1" 404 1920
+WARNING 2025-03-27 01:20:37,185 basehttp "GET /static/admin/js/match_admin.js HTTP/1.1" 404 1929
+WARNING 2025-03-27 02:10:49,604 basehttp "GET /static/admin/js/match_admin.js HTTP/1.1" 404 1929
+WARNING 2025-03-27 02:10:49,605 basehttp "GET /static/admin/jquery.init.js HTTP/1.1" 404 1920
+WARNING 2025-03-27 02:11:24,779 basehttp "GET /static/js/hero_select.js HTTP/1.1" 404 1911
+WARNING 2025-03-27 02:11:24,780 basehttp "GET /static/admin/jquery.init.js HTTP/1.1" 404 1920
+WARNING 2025-03-27 02:31:30,602 basehttp "GET /static/admin/jquery.init.js HTTP/1.1" 404 1920
+WARNING 2025-03-27 02:31:30,602 basehttp "GET /static/admin/js/match_admin.js HTTP/1.1" 404 1929
+WARNING 2025-03-27 02:31:33,922 basehttp "GET /static/admin/jquery.init.js HTTP/1.1" 404 1920
+WARNING 2025-03-27 02:31:33,923 basehttp "GET /static/admin/js/match_admin.js HTTP/1.1" 404 1929
+WARNING 2025-03-27 02:56:27,383 basehttp "GET /static/admin/jquery.init.js HTTP/1.1" 404 1920
+WARNING 2025-03-27 02:56:27,383 basehttp "GET /static/admin/js/match_admin.js HTTP/1.1" 404 1929
+WARNING 2025-03-27 03:05:43,148 basehttp "GET /static/admin/jquery.init.js HTTP/1.1" 404 1920
+WARNING 2025-03-27 03:05:43,149 basehttp "GET /static/admin/js/match_admin.js HTTP/1.1" 404 1929
+WARNING 2025-03-27 03:09:52,473 basehttp "GET /static/admin/js/match_admin.js HTTP/1.1" 404 1929
+WARNING 2025-03-27 03:09:52,475 basehttp "GET /static/admin/jquery.init.js HTTP/1.1" 404 1920
+WARNING 2025-03-27 03:09:55,949 basehttp "GET /static/admin/jquery.init.js HTTP/1.1" 404 1920
+WARNING 2025-03-27 03:09:55,949 basehttp "GET /static/admin/js/match_admin.js HTTP/1.1" 404 1929
+WARNING 2025-03-27 03:09:59,780 basehttp "GET /static/admin/jquery.init.js HTTP/1.1" 404 1920
+WARNING 2025-03-27 03:09:59,780 basehttp "GET /static/admin/js/match_admin.js HTTP/1.1" 404 1929
+WARNING 2025-03-27 03:10:07,062 basehttp "GET /static/admin/jquery.init.js HTTP/1.1" 404 1920
+WARNING 2025-03-27 03:10:07,063 basehttp "GET /static/admin/js/match_admin.js HTTP/1.1" 404 1929
+WARNING 2025-03-27 03:10:10,315 basehttp "GET /static/admin/jquery.init.js HTTP/1.1" 404 1920
+WARNING 2025-03-27 03:10:10,315 basehttp "GET /static/admin/js/match_admin.js HTTP/1.1" 404 1929
+WARNING 2025-03-27 04:01:10,568 basehttp "GET /static/admin/js/match_admin.js HTTP/1.1" 404 1929
+WARNING 2025-03-27 04:01:10,568 basehttp "GET /static/admin/jquery.init.js HTTP/1.1" 404 1920
+WARNING 2025-03-27 04:01:25,537 basehttp "GET /static/admin/js/match_admin.js HTTP/1.1" 404 1929
+WARNING 2025-03-27 04:01:25,537 basehttp "GET /static/admin/jquery.init.js HTTP/1.1" 404 1920
+WARNING 2025-03-27 04:05:26,614 basehttp "GET /static/admin/js/match_admin.js HTTP/1.1" 404 1929
+WARNING 2025-03-27 04:05:26,615 basehttp "GET /static/admin/jquery.init.js HTTP/1.1" 404 1920
+WARNING 2025-03-27 04:05:38,733 basehttp "GET /static/admin/js/match_admin.js HTTP/1.1" 404 1929
+WARNING 2025-03-27 04:05:38,736 basehttp "GET /static/admin/jquery.init.js HTTP/1.1" 404 1920
+WARNING 2025-03-27 04:06:09,471 basehttp "GET /static/admin/js/match_admin.js HTTP/1.1" 404 1929
+WARNING 2025-03-27 04:06:09,475 basehttp "GET /static/admin/jquery.init.js HTTP/1.1" 404 1920
+WARNING 2025-03-27 04:18:58,458 basehttp "GET /static/admin/jquery.init.js HTTP/1.1" 404 1920
+WARNING 2025-03-27 04:18:58,459 basehttp "GET /static/admin/js/match_admin.js HTTP/1.1" 404 1929
+WARNING 2025-03-27 05:07:25,118 log Unauthorized: /api/scrim-groups/
+WARNING 2025-03-27 05:07:25,119 basehttp "GET /api/scrim-groups/ HTTP/1.1" 401 75
+WARNING 2025-03-27 05:07:25,121 log Unauthorized: /api/scrim-groups/
+WARNING 2025-03-27 05:07:25,121 basehttp "GET /api/scrim-groups/ HTTP/1.1" 401 75
+WARNING 2025-03-27 05:11:05,341 log Unauthorized: /api/matches/
+WARNING 2025-03-27 05:11:05,341 basehttp "GET /api/matches/ HTTP/1.1" 401 75
+WARNING 2025-03-27 05:11:05,358 log Unauthorized: /api/matches/
+WARNING 2025-03-27 05:11:05,361 basehttp "GET /api/matches/ HTTP/1.1" 401 75
+WARNING 2025-03-27 05:11:41,424 log Unauthorized: /api/matches/
+WARNING 2025-03-27 05:11:41,425 basehttp "GET /api/matches/ HTTP/1.1" 401 75
+WARNING 2025-03-27 05:11:41,428 log Unauthorized: /api/matches/
+WARNING 2025-03-27 05:11:41,428 basehttp "GET /api/matches/ HTTP/1.1" 401 75
+WARNING 2025-03-27 05:11:44,917 log Unauthorized: /api/scrim-groups/
+WARNING 2025-03-27 05:11:44,918 basehttp "GET /api/scrim-groups/ HTTP/1.1" 401 75
+WARNING 2025-03-27 05:11:44,921 log Unauthorized: /api/scrim-groups/
+WARNING 2025-03-27 05:11:44,921 basehttp "GET /api/scrim-groups/ HTTP/1.1" 401 75
+WARNING 2025-03-27 05:12:01,991 log Unauthorized: /api/scrim-groups/
+WARNING 2025-03-27 05:12:01,991 basehttp "GET /api/scrim-groups/ HTTP/1.1" 401 75
+WARNING 2025-03-27 05:12:01,993 log Unauthorized: /api/scrim-groups/
+WARNING 2025-03-27 05:12:01,993 basehttp "GET /api/scrim-groups/ HTTP/1.1" 401 75
+WARNING 2025-03-27 05:12:27,646 log Unauthorized: /api/scrim-groups/
+WARNING 2025-03-27 05:12:27,649 basehttp "GET /api/scrim-groups/ HTTP/1.1" 401 75
+WARNING 2025-03-27 05:12:27,734 log Unauthorized: /api/scrim-groups/
+WARNING 2025-03-27 05:12:27,735 basehttp "GET /api/scrim-groups/ HTTP/1.1" 401 75
+WARNING 2025-03-27 05:12:28,515 log Unauthorized: /api/matches/
+WARNING 2025-03-27 05:12:28,567 basehttp "GET /api/matches/ HTTP/1.1" 401 75
+WARNING 2025-03-27 05:12:28,571 log Unauthorized: /api/matches/
+WARNING 2025-03-27 05:12:28,571 basehttp "GET /api/matches/ HTTP/1.1" 401 75
+WARNING 2025-03-27 08:54:14,477 log Unauthorized: /api/scrim-groups/
+WARNING 2025-03-27 08:54:14,477 basehttp "GET /api/scrim-groups/ HTTP/1.1" 401 75
+WARNING 2025-03-27 08:54:14,481 log Unauthorized: /api/scrim-groups/
+WARNING 2025-03-27 08:54:14,481 basehttp "GET /api/scrim-groups/ HTTP/1.1" 401 75
+WARNING 2025-03-27 08:54:59,955 log Unauthorized: /api/scrim-groups/
+WARNING 2025-03-27 08:54:59,955 basehttp "GET /api/scrim-groups/ HTTP/1.1" 401 75
+WARNING 2025-03-27 08:54:59,957 log Unauthorized: /api/scrim-groups/
+WARNING 2025-03-27 08:54:59,957 basehttp "GET /api/scrim-groups/ HTTP/1.1" 401 75
+WARNING 2025-03-27 08:58:42,821 log Unauthorized: /api/scrim-groups/
+WARNING 2025-03-27 08:58:42,822 basehttp "GET /api/scrim-groups/ HTTP/1.1" 401 75
+WARNING 2025-03-27 09:01:27,017 log Unauthorized: /api/scrim-groups/
+WARNING 2025-03-27 09:01:27,018 basehttp "GET /api/scrim-groups/ HTTP/1.1" 401 75
+WARNING 2025-03-27 09:01:27,020 log Unauthorized: /api/scrim-groups/
+WARNING 2025-03-27 09:01:27,021 basehttp "GET /api/scrim-groups/ HTTP/1.1" 401 75
+WARNING 2025-03-27 09:02:29,198 log Unauthorized: /api/scrim-groups/
+WARNING 2025-03-27 09:02:29,198 basehttp "GET /api/scrim-groups/ HTTP/1.1" 401 75
+WARNING 2025-03-27 09:02:29,200 log Unauthorized: /api/scrim-groups/
+WARNING 2025-03-27 09:02:29,200 basehttp "GET /api/scrim-groups/ HTTP/1.1" 401 75
+WARNING 2025-03-27 09:05:57,466 log Unauthorized: /api/scrim-groups/
+WARNING 2025-03-27 09:05:57,467 basehttp "GET /api/scrim-groups/ HTTP/1.1" 401 75
+WARNING 2025-03-27 09:05:57,468 log Unauthorized: /api/scrim-groups/
+WARNING 2025-03-27 09:05:57,468 basehttp "GET /api/scrim-groups/ HTTP/1.1" 401 75
+WARNING 2025-03-27 09:06:17,641 log Unauthorized: /api/matches/
+WARNING 2025-03-27 09:06:17,642 basehttp "GET /api/matches/ HTTP/1.1" 401 75
+WARNING 2025-03-27 09:06:17,645 log Unauthorized: /api/matches/
+WARNING 2025-03-27 09:06:17,645 basehttp "GET /api/matches/ HTTP/1.1" 401 75
+WARNING 2025-03-27 09:06:19,370 log Unauthorized: /api/scrim-groups/
+WARNING 2025-03-27 09:06:19,371 basehttp "GET /api/scrim-groups/ HTTP/1.1" 401 75
+WARNING 2025-03-27 09:06:19,373 log Unauthorized: /api/scrim-groups/
+WARNING 2025-03-27 09:06:19,373 basehttp "GET /api/scrim-groups/ HTTP/1.1" 401 75
+WARNING 2025-03-27 09:06:42,794 log Unauthorized: /api/scrim-groups/
+WARNING 2025-03-27 09:06:42,794 basehttp "GET /api/scrim-groups/ HTTP/1.1" 401 75
+WARNING 2025-03-27 09:06:42,797 log Unauthorized: /api/scrim-groups/
+WARNING 2025-03-27 09:06:42,797 basehttp "GET /api/scrim-groups/ HTTP/1.1" 401 75
+WARNING 2025-03-27 09:09:29,604 log Unauthorized: /api/matches/
+WARNING 2025-03-27 09:09:29,605 basehttp "GET /api/matches/ HTTP/1.1" 401 75
+WARNING 2025-03-27 09:09:29,607 log Unauthorized: /api/matches/
+WARNING 2025-03-27 09:09:29,607 basehttp "GET /api/matches/ HTTP/1.1" 401 75
+WARNING 2025-03-27 09:10:20,956 log Unauthorized: /api/scrim-groups/
+WARNING 2025-03-27 09:10:20,957 basehttp "GET /api/scrim-groups/ HTTP/1.1" 401 75
+WARNING 2025-03-27 09:10:20,959 log Unauthorized: /api/scrim-groups/
+WARNING 2025-03-27 09:10:20,959 basehttp "GET /api/scrim-groups/ HTTP/1.1" 401 75
+WARNING 2025-03-27 09:16:12,805 log Unauthorized: /api/scrim-groups/
+WARNING 2025-03-27 09:16:12,806 basehttp "GET /api/scrim-groups/ HTTP/1.1" 401 75
+WARNING 2025-03-27 09:16:12,813 log Unauthorized: /api/scrim-groups/
+WARNING 2025-03-27 09:16:12,814 basehttp "GET /api/scrim-groups/ HTTP/1.1" 401 75
+WARNING 2025-03-27 09:16:39,702 log Unauthorized: /api/scrim-groups/
+WARNING 2025-03-27 09:16:39,703 basehttp "GET /api/scrim-groups/ HTTP/1.1" 401 75
+WARNING 2025-03-27 09:18:46,722 log Unauthorized: /api/scrim-groups/
+WARNING 2025-03-27 09:18:46,723 log Unauthorized: /api/teams/
+WARNING 2025-03-27 09:18:46,724 basehttp "GET /api/scrim-groups/ HTTP/1.1" 401 75
+WARNING 2025-03-27 09:18:46,724 basehttp "GET /api/teams/ HTTP/1.1" 401 75
+WARNING 2025-03-27 09:18:46,750 log Unauthorized: /api/scrim-groups/
+WARNING 2025-03-27 09:18:46,753 log Unauthorized: /api/teams/
+WARNING 2025-03-27 09:18:46,753 basehttp "GET /api/scrim-groups/ HTTP/1.1" 401 75
+WARNING 2025-03-27 09:18:46,755 basehttp "GET /api/teams/ HTTP/1.1" 401 75
+WARNING 2025-03-27 09:18:56,564 log Unauthorized: /api/players/
+WARNING 2025-03-27 09:18:56,564 basehttp "GET /api/players/ HTTP/1.1" 401 75
+WARNING 2025-03-27 09:18:56,571 log Unauthorized: /api/players/
+WARNING 2025-03-27 09:18:56,573 basehttp "GET /api/players/ HTTP/1.1" 401 75
+WARNING 2025-03-27 09:18:56,586 log Unauthorized: /api/players/
+WARNING 2025-03-27 09:18:56,592 basehttp "GET /api/players/ HTTP/1.1" 401 75
+WARNING 2025-03-27 09:18:56,593 log Unauthorized: /api/players/
+WARNING 2025-03-27 09:18:56,593 basehttp "GET /api/players/ HTTP/1.1" 401 75
+WARNING 2025-03-27 09:18:56,602 log Unauthorized: /api/players/
+WARNING 2025-03-27 09:18:56,606 log Not Found: /api/heroes/
+WARNING 2025-03-27 09:18:56,606 basehttp "GET /api/players/ HTTP/1.1" 401 75
+WARNING 2025-03-27 09:18:56,606 basehttp "GET /api/heroes/ HTTP/1.1" 404 12358
+WARNING 2025-03-27 09:18:56,611 log Unauthorized: /api/players/
+WARNING 2025-03-27 09:18:56,613 basehttp "GET /api/players/ HTTP/1.1" 401 75
+WARNING 2025-03-27 09:18:56,617 log Unauthorized: /api/players/
+WARNING 2025-03-27 09:18:56,618 basehttp "GET /api/players/ HTTP/1.1" 401 75
+WARNING 2025-03-27 09:18:56,620 log Not Found: /api/heroes/
+WARNING 2025-03-27 09:18:56,621 log Unauthorized: /api/players/
+WARNING 2025-03-27 09:18:56,621 basehttp "GET /api/heroes/ HTTP/1.1" 404 12358
+WARNING 2025-03-27 09:18:56,621 basehttp "GET /api/players/ HTTP/1.1" 401 75
+WARNING 2025-03-27 09:18:56,624 log Unauthorized: /api/players/
+WARNING 2025-03-27 09:18:56,624 basehttp "GET /api/players/ HTTP/1.1" 401 75
+WARNING 2025-03-27 09:18:56,628 log Unauthorized: /api/players/
+WARNING 2025-03-27 09:18:56,629 log Not Found: /api/heroes/
+WARNING 2025-03-27 09:18:56,630 basehttp "GET /api/heroes/ HTTP/1.1" 404 12358
+WARNING 2025-03-27 09:18:56,630 basehttp "GET /api/players/ HTTP/1.1" 401 75
+WARNING 2025-03-27 09:18:56,637 log Not Found: /api/heroes/
+WARNING 2025-03-27 09:18:56,637 basehttp "GET /api/heroes/ HTTP/1.1" 404 12358
+WARNING 2025-03-27 09:18:56,641 log Not Found: /api/heroes/
+WARNING 2025-03-27 09:18:56,642 basehttp "GET /api/heroes/ HTTP/1.1" 404 12358
+WARNING 2025-03-27 09:18:56,646 log Not Found: /api/heroes/
+WARNING 2025-03-27 09:18:56,646 basehttp "GET /api/heroes/ HTTP/1.1" 404 12358
+WARNING 2025-03-27 09:18:56,651 log Not Found: /api/heroes/
+WARNING 2025-03-27 09:18:56,651 basehttp "GET /api/heroes/ HTTP/1.1" 404 12358
+WARNING 2025-03-27 09:18:56,656 log Not Found: /api/heroes/
+WARNING 2025-03-27 09:18:56,656 basehttp "GET /api/heroes/ HTTP/1.1" 404 12358
+WARNING 2025-03-27 09:18:56,661 log Not Found: /api/heroes/
+WARNING 2025-03-27 09:18:56,661 basehttp "GET /api/heroes/ HTTP/1.1" 404 12358
+WARNING 2025-03-27 09:18:56,666 log Not Found: /api/heroes/
+WARNING 2025-03-27 09:18:56,666 basehttp "GET /api/heroes/ HTTP/1.1" 404 12358
+WARNING 2025-03-27 09:23:02,737 log Unauthorized: /api/scrim-groups/
+WARNING 2025-03-27 09:23:02,738 log Unauthorized: /api/teams/
+WARNING 2025-03-27 09:23:02,738 basehttp "GET /api/teams/ HTTP/1.1" 401 75
+WARNING 2025-03-27 09:23:02,739 basehttp "GET /api/scrim-groups/ HTTP/1.1" 401 75
+WARNING 2025-03-27 09:23:02,749 log Unauthorized: /api/matches/
+WARNING 2025-03-27 09:23:02,750 basehttp "GET /api/matches/ HTTP/1.1" 401 75
+WARNING 2025-03-27 09:24:06,762 log Unauthorized: /api/scrim-groups/
+WARNING 2025-03-27 09:24:06,763 log Unauthorized: /api/teams/
+WARNING 2025-03-27 09:24:06,764 basehttp "GET /api/scrim-groups/ HTTP/1.1" 401 75
+WARNING 2025-03-27 09:24:06,764 basehttp "GET /api/teams/ HTTP/1.1" 401 75
+WARNING 2025-03-27 09:24:06,787 log Unauthorized: /api/teams/
+WARNING 2025-03-27 09:24:06,789 log Unauthorized: /api/scrim-groups/
+WARNING 2025-03-27 09:24:06,790 basehttp "GET /api/teams/ HTTP/1.1" 401 75
+WARNING 2025-03-27 09:24:06,792 basehttp "GET /api/scrim-groups/ HTTP/1.1" 401 75
+WARNING 2025-03-27 09:29:07,899 log Unauthorized: /api/scrim-groups/
+WARNING 2025-03-27 09:29:07,899 log Unauthorized: /api/teams/
+WARNING 2025-03-27 09:29:07,901 basehttp "GET /api/scrim-groups/ HTTP/1.1" 401 75
+WARNING 2025-03-27 09:29:07,901 basehttp "GET /api/teams/ HTTP/1.1" 401 75
+WARNING 2025-03-27 09:29:07,906 log Unauthorized: /api/scrim-groups/
+WARNING 2025-03-27 09:29:07,935 basehttp "GET /api/scrim-groups/ HTTP/1.1" 401 75
+WARNING 2025-03-27 09:29:07,928 log Unauthorized: /api/teams/
+WARNING 2025-03-27 09:29:07,940 basehttp "GET /api/teams/ HTTP/1.1" 401 75
+WARNING 2025-03-27 09:29:08,589 log Unauthorized: /api/matches/
+WARNING 2025-03-27 09:29:08,590 basehttp "GET /api/matches/ HTTP/1.1" 401 75
+WARNING 2025-03-27 09:29:08,622 log Unauthorized: /api/matches/
+WARNING 2025-03-27 09:29:08,622 basehttp "GET /api/matches/ HTTP/1.1" 401 75
+WARNING 2025-03-27 09:29:11,453 log Unauthorized: /api/scrim-groups/
+WARNING 2025-03-27 09:29:11,476 log Unauthorized: /api/teams/
+WARNING 2025-03-27 09:29:11,480 basehttp "GET /api/teams/ HTTP/1.1" 401 75
+WARNING 2025-03-27 09:29:11,474 basehttp "GET /api/scrim-groups/ HTTP/1.1" 401 75
+WARNING 2025-03-27 09:29:11,486 log Unauthorized: /api/scrim-groups/
+WARNING 2025-03-27 09:29:11,488 log Unauthorized: /api/teams/
+WARNING 2025-03-27 09:29:11,488 basehttp "GET /api/scrim-groups/ HTTP/1.1" 401 75
+WARNING 2025-03-27 09:29:11,488 basehttp "GET /api/teams/ HTTP/1.1" 401 75
+WARNING 2025-03-27 09:29:11,876 log Unauthorized: /api/matches/
+WARNING 2025-03-27 09:29:11,876 basehttp "GET /api/matches/ HTTP/1.1" 401 75
+WARNING 2025-03-27 09:29:11,879 log Unauthorized: /api/matches/
+WARNING 2025-03-27 09:29:11,879 basehttp "GET /api/matches/ HTTP/1.1" 401 75
+WARNING 2025-03-27 09:49:50,073 log Unauthorized: /api/matches/
+WARNING 2025-03-27 09:49:50,075 basehttp "GET /api/matches/ HTTP/1.1" 401 75
+WARNING 2025-03-27 09:49:50,094 log Unauthorized: /api/matches/
+WARNING 2025-03-27 09:49:50,094 basehttp "GET /api/matches/ HTTP/1.1" 401 75
+WARNING 2025-03-27 09:49:50,234 log Unauthorized: /api/scrim-groups/
+WARNING 2025-03-27 09:49:50,236 basehttp "GET /api/scrim-groups/ HTTP/1.1" 401 75
+WARNING 2025-03-27 09:49:50,235 log Unauthorized: /api/teams/
+WARNING 2025-03-27 09:49:50,237 basehttp "GET /api/teams/ HTTP/1.1" 401 75
+WARNING 2025-03-27 09:49:50,245 log Unauthorized: /api/scrim-groups/
+WARNING 2025-03-27 09:49:50,246 log Unauthorized: /api/teams/
+WARNING 2025-03-27 09:49:50,246 basehttp "GET /api/scrim-groups/ HTTP/1.1" 401 75
+WARNING 2025-03-27 09:49:50,248 basehttp "GET /api/teams/ HTTP/1.1" 401 75
+WARNING 2025-03-27 09:57:07,397 log Unauthorized: /api/scrim-groups/
+WARNING 2025-03-27 09:57:07,408 log Unauthorized: /api/teams/
+WARNING 2025-03-27 09:57:07,409 basehttp "GET /api/scrim-groups/ HTTP/1.1" 401 75
+WARNING 2025-03-27 09:57:07,409 basehttp "GET /api/teams/ HTTP/1.1" 401 75
+WARNING 2025-03-27 09:57:07,414 log Unauthorized: /api/scrim-groups/
+WARNING 2025-03-27 09:57:07,414 log Unauthorized: /api/teams/
+WARNING 2025-03-27 09:57:07,414 basehttp "GET /api/scrim-groups/ HTTP/1.1" 401 75
+WARNING 2025-03-27 09:57:07,415 basehttp "GET /api/teams/ HTTP/1.1" 401 75
+WARNING 2025-03-27 09:57:07,481 log Unauthorized: /api/matches/
+WARNING 2025-03-27 09:57:07,482 basehttp "GET /api/matches/ HTTP/1.1" 401 75
+WARNING 2025-03-27 09:57:07,490 log Unauthorized: /api/matches/
+WARNING 2025-03-27 09:57:07,491 basehttp "GET /api/matches/ HTTP/1.1" 401 75
+WARNING 2025-03-27 13:43:49,637 log Unauthorized: /api/teams/
+WARNING 2025-03-27 13:43:49,649 log Unauthorized: /api/scrim-groups/
+WARNING 2025-03-27 13:43:49,653 basehttp "GET /api/scrim-groups/ HTTP/1.1" 401 75
+WARNING 2025-03-27 13:43:49,656 basehttp "GET /api/teams/ HTTP/1.1" 401 75
+WARNING 2025-03-27 13:43:49,670 log Unauthorized: /api/scrim-groups/
+WARNING 2025-03-27 13:43:49,672 log Unauthorized: /api/teams/
+WARNING 2025-03-27 13:43:49,672 basehttp "GET /api/teams/ HTTP/1.1" 401 75
+WARNING 2025-03-27 13:43:49,672 basehttp "GET /api/scrim-groups/ HTTP/1.1" 401 75
+WARNING 2025-03-27 13:43:50,329 log Unauthorized: /api/matches/
+WARNING 2025-03-27 13:43:50,330 basehttp "GET /api/matches/ HTTP/1.1" 401 75
+WARNING 2025-03-27 13:43:50,334 log Unauthorized: /api/matches/
+WARNING 2025-03-27 13:43:50,335 basehttp "GET /api/matches/ HTTP/1.1" 401 75

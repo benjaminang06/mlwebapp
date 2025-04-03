@@ -1,8 +1,10 @@
 {% extends "admin/base_site.html" %}
-{% load i18n admin_urls static %}
+{% load i18n admin_urls static admin_modify %}
 
 {% block extrahead %}
     {{ block.super }}
+    <link rel="stylesheet" type="text/css" href="{% static 'admin/css/forms.css' %}">
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css">
     <style>
         .stats-form-container {
             max-width: 1400px;
@@ -57,6 +59,37 @@
             border: 1px solid #ddd;
             border-radius: 4px;
         }
+        
+        /* Important styles for the Select2 dropdown */
+        .hero-dropdown {
+            width: auto !important;
+            min-width: 200px;
+        }
+        .select2-container {
+            width: 100% !important;
+        }
+        .select2-container .select2-selection--single {
+            height: 32px !important;
+        }
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            line-height: 32px !important;
+        }
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 30px !important;
+        }
+        .select2-search--dropdown .select2-search__field {
+            width: 100% !important;
+            padding: 6px !important;
+            font-size: 14px !important;
+        }
+        .select2-container--default .select2-search--dropdown .select2-search__field {
+            border: 1px solid #ddd !important;
+        }
+        .select2-results__option {
+            padding: 6px 10px !important;
+        }
+        
+        /* Existing styles continue below... */
         .player-form input[type="number"] {
             text-align: center;
         }
@@ -160,67 +193,74 @@
         select:focus + .player-disabled-tooltip {
             display: block;
         }
+        .player-stats-form {
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #eee;
+            border-radius: 5px;
+        }
+        .team-label {
+            font-weight: bold;
+            margin-bottom: 10px;
+            padding: 5px;
+            background-color: #f8f8f8;
+            border-radius: 3px;
+        }
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            margin-right: -15px;
+            margin-left: -15px;
+        }
+        .form-group {
+            flex: 0 0 25%;
+            max-width: 25%;
+            padding-right: 15px;
+            padding-left: 15px;
+            margin-bottom: 10px;
+        }
+        @media (max-width: 992px) {
+            .form-group {
+                flex: 0 0 33.333333%;
+                max-width: 33.333333%;
+            }
+        }
+        @media (max-width: 768px) {
+            .form-group {
+                flex: 0 0 50%;
+                max-width: 50%;
+            }
+        }
+        @media (max-width: 576px) {
+            .form-group {
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+        }
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        select, input {
+            width: 100%;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+        .btn-primary {
+            background-color: #447e9b;
+            color: white;
+        }
+        /* Add specific styling for the hero select field */
+        .hero-select-container .select2-selection {
+            min-height: 30px;
+        }
     </style>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const matchId = '{{ match.match_id }}';
-            const storageKey = `playerStats_${matchId}`;
             const formElement = document.querySelector('.stats-form-container form');
-            let statusTimeout;
-            
-            // Create auto-save status notification element
-            const saveStatus = document.createElement('div');
-            saveStatus.className = 'auto-save-status';
-            saveStatus.innerText = 'Progress saved';
-            document.body.appendChild(saveStatus);
-            
-            // Function to show save status briefly
-            function showSaveStatus() {
-                saveStatus.style.display = 'block';
-                clearTimeout(statusTimeout);
-                statusTimeout = setTimeout(() => {
-                    saveStatus.style.display = 'none';
-                }, 2000);
-            }
-            
-            // Function to save form data to localStorage
-            function saveFormData() {
-                const formData = {};
-                
-                // Save all input and select field values
-                document.querySelectorAll('.player-form input, .player-form select').forEach(field => {
-                    formData[field.name] = field.value;
-                });
-                
-                // Store in localStorage
-                localStorage.setItem(storageKey, JSON.stringify(formData));
-                showSaveStatus();
-            }
-            
-            // Function to load form data from localStorage
-            function loadFormData() {
-                const savedData = localStorage.getItem(storageKey);
-                if (savedData) {
-                    const formData = JSON.parse(savedData);
-                    
-                    // Set all input and select values
-                    Object.keys(formData).forEach(fieldName => {
-                        const field = document.querySelector(`[name="${fieldName}"]`);
-                        if (field) {
-                            field.value = formData[fieldName];
-                        }
-                    });
-                    
-                    // Update player selection restrictions after loading data
-                    updatePlayerSelections();
-                }
-            }
-            
-            // Add event listener to save form data when inputs change
-            document.querySelectorAll('.player-form input, .player-form select').forEach(field => {
-                field.addEventListener('change', saveFormData);
-                field.addEventListener('input', saveFormData);
-            });
             
             // Validate form before submission
             formElement.addEventListener('submit', function(e) {
@@ -253,6 +293,38 @@
                 warningContainer.innerHTML = '';
                 warningContainer.style.display = 'none';
                 document.querySelectorAll('.field-error, .field-warning').forEach(el => el.remove());
+                
+                // Check for duplicate heroes
+                const heroes = [];
+                const duplicateHeroes = [];
+                
+                document.querySelectorAll('select[name$="-hero_played"]').forEach(select => {
+                    if (select.value) {
+                        const heroName = select.value.toLowerCase();
+                        if (heroes.includes(heroName) && !duplicateHeroes.includes(heroName)) {
+                            duplicateHeroes.push(heroName);
+                        }
+                        heroes.push(heroName);
+                    }
+                });
+                
+                // If duplicate heroes detected, ask for confirmation
+                if (duplicateHeroes.length > 0) {
+                    // Format the hero names for display (capitalize first letter)
+                    const formattedHeroes = duplicateHeroes.map(hero => 
+                        hero.charAt(0).toUpperCase() + hero.slice(1)
+                    ).join(', ');
+                    
+                    warningContainer.innerHTML = `<p><strong>Warning:</strong> You have selected the same hero multiple times: <strong>${formattedHeroes}</strong></p>
+                        <p>This might be intentional for special game modes. Do you want to continue?</p>`;
+                    warningContainer.style.display = 'block';
+                    hasWarnings = true;
+                    
+                    if (!confirm(`Duplicate heroes detected: ${formattedHeroes}. This might be intentional for special game modes. Continue anyway?`)) {
+                        e.preventDefault();
+                        return;
+                    }
+                }
                 
                 // Get currently entered players
                 const playersInForm = new Set();
@@ -337,9 +409,9 @@
                         
                         // Add warnings for incomplete fields but don't prevent submission
                         if (!heroInput.value) {
-                            addFieldWarning(heroInput, "Hero is recommended");
-                        }
-                        if (!roleSelect || !roleSelect.value) {
+                            // Don't show any warning for empty hero field
+                            // We've removed the "Only existing heroes allowed" message
+                        } else if (!roleSelect || !roleSelect.value) {
                             // Add a warning for missing role if a player is selected
                             if (roleSelect) {
                                 addFieldWarning(roleSelect, "Role is recommended");
@@ -380,14 +452,8 @@
                             return;
                         }
                     }
-                    
-                    // Clear localStorage on successful submission
-                    localStorage.removeItem(storageKey);
                 }
             });
-            
-            // Load saved form data on page load
-            loadFormData();
             
             // Filter player dropdowns by team
             const ourTeamForms = document.querySelectorAll('.team-our .player-form');
@@ -461,9 +527,85 @@
             
             // Replace hero text fields with datalist-enabled inputs
             document.querySelectorAll('input[name$="-hero_played"]').forEach(input => {
-                // Add the datalist association
-                input.setAttribute('list', 'hero-list');
-                input.classList.add('hero-input');
+                // Convert to Select2 hero select
+                input.classList.add('hero-select');
+                input.dataset.url = '/api/hero-autocomplete/';
+                input.dataset.placeholder = 'Select a hero';
+                input.dataset.autoSelect = 'true';
+                
+                // Create error container for this field
+                const selectId = input.id || input.name;
+                let errorContainer = document.createElement('div');
+                errorContainer.id = selectId + '_error';
+                errorContainer.className = 'hero-error-message';
+                errorContainer.style.display = 'none';
+                errorContainer.style.color = '#d9534f';
+                errorContainer.style.fontSize = '0.8em';
+                errorContainer.style.marginTop = '3px';
+                
+                // Insert container after the input
+                input.parentNode.appendChild(errorContainer);
+                
+                // Pre-populate the input with all heroes from datalist
+                const originalInput = input;
+                const heroList = document.getElementById('hero-list');
+                
+                // Create a select element to replace the input
+                const select = document.createElement('select');
+                select.id = originalInput.id;
+                select.name = originalInput.name;
+                select.className = originalInput.className;
+                
+                // Copy data attributes
+                for (const key in originalInput.dataset) {
+                    select.dataset[key] = originalInput.dataset[key];
+                }
+                
+                // Add empty default option
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.textContent = 'Select a hero';
+                select.appendChild(defaultOption);
+                
+                // Add all heroes from datalist - use ID as value, name as text
+                if (heroList) {
+                    const options = heroList.querySelectorAll('option');
+                    options.forEach(option => {
+                        const heroOption = document.createElement('option');
+                        heroOption.value = option.value; // Now this is the hero ID
+                        heroOption.textContent = option.textContent; // Keep display as hero name
+                        select.appendChild(heroOption);
+                    });
+                }
+                
+                // Set the current value if there is one
+                const currentValue = originalInput.value;
+                if (currentValue) {
+                    console.log("Setting hero value:", currentValue);
+                    // If the value is a number (ID), find that option
+                    if (!isNaN(parseInt(currentValue))) {
+                        const matchingOption = select.querySelector(`option[value="${currentValue}"]`);
+                        if (matchingOption) {
+                            matchingOption.selected = true;
+                        }
+                    } else {
+                        // If it's a string (legacy data), try to find a matching hero by name
+                        const matchingOptionByName = Array.from(select.options).find(option => 
+                            option.textContent.toLowerCase() === currentValue.toLowerCase()
+                        );
+                        
+                        if (matchingOptionByName) {
+                            matchingOptionByName.selected = true;
+                        } else {
+                            // If no match found, display an error
+                            errorContainer.textContent = `Could not find hero: ${currentValue}`;
+                            errorContainer.style.display = 'block';
+                        }
+                    }
+                }
+                
+                // Replace the input with the select
+                originalInput.parentNode.replaceChild(select, originalInput);
             });
             
             // Prevent selecting the same player twice
@@ -517,7 +659,6 @@
             document.querySelectorAll('select[name$="-player"]').forEach(select => {
                 select.addEventListener('change', () => {
                     updatePlayerSelections();
-                    saveFormData(); // Also save to localStorage when player changes
                 });
             });
             
@@ -548,7 +689,7 @@
     <datalist id="hero-list">
         <!-- Get heroes dynamically from the database -->
         {% for hero in heroes %}
-        <option value="{{ hero.name }}">
+        <option value="{{ hero.id }}">{{ hero.name }}</option>
         {% endfor %}
     </datalist>
     
@@ -635,4 +776,149 @@
         </form>
     </div>
 </div>
+{% endblock %}
+
+{% block extrajs %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+<script>
+// Bulk add form specific Select2 initialization
+(function($) {
+    $(document).ready(function() {
+        console.log("Initializing hero selects in bulk add form");
+        
+        // Initialize Select2 for all hero selects
+        $('.hero-select').each(function() {
+            var $select = $(this);
+            var selectId = $select.attr('id') || $select.attr('name');
+            var currentValue = $select.val();
+            
+            console.log("Select2 init for", selectId, "current value:", currentValue);
+            
+            // Initialize Select2 with heroes already in the options
+            $select.select2({
+                placeholder: 'Select a hero',
+                allowClear: true,
+                tags: false,  // Disable custom entries
+                createTag: function() {
+                    // Never create new tags/custom entries
+                    return null;
+                },
+                width: '100%',
+                dropdownAutoWidth: true,
+                dropdownCssClass: 'hero-dropdown',
+                minimumInputLength: 0,
+                templateResult: function(data) {
+                    // Show the hero name in the dropdown, not the ID
+                    if (data.id) {
+                        var option = $select.find('option[value="' + data.id + '"]');
+                        if (option.length) {
+                            return option.text();
+                        }
+                    }
+                    return data.text;
+                },
+                templateSelection: function(data) {
+                    // Show the hero name in the selected box, not the ID
+                    if (data.id) {
+                        var option = $select.find('option[value="' + data.id + '"]');
+                        if (option.length) {
+                            return option.text();
+                        }
+                    }
+                    return data.text;
+                },
+                matcher: function(params, data) {
+                    // If there are no search terms, return all of the data
+                    if ($.trim(params.term) === '') {
+                        return data;
+                    }
+                    
+                    // Search term is in lowercase
+                    var term = params.term.toLowerCase();
+                    var text = data.text.toLowerCase();
+                    
+                    // Check if the text contains the term
+                    if (text.indexOf(term) > -1) {
+                        return data;
+                    }
+                    
+                    // Return `null` if the term should not be displayed
+                    return null;
+                }
+            });
+            
+            // Ensure the database value is maintained after Select2 initialization
+            if (currentValue) {
+                // Delay slightly to ensure Select2 is fully initialized
+                setTimeout(function() {
+                    // Find the option with the current value if it exists
+                    var $option = $select.find('option[value="' + currentValue + '"]');
+                    if ($option.length) {
+                        $select.val(currentValue).trigger('change');
+                        console.log("Set hero value after Select2 init:", currentValue);
+                    } else {
+                        // If this is a value that's not in the list of valid heroes, clear it
+                        $select.val('').trigger('change');
+                        console.log("Cleared invalid hero value:", currentValue);
+                    }
+                }, 100);
+            }
+            
+            // Intercept form submission to ensure only valid heroes
+            var $form = $select.closest('form');
+            if (!$form.data('hero-validation-attached')) {
+                $form.data('hero-validation-attached', true);
+                $form.on('submit', function(e) {
+                    var invalidFound = false;
+                    
+                    $('.hero-select').each(function() {
+                        var $field = $(this);
+                        var value = $field.val();
+                        
+                        // Only validate if a value is provided (don't show error for empty fields)
+                        if (value && !$field.find('option[value="' + value + '"]').length) {
+                            // Invalid hero selected
+                            var $errorMsg = $('#' + ($field.attr('id') || $field.attr('name')) + '_error');
+                            if ($errorMsg.length) {
+                                $errorMsg.text('Invalid hero selection');
+                                $errorMsg.show();
+                                setTimeout(function() { $errorMsg.hide(); }, 3000);
+                            }
+                            
+                            // Clear the invalid value
+                            $field.val(null).trigger('change');
+                            invalidFound = true;
+                        }
+                    });
+                    
+                    if (invalidFound) {
+                        e.preventDefault();
+                        // Remove the alert message completely
+                        return false;
+                    }
+                });
+            }
+        });
+        
+        // Handle fields with validation errors
+        var errorMessages = $('.errorlist');
+        if (errorMessages.length > 0) {
+            errorMessages.each(function() {
+                var errorText = $(this).text();
+                if (errorText.indexOf('does not exist in the database') >= 0 || 
+                    errorText.indexOf('Hero') >= 0) {
+                    
+                    // Find the nearest hero select field
+                    var heroField = $(this).closest('.player-form').find('.hero-select');
+                    if (heroField.length > 0) {
+                        // Clear the field completely
+                        heroField.val('').trigger('change');
+                    }
+                }
+            });
+        }
+    });
+})(django.jQuery);
+</script>
 {% endblock %} 

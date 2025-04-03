@@ -94,6 +94,11 @@ const PlayerStatRow: React.FC<PlayerStatRowProps> = ({ index, formik, fieldNameP
 
   // Calculate KDA whenever kills, deaths or assists change
   useEffect(() => {
+    // Add safety check to prevent errors when values[fieldNamePrefix] is undefined
+    if (!values || !values[fieldNamePrefix]) {
+      return;
+    }
+    
     const kills = Number(values[fieldNamePrefix].kills) || 0;
     const deaths = Number(values[fieldNamePrefix].deaths) || 0;
     const assists = Number(values[fieldNamePrefix].assists) || 0;
@@ -108,7 +113,18 @@ const PlayerStatRow: React.FC<PlayerStatRowProps> = ({ index, formik, fieldNameP
     // Format to 2 decimal places
     const formattedKDA = Math.round(kda * 100) / 100;
     setFieldValue(`${fieldNamePrefix}.computed_kda`, formattedKDA);
-  }, [values[fieldNamePrefix].kills, values[fieldNamePrefix].deaths, values[fieldNamePrefix].assists]);
+  }, [values, fieldNamePrefix, setFieldValue]);
+
+  // Add safety check for values[fieldNamePrefix]
+  if (!values || !values[fieldNamePrefix]) {
+    return (
+      <Paper elevation={1} sx={{ p: 2, mb: 2 }}>
+        <Typography color="error">
+          Error loading player data. Please refresh the page.
+        </Typography>
+      </Paper>
+    );
+  }
 
   return (
     <Paper elevation={1} sx={{ p: 2, mb: 2 }}>

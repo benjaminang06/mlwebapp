@@ -5,7 +5,7 @@ from rest_framework import status, viewsets, permissions, filters
 from django.db.models import Count, Q, Avg, Sum
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
-from .models import Team, Player, Match, PlayerMatchStat, PlayerAlias, PlayerTeamHistory, ScrimGroup, FileUpload, TeamManagerRole
+from .models import Team, Player, Match, PlayerMatchStat, PlayerAlias, PlayerTeamHistory, ScrimGroup, FileUpload, TeamManagerRole, Hero
 from .serializers import TeamSerializer, PlayerSerializer, PlayerAliasSerializer, MatchSerializer, ScrimGroupSerializer, PlayerMatchStatSerializer, FileUploadSerializer, UserSerializer, TeamManagerRoleSerializer
 from .permissions import IsTeamManager, IsTeamMember
 from django.contrib.auth.models import User
@@ -13,6 +13,11 @@ from rest_framework import generics
 from django.http import JsonResponse
 from django.contrib.admin.views.decorators import staff_member_required
 from .utils import get_player_role_stats, get_hero_pairing_stats
+from .error_handling import validate_required_fields, safe_get_object_or_404
+import logging
+
+# Get logger for this file
+logger = logging.getLogger('api')
 
 # Create your views here.
 
@@ -68,10 +73,16 @@ class TeamPlayersView(APIView):
     when entering player stats.
     """
     def get(self, request, team_id, format=None):
-        try:
-            team = Team.objects.get(pk=team_id)
-        except Team.DoesNotExist:
-            return Response({"error": "Team not found"}, status=status.HTTP_404_NOT_FOUND)
+        # Use our safe_get_object_or_404 utility
+        team = safe_get_object_or_404(
+            Team, 
+            error_message="Team not found",
+            pk=team_id
+        )
+        
+        # If team is an error response, return it
+        if isinstance(team, Response):
+            return team
         
         # Get all current players for this team - updated query
         players = Player.objects.filter(team_history__team=team, team_history__left_date=None)
@@ -85,6 +96,7 @@ class TeamPlayersView(APIView):
             'team_name': team.team_name
         } for player in players]
         
+        logger.info(f"Retrieved {len(player_data)} players for team {team.team_name}")
         return Response(player_data)
 
 class PlayerLookupView(APIView):
@@ -96,9 +108,16 @@ class PlayerLookupView(APIView):
         ign = request.query_params.get('ign', '')
         team_id = request.query_params.get('team_id')
         
+        # Validate required parameters
         if not ign:
-            return Response({"error": "IGN parameter is required"}, 
-                           status=status.HTTP_400_BAD_REQUEST)
+            logger.warning("PlayerLookupView called without required 'ign' parameter")
+            return Response(
+                {
+                    "error": "Missing required parameter",
+                    "detail": "IGN parameter is required"
+                }, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
         
         results = {
             'exact_matches': [],
@@ -108,11 +127,15 @@ class PlayerLookupView(APIView):
         
         # If team_id provided, first check that specific team
         if team_id:
-            try:
-                team = Team.objects.get(pk=team_id)
+            # Use our safe_get_object_or_404 utility
+            team = safe_get_object_or_404(Team, pk=team_id)
+            
+            # If team is an error response, continue without it
+            if not isinstance(team, Response):
                 # Find exact matches in the specified team
-                team_players = Player.objects.filter(team=team, current_ign=ign)
+                team_players = Player.objects.filter(team_history__team=team, team_history__left_date=None, current_ign=ign)
                 if team_players.exists():
+                    logger.info(f"Found {team_players.count()} exact matches for IGN '{ign}' in team {team.team_name}")
                     results['exact_matches'] = [{
                         'player_id': player.player_id,
                         'ign': player.current_ign,
@@ -120,36 +143,56 @@ class PlayerLookupView(APIView):
                         'team_name': team.team_name,
                         'match_type': 'current_team'
                     } for player in team_players]
-            except Team.DoesNotExist:
-                pass
         
         # If no exact matches in specified team, look for aliases or players in other teams
         if not results['exact_matches']:
             # Check for alias matches (players who previously used this IGN)
             aliases = PlayerAlias.objects.filter(alias=ign)
             if aliases.exists():
-                results['alias_matches'] = [{
-                    'player_id': alias.player.player_id,
-                    'current_ign': alias.player.current_ign,
-                    'previous_ign': alias.alias,
-                    'team_id': alias.player.team.team_id,
-                    'team_name': alias.player.team.team_name,
-                    'match_type': 'alias'
-                } for alias in aliases]
+                logger.info(f"Found {aliases.count()} alias matches for IGN '{ign}'")
+                alias_matches = []
+                for alias in aliases:
+                    # Get the player's current team if any
+                    current_team = alias.player.primary_team
+                    if current_team:
+                        alias_matches.append({
+                            'player_id': alias.player.player_id,
+                            'current_ign': alias.player.current_ign,
+                            'previous_ign': alias.alias,
+                            'team_id': current_team.team_id,
+                            'team_name': current_team.team_name,
+                            'match_type': 'alias'
+                        })
+                
+                results['alias_matches'] = alias_matches
             
             # Check for players with this IGN in other teams
-            other_players = Player.objects.filter(current_ign=ign)
+            other_players_query = Player.objects.filter(current_ign=ign)
             if team_id:
-                other_players = other_players.exclude(team_id=team_id)
+                # Exclude players from the already checked team
+                current_team_players = Player.objects.filter(
+                    team_history__team_id=team_id,
+                    team_history__left_date=None
+                ).values_list('player_id', flat=True)
+                other_players_query = other_players_query.exclude(player_id__in=current_team_players)
             
+            other_players = other_players_query.distinct()
             if other_players.exists():
-                results['other_team_matches'] = [{
-                    'player_id': player.player_id,
-                    'ign': player.current_ign,
-                    'team_id': player.team.team_id,
-                    'team_name': player.team.team_name,
-                    'match_type': 'other_team'
-                } for player in other_players]
+                logger.info(f"Found {other_players.count()} players with IGN '{ign}' in other teams")
+                other_team_matches = []
+                for player in other_players:
+                    # Get the player's current team if any
+                    current_team = player.primary_team
+                    if current_team:
+                        other_team_matches.append({
+                            'player_id': player.player_id,
+                            'ign': player.current_ign,
+                            'team_id': current_team.team_id,
+                            'team_name': current_team.team_name,
+                            'match_type': 'other_team'
+                        })
+                
+                results['other_team_matches'] = other_team_matches
         
         # Also determine if this is a first-time match against this team
         if team_id:
@@ -164,22 +207,28 @@ class PlayerLookupView(APIView):
 
 class VerifyMatchPlayersView(APIView):
     """Handles player verification and match stat submission"""
+    @validate_required_fields(['match_id'])
     def post(self, request, format=None):
         match_id = request.data.get('match_id')
         team_stats = request.data.get('team_stats', []) # Stats for our team
         opponent_stats = request.data.get('opponent_stats', []) # Stats for opponent
         
-        try:
-            match = Match.objects.get(pk=match_id)
-            our_team = match.our_team
-            opponent_team = match.opponent_team
-        except Match.DoesNotExist:
-            return Response({"error": "Match not found"}, status=status.HTTP_404_NOT_FOUND)
+        # Use safe_get_object_or_404 utility
+        match = safe_get_object_or_404(Match, error_message="Match not found", pk=match_id)
+        if isinstance(match, Response):
+            return match
+            
+        our_team = match.our_team
+        opponent_team = match.opponent_team
         
         # Verify permissions
         if not our_team.is_managed_by(request.user):
+            logger.warning(f"User {request.user.username} attempted to submit stats for team {our_team.team_name} without permission")
             return Response(
-                {"error": "You can only submit stats for teams you manage"}, 
+                {
+                    "error": "Permission denied",
+                    "detail": "You can only submit stats for teams you manage"
+                }, 
                 status=status.HTTP_403_FORBIDDEN
             )
         
@@ -676,14 +725,47 @@ class HeroPairingStatsView(APIView):
     permission_classes = [permissions.IsAuthenticated]
     
     def get(self, request, format=None):
+        player_id = request.query_params.get('player_id')
         team_id = request.query_params.get('team_id')
-        hero1 = request.query_params.get('hero1')
-        hero2 = request.query_params.get('hero2')
+        hero = request.query_params.get('hero')
         
-        # Get computed stats
-        stats = get_hero_pairing_stats(team_id, hero1, hero2)
-        
-        # Convert to list for API response
-        stats_list = list(stats.values())
-        
-        return Response(stats_list)
+        if not (player_id or team_id or hero):
+            return Response({"error": "You must provide at least one filter parameter"}, status=status.HTTP_400_BAD_REQUEST)
+            
+        hero_pairing_stats = get_hero_pairing_stats(player_id, team_id, hero)
+        return Response(hero_pairing_stats)
+
+def hero_autocomplete(request):
+    """
+    Autocomplete view for heroes.
+    Returns JSON list of heroes matching the search term.
+    """
+    term = request.GET.get('term', '')
+    heroes = Hero.objects.filter(name__icontains=term).order_by('name')[:15]
+    
+    results = [
+        {
+            'id': hero.name,      # Use name as identifier
+            'text': hero.name,    # Display only the name (no role)
+        }
+        for hero in heroes
+    ]
+    
+    return JsonResponse({'results': results})
+
+def hero_validate(request):
+    """
+    Validation endpoint for hero names.
+    Checks if a hero exists in the database and returns a JSON response.
+    """
+    hero_name = request.GET.get('name', '')
+    
+    if not hero_name:
+        return JsonResponse({'valid': False, 'error': 'No hero name provided'})
+    
+    valid = Hero.objects.filter(name__iexact=hero_name).exists()
+    
+    return JsonResponse({
+        'valid': valid,
+        'name': hero_name
+    })

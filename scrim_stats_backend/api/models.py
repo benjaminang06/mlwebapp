@@ -1,6 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from django.apps import apps
 
 class Team(models.Model):
     """
@@ -198,6 +201,49 @@ class Player(models.Model):
             item['award_type']: item['count'] for item in award_counts
         }
 
+    def get_award_count(self, award_type=None):
+        """
+        Count awards of a specific type or all awards if type is None
+        
+        Args:
+            award_type: Optional string from MatchAward.AWARD_TYPE_CHOICES
+                       (e.g., 'MVP', 'MOST_KILLS')
+        
+        Returns:
+            int: Number of awards matching the criteria
+        """
+        query = self.awards
+        if award_type:
+            query = query.filter(award_type=award_type)
+        return query.count()
+    
+    def get_recent_awards(self, limit=5):
+        """
+        Get the most recent awards for this player
+        
+        Args:
+            limit: Maximum number of awards to return
+            
+        Returns:
+            QuerySet of MatchAward objects
+        """
+        return self.awards.select_related('match').order_by('-match__match_date')[:limit]
+    
+    def get_most_common_award(self):
+        """
+        Get the award type this player receives most frequently
+        
+        Returns:
+            tuple: (award_type, count) or None if no awards
+        """
+        from django.db.models import Count
+        
+        result = self.awards.values('award_type').annotate(
+            count=Count('award_type')
+        ).order_by('-count').first()
+        
+        return (result['award_type'], result['count']) if result else None
+
 class PlayerAlias(models.Model):
     """
     Represents previous in-game names (IGNs) used by a player.
@@ -226,6 +272,131 @@ class ScrimGroup(models.Model):
     def __str__(self):
         return self.scrim_group_name
 
+# Move Hero class definition here - before it's referenced by other models
+class Hero(models.Model):
+    """Represents playable heroes/champions in the game"""
+    name = models.CharField(max_length=100, unique=True)
+    role = models.CharField(max_length=50, blank=True)
+    released_date = models.DateField(null=True, blank=True)
+    image_url = models.URLField(blank=True, null=True, help_text="URL to the hero's image")
+    
+    def __str__(self):
+        return self.name
+    
+    class Meta:
+        ordering = ['name']
+        indexes = [
+            models.Index(fields=['name']),
+            models.Index(fields=['role']),
+        ]
+    
+    def get_pick_rate(self, team=None, time_period=None):
+        """
+        Calculate the pick rate for this hero
+        
+        Args:
+            team: Optional Team to filter stats for a specific team
+            time_period: Optional dictionary with 'start_date' and 'end_date'
+                        to limit the calculation to a specific time period
+        
+        Returns:
+            float: Pick rate as a percentage
+        """
+        from django.db.models import Count
+        
+        # Base query for all drafts that are picks
+        query = self.draft_selections.filter(choice_type='PICK')
+        
+        # Filter by team if provided
+        if team:
+            query = query.filter(team=team)
+        
+        # Filter by time period if provided
+        if time_period and 'start_date' in time_period:
+            query = query.filter(match__match_date__gte=time_period['start_date'])
+        if time_period and 'end_date' in time_period:
+            query = query.filter(match__match_date__lte=time_period['end_date'])
+            
+        # Count picks for this hero
+        picks_count = query.count()
+        
+        # Count total matches in the same time period/team filter
+        # Use the model directly to avoid circular imports
+        Match = apps.get_model('api', 'Match')
+        
+        match_query = Match.objects
+        if team:
+            match_query = match_query.filter(
+                models.Q(our_team=team) | models.Q(opponent_team=team)
+            )
+        if time_period and 'start_date' in time_period:
+            match_query = match_query.filter(match_date__gte=time_period['start_date'])
+        if time_period and 'end_date' in time_period:
+            match_query = match_query.filter(match_date__lte=time_period['end_date'])
+            
+        total_matches = match_query.count()
+        
+        # Calculate pick rate
+        if total_matches > 0:
+            return (picks_count / total_matches) * 100
+        return 0
+    
+    def get_win_rate(self, team=None, time_period=None):
+        """
+        Calculate the win rate for this hero
+        
+        Returns:
+            float: Win rate as a percentage
+        """
+        # Base query for all drafts that are picks
+        query = self.draft_selections.filter(choice_type='PICK')
+        
+        # Filter by team if provided
+        if team:
+            query = query.filter(team=team)
+            
+        # Filter by time period if provided
+        if time_period and 'start_date' in time_period:
+            query = query.filter(match__match_date__gte=time_period['start_date'])
+        if time_period and 'end_date' in time_period:
+            query = query.filter(match__match_date__lte=time_period['end_date'])
+            
+        # Count all matches where this hero was picked by this team
+        total_picks = query.count()
+        
+        # No picks means no data for win rate
+        if total_picks == 0:
+            return 0
+            
+        # Count wins - a win is when our_team picked the hero and got VICTORY
+        # or opponent_team picked the hero and got DEFEAT
+        wins = query.filter(
+            (models.Q(team=models.F('match__our_team')) & models.Q(match__match_outcome='VICTORY')) |
+            (models.Q(team=models.F('match__opponent_team')) & models.Q(match__match_outcome='DEFEAT'))
+        ).count()
+        
+        # Calculate win rate
+        return (wins / total_picks) * 100
+    
+    def get_kda_stats(self):
+        """
+        Get average KDA stats for this hero
+        
+        Returns:
+            dict: Dictionary with average kills, deaths, assists and KDA
+        """
+        from django.db.models import Avg
+        
+        stats = self.match_stats.aggregate(
+            avg_kills=Avg('kills'),
+            avg_deaths=Avg('deaths'),
+            avg_assists=Avg('assists'),
+            avg_kda=Avg('computed_kda')
+        )
+        
+        return stats
+
+# Move Match model here before PlayerMatchStat
 class Match(models.Model):
     """
     Represents an individual match within a scrim group.
@@ -296,7 +467,7 @@ class Match(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     
     def __str__(self):
-        return f"{self.scrim_group.scrim_group_name} - Game {self.game_number}"
+        return f"{self.scrim_group.scrim_group_name if self.scrim_group else 'Match'} - Game {self.game_number}"
 
     def calculate_score_details(self, save=True):
         """
@@ -399,7 +570,14 @@ class PlayerMatchStat(models.Model):
     player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name='match_stats')
     team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='match_stats')
     role_played = models.CharField(max_length=50, blank=True, null=True)
-    hero_played = models.CharField(max_length=100)
+    # Foreign key to Hero model
+    hero_played = models.ForeignKey(
+        Hero,
+        on_delete=models.PROTECT,
+        related_name='match_stats',
+        verbose_name="Hero",
+        db_column='hero_played_id'
+    )
     kills = models.IntegerField()
     deaths = models.IntegerField()
     assists = models.IntegerField()
@@ -523,117 +701,178 @@ class MatchAward(models.Model):
         losing_team_stats = all_stats.filter(team=losing_team)
         
         # Assign MVP (highest KDA on winning team)
-        if winning_team_stats.exists():
-            mvp_stat = winning_team_stats.order_by('-computed_kda').first()
-            cls.objects.create(
-                match=match,
-                player=mvp_stat.player,
-                award_type='MVP',
-                stat_value=mvp_stat.computed_kda
-            )
+        create_award_from_stat(match, winning_team_stats, 'MVP', 'computed_kda')
         
         # Assign MVP Loss (highest KDA on losing team)
-        if losing_team_stats.exists():
-            mvp_loss_stat = losing_team_stats.order_by('-computed_kda').first()
-            cls.objects.create(
-                match=match,
-                player=mvp_loss_stat.player,
-                award_type='MVP_LOSS',
-                stat_value=mvp_loss_stat.computed_kda
-            )
+        create_award_from_stat(match, losing_team_stats, 'MVP_LOSS', 'computed_kda')
         
         # Best KDA across all players
-        best_kda_stat = all_stats.order_by('-computed_kda').first()
-        cls.objects.create(
-            match=match,
-            player=best_kda_stat.player,
-            award_type='BEST_KDA',
-            stat_value=best_kda_stat.computed_kda
-        )
+        create_award_from_stat(match, all_stats, 'BEST_KDA', 'computed_kda')
         
         # Most kills
-        most_kills_stat = all_stats.order_by('-kills').first()
-        cls.objects.create(
-            match=match,
-            player=most_kills_stat.player,
-            award_type='MOST_KILLS',
-            stat_value=float(most_kills_stat.kills)
-        )
+        create_award_from_stat(match, all_stats, 'MOST_KILLS', 'kills')
         
         # Most assists
-        most_assists_stat = all_stats.order_by('-assists').first()
-        cls.objects.create(
-            match=match,
-            player=most_assists_stat.player,
-            award_type='MOST_ASSISTS',
-            stat_value=float(most_assists_stat.assists)
-        )
+        create_award_from_stat(match, all_stats, 'MOST_ASSISTS', 'assists')
         
         # Least deaths (minimum 1 death to avoid ties at 0)
-        least_deaths_stats = all_stats.filter(deaths__gt=0).order_by('deaths')
-        if least_deaths_stats.exists():
-            least_deaths_stat = least_deaths_stats.first()
-            cls.objects.create(
-                match=match,
-                player=least_deaths_stat.player,
-                award_type='LEAST_DEATHS',
-                stat_value=float(least_deaths_stat.deaths)
-            )
+        least_deaths_stats = all_stats.filter(deaths__gt=0)
+        create_award_from_stat(match, least_deaths_stats, 'LEAST_DEATHS', 'deaths', ascending=True)
         
         # Optional stats that might not be recorded in every match
         
         # Most damage dealt
         damage_dealt_stats = all_stats.exclude(damage_dealt__isnull=True).filter(damage_dealt__gt=0)
-        if damage_dealt_stats.exists():
-            most_damage_stat = damage_dealt_stats.order_by('-damage_dealt').first()
-            cls.objects.create(
-                match=match,
-                player=most_damage_stat.player,
-                award_type='MOST_DAMAGE',
-                stat_value=float(most_damage_stat.damage_dealt)
-            )
+        create_award_from_stat(match, damage_dealt_stats, 'MOST_DAMAGE', 'damage_dealt')
         
         # Most gold earned
         gold_stats = all_stats.exclude(gold_earned__isnull=True).filter(gold_earned__gt=0)
-        if gold_stats.exists():
-            most_gold_stat = gold_stats.order_by('-gold_earned').first()
-            cls.objects.create(
-                match=match,
-                player=most_gold_stat.player,
-                award_type='MOST_GOLD',
-                stat_value=float(most_gold_stat.gold_earned)
-            )
+        create_award_from_stat(match, gold_stats, 'MOST_GOLD', 'gold_earned')
         
         # Most turret damage
         turret_damage_stats = all_stats.exclude(turret_damage__isnull=True).filter(turret_damage__gt=0)
-        if turret_damage_stats.exists():
-            most_turret_damage_stat = turret_damage_stats.order_by('-turret_damage').first()
-            cls.objects.create(
-                match=match,
-                player=most_turret_damage_stat.player,
-                award_type='MOST_TURRET_DAMAGE',
-                stat_value=float(most_turret_damage_stat.turret_damage)
-            )
+        create_award_from_stat(match, turret_damage_stats, 'MOST_TURRET_DAMAGE', 'turret_damage')
         
         # Most damage taken
         damage_taken_stats = all_stats.exclude(damage_taken__isnull=True).filter(damage_taken__gt=0)
-        if damage_taken_stats.exists():
-            most_damage_taken_stat = damage_taken_stats.order_by('-damage_taken').first()
-            cls.objects.create(
-                match=match,
-                player=most_damage_taken_stat.player,
-                award_type='MOST_DAMAGE_TAKEN',
-                stat_value=float(most_damage_taken_stat.damage_taken)
-            )
+        create_award_from_stat(match, damage_taken_stats, 'MOST_DAMAGE_TAKEN', 'damage_taken')
 
-class Hero(models.Model):
-    """Represents playable heroes/champions in the game"""
-    name = models.CharField(max_length=100, unique=True)
-    role = models.CharField(max_length=50, blank=True)
-    released_date = models.DateField(null=True, blank=True)
+class DraftInfo(models.Model):
+    """
+    Tracks the full drafting process including picks and bans.
+    Supports different ban setups (6-ban, 10-ban) and preserves the complete draft sequence.
+    """
+    match = models.ForeignKey(Match, on_delete=models.CASCADE, related_name='draft_info')
+    team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='draft_records')
     
-    def __str__(self):
-        return self.name
+    # Draft choices
+    CHOICE_TYPE_CHOICES = [
+        ('PICK', 'Pick'),
+        ('BAN', 'Ban'),
+    ]
+    choice_type = models.CharField(max_length=4, choices=CHOICE_TYPE_CHOICES)
+    
+    # Using proper column name for ForeignKey to Hero model
+    hero = models.ForeignKey(
+        Hero,
+        on_delete=models.PROTECT,
+        related_name='draft_selections',
+        verbose_name="Hero",
+        db_column='hero_id'
+    )
+    
+    # Position in overall draft sequence (1-20, including all picks and bans)
+    draft_position = models.IntegerField()
+    
+    # Draft phase
+    PHASE_CHOICES = [
+        (1, 'First Phase'),
+        (2, 'Second Phase'),
+        (3, 'Third Phase'),
+    ]
+    draft_phase = models.IntegerField(choices=PHASE_CHOICES)
+    
+    # Ban phases can be specific 
+    BAN_PHASE_CHOICES = [
+        ('FIRST_ROUND', 'First Ban Round (2+2)'), 
+        ('SECOND_ROUND', 'Second Ban Round (1+1)'),
+        ('THIRD_ROUND', 'Third Ban Round (1+1)'),  # For 10-ban setup
+        ('NONE', 'Not a Ban')
+    ]
+    ban_phase = models.CharField(
+        max_length=15, 
+        choices=BAN_PHASE_CHOICES,
+        default='NONE',
+        help_text="Specific ban round in the draft process"
+    )
+    
+    # Draft format (to distinguish between different ban setups)
+    DRAFT_FORMAT_CHOICES = [
+        ('6BAN', '6-Ban Format (2-2-1-1)'),
+        ('10BAN', '10-Ban Format (2-2-1-1-1-1-1-1)'),
+        ('CUSTOM', 'Custom Format')
+    ]
+    draft_format = models.CharField(
+        max_length=10,
+        choices=DRAFT_FORMAT_CHOICES,
+        default='6BAN',
+        help_text="Ban format used in this match"
+    )
+    
+    # Player who picked this hero (null for bans)
+    player = models.ForeignKey(
+        Player, 
+        on_delete=models.CASCADE, 
+        related_name='draft_choices', 
+        null=True, 
+        blank=True
+    )
+    
+    # Which role this pick was for
+    role_picked_for = models.CharField(max_length=50, null=True, blank=True)
+    
+    # Strategy notes
+    strategy_notes = models.TextField(
+        blank=True, 
+        null=True, 
+        help_text="Notes on why this hero was picked/banned"
+    )
+    
+    # Team side (important for analytics)
+    TEAM_SIDE_CHOICES = [
+        ('BLUE', 'Blue Side (First Pick)'),
+        ('RED', 'Red Side (Second Pick)'),
+    ]
+    team_side = models.CharField(
+        max_length=4,
+        choices=TEAM_SIDE_CHOICES,
+        help_text="Whether team was blue (first pick) or red side"
+    )
     
     class Meta:
-        ordering = ['name']
+        unique_together = ['match', 'draft_position']
+        ordering = ['match', 'draft_position']
+        indexes = [
+            models.Index(fields=['team', 'choice_type', 'hero']),  # For team pick/ban analytics
+            models.Index(fields=['match', 'team_side']),  # For side-based analytics
+            models.Index(fields=['draft_position', 'draft_phase']),  # For position-based queries
+        ]
+    
+    def __str__(self):
+        return f"{self.match} - {self.get_choice_type_display()} {self.hero} ({self.draft_position})"
+
+@receiver(post_save, sender=PlayerMatchStat)
+def update_match_awards(sender, instance, **kwargs):
+    """
+    Recalculate awards when player stats are updated.
+    This ensures awards stay in sync with the latest player statistics.
+    """
+    # Avoid circular import
+    from django.db import transaction
+    
+    # Use transaction to ensure all award updates happen atomically
+    with transaction.atomic():
+        MatchAward.assign_match_awards(instance.match)
+
+# Optimize the award calculation with a helper method to reduce code duplication
+def create_award_from_stat(match, stat_queryset, award_type, stat_field, ascending=False):
+    """
+    Helper function to create an award based on a stat queryset
+    
+    Args:
+        match: The Match object
+        stat_queryset: QuerySet of PlayerMatchStat
+        award_type: Award type from MatchAward.AWARD_TYPE_CHOICES
+        stat_field: Field name to use for determining the award winner
+        ascending: If True, lowest value wins (for stats like deaths); 
+                 If False, highest value wins (default)
+    """
+    if stat_queryset.exists():
+        order_prefix = '' if ascending else '-'
+        top_stat = stat_queryset.order_by(f'{order_prefix}{stat_field}').first()
+        MatchAward.objects.create(
+            match=match,
+            player=top_stat.player,
+            award_type=award_type,
+            stat_value=float(getattr(top_stat, stat_field))
+        )
