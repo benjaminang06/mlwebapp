@@ -1,0 +1,986 @@
+INFO 2025-03-26 12:43:40,481 <string> Test log message
+WARNING 2025-03-26 12:43:40,481 <string> Test warning message
+ERROR 2025-03-26 12:43:40,481 <string> Test error message
+WARNING 2025-03-26 12:46:45,183 error_handling Team not found with pk=999999
+INFO 2025-03-26 12:46:45,184 test_error_handling Test info message from test script
+WARNING 2025-03-26 12:46:45,184 test_error_handling Test warning message from test script
+ERROR 2025-03-26 12:46:45,184 test_error_handling Test error message from test script
+ERROR 2025-03-27 05:07:25,107 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 05:07:25,120 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 05:11:05,338 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 05:11:05,356 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 05:11:41,421 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 05:11:41,426 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 05:11:44,916 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 05:11:44,921 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 05:12:01,990 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 05:12:01,992 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 05:12:27,463 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 05:12:27,731 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 05:12:28,395 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 05:12:28,569 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 08:54:14,472 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 08:54:14,480 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 08:54:59,954 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 08:54:59,957 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 08:58:42,818 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 09:01:27,012 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 09:01:27,020 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 09:02:29,197 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 09:02:29,199 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 09:05:57,465 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 09:05:57,468 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 09:06:17,640 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 09:06:17,644 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 09:06:19,369 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 09:06:19,372 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 09:06:42,792 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 09:06:42,796 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 09:09:29,602 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 09:09:29,606 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 09:10:20,944 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 09:10:20,958 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 09:16:12,798 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 09:16:12,813 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 09:16:39,701 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 09:18:46,716 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 09:18:46,721 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 09:18:46,727 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 09:18:46,742 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 09:18:56,562 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 09:18:56,567 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 09:18:56,578 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 09:18:56,589 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 09:18:56,602 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 09:18:56,609 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 09:18:56,614 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 09:18:56,620 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 09:18:56,623 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 09:18:56,627 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 09:23:02,734 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 09:23:02,736 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 09:23:02,747 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 09:24:06,757 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 09:24:06,761 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 09:24:06,786 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 09:24:06,786 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 09:29:07,887 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 09:29:07,889 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 09:29:07,903 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 09:29:07,903 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 09:29:08,547 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 09:29:08,620 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 09:29:11,446 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 09:29:11,459 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 09:29:11,483 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 09:29:11,485 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 09:29:11,874 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 09:29:11,878 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 09:49:50,056 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 09:49:50,080 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 09:49:50,225 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 09:49:50,232 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 09:49:50,241 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 09:49:50,244 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 09:57:07,391 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 09:57:07,394 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 09:57:07,411 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 09:57:07,412 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 09:57:07,472 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 09:57:07,489 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 13:43:49,628 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 13:43:49,629 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 13:43:49,658 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 13:43:49,658 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 13:43:50,327 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.
+ERROR 2025-03-27 13:43:50,332 error_handling API error: {'error': 'Authentication credentials were not provided.', 'status_code': 401}
+Traceback (most recent call last):
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 415, in initial
+    self.check_permissions(request)
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 333, in check_permissions
+    self.permission_denied(
+  File "/Users/benjaminang/Desktop/Personal Projects/Esports Management App/esports_env/lib/python3.11/site-packages/rest_framework/views.py", line 174, in permission_denied
+    raise exceptions.NotAuthenticated()
+rest_framework.exceptions.NotAuthenticated: Authentication credentials were not provided.

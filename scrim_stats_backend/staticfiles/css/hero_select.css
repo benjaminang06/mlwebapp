@@ -1,0 +1,21 @@
+/* Basic styling for hero select widget */
+.hero-select {
+    min-width: 250px;
+}
+
+/* Make the Select2 widget match Django admin styling */
+.select2-container--default .select2-selection--single {
+    height: 30px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: 28px;
+}
+
+/* Highlight selected hero in dropdown */
+.select2-container--default .select2-results__option--highlighted[aria-selected] {
+    background-color: #0078d7;
+    color: white;
+} 

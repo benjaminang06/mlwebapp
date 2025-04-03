@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import Team, Player, PlayerAlias, ScrimGroup, Match, PlayerMatchStat, FileUpload, PlayerTeamHistory, TeamManagerRole
+from .models import Team, Player, PlayerAlias, ScrimGroup, Match, PlayerMatchStat, FileUpload, PlayerTeamHistory, TeamManagerRole, Hero
 from django.utils import timezone
 from django.contrib.auth.password_validation import validate_password
 
@@ -117,7 +117,10 @@ class PlayerMatchStatCreateSerializer(serializers.Serializer):
     """Initial serializer for player stats submission that handles player identification"""
     ign = serializers.CharField(max_length=100)
     role_played = serializers.CharField(max_length=20)
-    hero_played = serializers.CharField(max_length=50)
+    hero_played = serializers.PrimaryKeyRelatedField(
+        queryset=Hero.objects.all(),
+        required=True
+    )
     kills = serializers.IntegerField()
     deaths = serializers.IntegerField()
     assists = serializers.IntegerField()
