@@ -176,31 +176,64 @@ class OpponentTeamInlineForm(forms.ModelForm):
 @admin.register(Match)
 class MatchAdmin(admin.ModelAdmin):
     form = MatchAdminForm  # Use our custom form
-    list_display = ('__str__', 'match_date', 'get_team1', 'get_team2', 'match_outcome', 'scrim_type', 'get_duration', 'is_external_match', 'mvp_display', 'mvp_loss_display')
-    search_fields = ('our_team__team_name', 'opponent_team__team_name', 'scrim_group__scrim_group_name')
-    list_filter = ('match_outcome', 'scrim_type', 'our_team', 'match_date', 'is_external_match', 'team_side')
+    list_display = (
+        'match_id', 
+        'scrim_group', 
+        'match_date', 
+        # Display blue/red instead of our/opponent/side
+        'blue_side_team',
+        'red_side_team',
+        'winning_team',
+        'submitted_by',
+        # 'is_external_match', # Removed
+        'match_outcome',
+        'game_number'
+    )
+    list_filter = (
+        'scrim_group', 
+        'match_date', 
+        'scrim_type', 
+        'match_outcome',
+        # 'is_external_match', # Removed
+        # 'team_side', # Removed
+        # Add filters for new team fields if desired
+        'blue_side_team__team_name',
+        'red_side_team__team_name',
+    )
+    search_fields = (
+        'scrim_group__scrim_group_name', 
+        # Update search fields
+        'blue_side_team__team_name', 
+        'red_side_team__team_name',
+        'blue_side_team__team_abbreviation',
+        'red_side_team__team_abbreviation',
+    )
     date_hierarchy = 'match_date'
+    # Consider adding raw_id_fields for ForeignKeys if lists get long
+    raw_id_fields = ('scrim_group', 'submitted_by', 'our_team', 'blue_side_team', 'red_side_team', 'winning_team', 'mvp', 'mvp_loss') 
     readonly_fields = ('created_at', 'updated_at', 'get_match_awards')
     
     def mvp_display(self, obj):
-        mvp = obj.get_mvp()
-        if mvp:
+        if obj.mvp:
             kda = PlayerMatchStat.objects.filter(
                 match=obj,
-                player=mvp
-            ).first().computed_kda
-            return f"{mvp.current_ign} (KDA: {kda})"
+                player=obj.mvp
+            ).first()
+            if kda:
+                return f"{obj.mvp.current_ign} (KDA: {kda.computed_kda})"
+            return obj.mvp.current_ign
         return "-"
     mvp_display.short_description = "MVP"
     
     def mvp_loss_display(self, obj):
-        mvp_loss = obj.get_mvp_loss()
-        if mvp_loss:
+        if obj.mvp_loss:
             kda = PlayerMatchStat.objects.filter(
                 match=obj,
-                player=mvp_loss
-            ).first().computed_kda
-            return f"{mvp_loss.current_ign} (KDA: {kda})"
+                player=obj.mvp_loss
+            ).first()
+            if kda:
+                return f"{obj.mvp_loss.current_ign} (KDA: {kda.computed_kda})"
+            return obj.mvp_loss.current_ign
         return "-"
     mvp_loss_display.short_description = "MVP Loss"
     
@@ -230,13 +263,13 @@ class MatchAdmin(admin.ModelAdmin):
         """Add the awards section only when editing an existing match"""
         fieldsets = [
             ('Match Details', {
-                'fields': ('scrim_group', 'match_date', 'formatted_duration', 'game_number', 'is_external_match')
+                'fields': ('scrim_group', 'match_date', 'formatted_duration', 'game_number')
             }),
             ('Teams', {
-                'fields': ('our_team', 'opponent_team', 'team_side')
+                'fields': ('our_team', 'blue_side_team', 'red_side_team')
             }),
             ('Results', {
-                'fields': ('match_outcome', 'scrim_type', 'general_notes')
+                'fields': ('match_outcome', 'scrim_type', 'mvp', 'mvp_loss', 'general_notes')
             })
         ]
         
@@ -304,12 +337,16 @@ class MatchAdmin(admin.ModelAdmin):
                     seconds=seconds
                 )
         
+        # Handle MVP and MVP Loss fields from the form
+        obj.mvp = form.cleaned_data.get('mvp')
+        obj.mvp_loss = form.cleaned_data.get('mvp_loss')
+        
         # Save the object
         obj.save()
         
         # Assign awards if there are player stats
         if obj.player_stats.exists():
-            MatchAward.assign_match_awards(obj)
+            MatchAward.assign_awards_for_match(obj)
     
     class Media:
         css = {
@@ -328,9 +365,11 @@ class PlayerStatForm(forms.Form):
         queryset=Player.objects.all(),
         required=False
     )
-    hero_played = forms.CharField(
-        max_length=100,
-        required=False
+    hero_played = forms.ModelChoiceField(
+        queryset=Hero.objects.all(),
+        required=False,
+        label="Hero",
+        help_text="Select the hero played in this match"
     )
     # Use Player model ROLE_CHOICES, filtering out non-player roles
     role_played = forms.ChoiceField(
@@ -533,9 +572,37 @@ class PlayerMatchStatAdmin(admin.ModelAdmin):
             team_history__left_date=None
         ).order_by('current_ign')
         
+        # Create MVP selection form
+        class MVPSelectionForm(forms.Form):
+            mvp = forms.ModelChoiceField(
+                queryset=Player.objects.all(),
+                required=False,
+                label="MVP of the Match",
+                help_text="Select the MVP of the match (from the winning team)"
+            )
+            
+            mvp_loss = forms.ModelChoiceField(
+                queryset=Player.objects.all(),
+                required=False,
+                label="MVP from Losing Team",
+                help_text="Select the MVP from the losing team (optional)"
+            )
+            
+            def __init__(self, *args, **kwargs):
+                super().__init__(*args, **kwargs)
+                # Set initial values if match already has MVPs
+                if match.mvp:
+                    self.fields['mvp'].initial = match.mvp
+                if match.mvp_loss:
+                    self.fields['mvp_loss'].initial = match.mvp_loss
+        
+        mvp_form = MVPSelectionForm()
+        
         if request.method == 'POST':
             formset = PlayerStatFormSet(request.POST)
-            if formset.is_valid():
+            mvp_form = MVPSelectionForm(request.POST)
+            
+            if formset.is_valid() and mvp_form.is_valid():
                 try:
                     with transaction.atomic():
                         # Delete existing stats if any
@@ -563,11 +630,14 @@ class PlayerMatchStatAdmin(admin.ModelAdmin):
                                 # If not provided, default to 0
                                 computed_kda = form.cleaned_data.get('computed_kda', 0)
                                 
+                                # We need to ensure hero_played is a Hero instance
+                                # form.cleaned_data['hero_played'] will already be a Hero instance 
+                                # from the ModelChoiceField
                                 stats_data = {
                                     'match': match,
                                     'player': form.cleaned_data['player'],
                                     'team': team,  # Set the team correctly
-                                    'hero_played': form.cleaned_data.get('hero_played', ''),
+                                    'hero_played': form.cleaned_data.get('hero_played'),  # This is now a Hero instance
                                     'role_played': form.cleaned_data.get('role_played', ''),
                                     'kills': kills,
                                     'deaths': deaths,
@@ -584,11 +654,16 @@ class PlayerMatchStatAdmin(admin.ModelAdmin):
                                 PlayerMatchStat.objects.create(**stats_data)
                                 stats_saved += 1
                         
+                        # Update MVPs from the form
+                        match.mvp = mvp_form.cleaned_data.get('mvp')
+                        match.mvp_loss = mvp_form.cleaned_data.get('mvp_loss')
+                        match.save()
+                        
                         # Update match stats if any stats were saved
                         if stats_saved > 0:
                             match.calculate_score_details(save=True)
                             # Assign awards after calculating score details
-                            MatchAward.assign_match_awards(match)
+                            MatchAward.assign_awards_for_match(match)
                         
                         # Customize message based on number of stats saved
                         if stats_saved == 0:
@@ -607,6 +682,9 @@ class PlayerMatchStatAdmin(admin.ModelAdmin):
                 if formset.non_form_errors():
                     for error in formset.non_form_errors():
                         messages.error(request, f"Formset Error: {error}")
+                # Display MVP form errors
+                for field, errors in mvp_form.errors.items():
+                    messages.error(request, f"MVP Selection - {field}: {', '.join(errors)}")
         else:
             # Initialize the forms based on existing stats or create new empty forms
             initial_data = []
@@ -616,7 +694,7 @@ class PlayerMatchStatAdmin(admin.ModelAdmin):
                 for stat in existing_stats:
                     initial_data.append({
                         'player': stat.player,
-                        'hero_played': stat.hero_played,
+                        'hero_played': stat.hero_played,  # This will now be a Hero instance
                         'role_played': stat.role_played,
                         'kills': stat.kills,
                         'deaths': stat.deaths,
@@ -655,6 +733,7 @@ class PlayerMatchStatAdmin(admin.ModelAdmin):
             'opts': self.model._meta,
             'match': match,
             'formset': formset,
+            'mvp_form': mvp_form,
             'our_team_players': our_team_players,
             'opponent_team_players': opponent_team_players,
             'heroes': heroes,  # Add heroes to context

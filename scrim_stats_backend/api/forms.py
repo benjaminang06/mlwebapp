@@ -2,7 +2,7 @@ from django import forms
 from django.utils import timezone
 from django.utils.formats import date_format
 from django_select2.forms import ModelSelect2Widget, Select2Widget
-from .models import Team, Match, ScrimGroup
+from .models import Team, Match, ScrimGroup, Player
 
 class TeamSelect2Widget(ModelSelect2Widget):
     """Custom Select2 widget for Team model with search and create options"""
@@ -125,6 +125,23 @@ class MatchAdminForm(forms.ModelForm):
         help_text="Check this if this match doesn't involve your team (e.g., scouting other teams)"
     )
     
+    # Add MVP and MVP Loss fields
+    mvp = forms.ModelChoiceField(
+        queryset=Player.objects.all(),
+        required=False,
+        label="MVP",
+        help_text="Select the MVP of the match (from the winning team)",
+        widget=Select2Widget
+    )
+    
+    mvp_loss = forms.ModelChoiceField(
+        queryset=Player.objects.all(),
+        required=False,
+        label="MVP Loss",
+        help_text="Select the MVP from the losing team (optional)",
+        widget=Select2Widget
+    )
+    
     class Meta:
         model = Match
         fields = '__all__'
@@ -148,6 +165,14 @@ class MatchAdminForm(forms.ModelForm):
             
             # Format as HH:MM:SS
             self.fields['formatted_duration'].initial = f"{int(hours):02d}:{int(minutes):02d}:{int(seconds):02d}"
+            
+        # Set initial values for MVP fields
+        if self.instance and self.instance.pk:
+            if hasattr(self.instance, 'mvp') and self.instance.mvp:
+                self.fields['mvp'].initial = self.instance.mvp
+            
+            if hasattr(self.instance, 'mvp_loss') and self.instance.mvp_loss:
+                self.fields['mvp_loss'].initial = self.instance.mvp_loss
     
     def clean(self):
         cleaned_data = super().clean()

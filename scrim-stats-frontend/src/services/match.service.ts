@@ -1,5 +1,6 @@
 import api from './api';
-import { Match, PlayerStat, FileUpload } from '../types/match.types';
+import { Match, PlayerMatchStat, FileUpload } from '../types/match.types';
+import { Player } from '../types/player.types';
 
 // Create a new match
 export const createMatch = async (matchData: Match): Promise<Match> => {
@@ -8,7 +9,7 @@ export const createMatch = async (matchData: Match): Promise<Match> => {
 };
 
 // Create player match statistics
-export const createPlayerStat = async (statData: PlayerStat): Promise<PlayerStat> => {
+export const createPlayerStat = async (statData: PlayerMatchStat): Promise<PlayerMatchStat> => {
   const response = await api.post('/api/player-match-stats/', statData);
   return response.data;
 };
@@ -44,4 +45,29 @@ export const getMatchesByDateRange = async (startDate: string, endDate: string) 
     },
   });
   return response.data;
+};
+
+/**
+ * Fetch players for a specific team.
+ * Used for populating player stat rows.
+ * @param teamId The ID of the team.
+ * @returns A promise that resolves to an array of Player objects.
+ */
+export const getTeamPlayers = async (teamId: number): Promise<Player[]> => {
+  if (!teamId) {
+    console.warn('[getTeamPlayers] No teamId provided.');
+    return []; // Return empty array if no ID
+  }
+  try {
+    console.log(`[getTeamPlayers] Fetching players for team ID: ${teamId}`);
+    const response = await api.get(`/api/teams/${teamId}/players/`);
+    console.log(`[getTeamPlayers] Received response for team ID ${teamId}:`, response.data);
+    // The backend endpoint returns player data directly (not paginated based on TeamPlayersView)
+    return response.data as Player[]; 
+  } catch (error) {
+    console.error(`[getTeamPlayers] Error fetching players for team ${teamId}:`, error);
+    // Decide error handling: throw or return empty array?
+    // Returning empty array might be safer for the form flow.
+    return []; 
+  }
 }; 

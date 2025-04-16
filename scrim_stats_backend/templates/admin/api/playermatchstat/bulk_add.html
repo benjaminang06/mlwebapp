@@ -3,6 +3,8 @@
 
 {% block extrahead %}
     {{ block.super }}
+    <!-- Add Select2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <style>
         .stats-form-container {
             max-width: 1400px;
@@ -51,7 +53,7 @@
             text-align: right;
             margin-top: 30px;
         }
-        .player-form input, .player-form select {
+        .player-form input, .player-form select:not(.select2-hidden-accessible) {
             width: 100%;
             padding: 8px;
             border: 1px solid #ddd;
@@ -161,6 +163,9 @@
             display: block;
         }
     </style>
+    <!-- Add jQuery and Select2 -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const matchId = '{{ match.match_id }}';
@@ -535,6 +540,30 @@
                     elem.remove();
                 }
             });
+            
+            // Initialize Select2 dropdowns when jQuery is ready
+            $(document).ready(function() {
+                // Initialize Select2 for hero dropdowns
+                $('select[name*="hero_played"]').select2({
+                    placeholder: "Select a hero",
+                    allowClear: true,
+                    width: '100%'
+                });
+                
+                // Apply Select2 to player dropdowns
+                $('select[name*="player"]').select2({
+                    placeholder: "Select a player",
+                    allowClear: true,
+                    width: '100%'
+                });
+                
+                // Initialize Select2 for MVP fields
+                $('#id_mvp, #id_mvp_loss').select2({
+                    placeholder: "Select a player",
+                    allowClear: true,
+                    width: '100%'
+                });
+            });
         });
     </script>
 {% endblock %}
@@ -627,6 +656,28 @@
                         </div>
                     {% endif %}
                 {% endfor %}
+            </div>
+            
+            <!-- MVP Selection Section -->
+            <div class="team-section mvp-section">
+                <div class="team-header">
+                    <h2>Most Valuable Player Selection</h2>
+                </div>
+                
+                <div style="display: flex; gap: 20px; padding: 20px;">
+                    <div style="flex: 1;">
+                        <label for="id_mvp" style="display: block; margin-bottom: 8px; font-weight: bold;">{{ mvp_form.mvp.label }}*</label>
+                        {{ mvp_form.mvp }}
+                        <p class="help" style="color: #666; font-size: 12px; margin-top: 4px;">{{ mvp_form.mvp.help_text }}</p>
+                        {{ mvp_form.mvp.errors }}
+                    </div>
+                    <div style="flex: 1;">
+                        <label for="id_mvp_loss" style="display: block; margin-bottom: 8px; font-weight: bold;">{{ mvp_form.mvp_loss.label }}</label>
+                        {{ mvp_form.mvp_loss }}
+                        <p class="help" style="color: #666; font-size: 12px; margin-top: 4px;">{{ mvp_form.mvp_loss.help_text }}</p>
+                        {{ mvp_form.mvp_loss.errors }}
+                    </div>
+                </div>
             </div>
             
             <div class="submit-row">

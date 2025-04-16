@@ -26,7 +26,7 @@ SECRET_KEY = "django-insecure-@gz(=tqa#cafiaom7^!9-!2g=tcuw*%#uvp@)w^2rk#pehy=ti
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
 
 # Application definition
@@ -166,9 +166,29 @@ SIMPLE_JWT = {
     'JTI_CLAIM': 'jti',
 }
 
-CORS_ALLOW_ALL_ORIGINS = True  # For development only
-# For production, specify exact origins:
-# CORS_ALLOWED_ORIGINS = [
-#     "http://localhost:3000",
-#     "https://yourdomain.com",
-# ]
+# CORS settings - specify exact origins for better security
+CORS_ALLOW_ALL_ORIGINS = False  # Changed from True to False for better security
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "http://localhost:5174",
+    "http://localhost:5175",
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:5174",
+    "http://127.0.0.1:5175",
+]
+
+# Add CSRF trusted origins to allow CSRF tokens to be sent from these origins
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:5173",
+    "http://localhost:5174",
+    "http://localhost:5175",
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:5174",
+    "http://127.0.0.1:5175",
+]
+
+# For development, you can set this to True if you're experiencing CSRF issues
+CSRF_COOKIE_SECURE = False
+
+# Allow credentials (cookies) to be included in cross-origin requests
+CORS_ALLOW_CREDENTIALS = True

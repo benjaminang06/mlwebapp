@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Box, Typography, List, ListItem, ListItemIcon, ListItemText, Paper, IconButton } from '@mui/material';
 import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
@@ -6,30 +6,69 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 
 interface FileUploaderProps {
-  formik: any;
+  onChange: (files: File[]) => void;
+  maxFiles?: number;
+  acceptedFileTypes?: string[];
+  formik?: any; // Keep for backwards compatibility
 }
 
-const FileUploader: React.FC<FileUploaderProps> = ({ formik }) => {
-  const { values, setFieldValue } = formik;
+const FileUploader: React.FC<FileUploaderProps> = ({ 
+  onChange, 
+  maxFiles = 5, 
+  acceptedFileTypes = ['image/jpeg', 'image/png', 'application/pdf'],
+  formik 
+}) => {
+  const [files, setFiles] = useState<File[]>([]);
+  
+  // For backward compatibility
+  const { values, setFieldValue } = formik || { values: { files: [] }, setFieldValue: () => {} };
+  const currentFiles = formik ? values.files : files;
   
   const onDrop = useCallback((acceptedFiles: File[]) => {
+    // Check if adding these files would exceed maxFiles
+    if (currentFiles.length + acceptedFiles.length > maxFiles) {
+      // Slice to only take what we can fit
+      acceptedFiles = acceptedFiles.slice(0, maxFiles - currentFiles.length);
+      // You could show a notification here that some files were dropped
+    }
+    
     // Add new files to the existing files array
-    setFieldValue('files', [...values.files, ...acceptedFiles]);
-  }, [values.files, setFieldValue]);
+    const newFiles = [...currentFiles, ...acceptedFiles];
+    
+    if (formik) {
+      setFieldValue('files', newFiles);
+    } else {
+      setFiles(newFiles);
+      onChange(newFiles);
+    }
+  }, [currentFiles, formik, maxFiles, onChange, setFieldValue]);
   
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: {
-      'image/jpeg': [],
-      'image/png': [],
-      'application/pdf': []
-    }
+    accept: acceptedFileTypes.reduce((acc, type) => {
+      acc[type] = [];
+      return acc;
+    }, {} as Record<string, string[]>)
   });
   
   const removeFile = (index: number) => {
-    const newFiles = [...values.files];
+    const newFiles = [...currentFiles];
     newFiles.splice(index, 1);
-    setFieldValue('files', newFiles);
+    
+    if (formik) {
+      setFieldValue('files', newFiles);
+    } else {
+      setFiles(newFiles);
+      onChange(newFiles);
+    }
+  };
+
+  const getFileTypesText = () => {
+    const typeLabels = acceptedFileTypes.map(type => {
+      // Convert MIME types to readable format
+      return type.split('/')[1].toUpperCase();
+    });
+    return typeLabels.join(', ');
   };
 
   return (
@@ -54,22 +93,22 @@ const FileUploader: React.FC<FileUploaderProps> = ({ formik }) => {
         <Typography>
           {isDragActive
             ? 'Drop the files here...'
-            : 'Drag & drop files here, or click to select files'}
+            : `Drag & drop files here, or click to select files (max ${maxFiles})`}
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Supported formats: JPEG, PNG, PDF
+          Supported formats: {getFileTypesText()}
         </Typography>
       </Paper>
       
       {/* File list */}
-      {values.files.length > 0 && (
+      {currentFiles.length > 0 && (
         <Paper sx={{ p: 2 }}>
           <Typography variant="subtitle1" gutterBottom>
-            {values.files.length} file(s) ready to upload
+            {currentFiles.length} file(s) ready to upload
           </Typography>
           
           <List>
-            {values.files.map((file: File, index: number) => (
+            {currentFiles.map((file: File, index: number) => (
               <ListItem
                 key={index}
                 secondaryAction={

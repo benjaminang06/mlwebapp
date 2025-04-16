@@ -5,14 +5,26 @@ from rest_framework import status, viewsets, permissions, filters
 from django.db.models import Count, Q, Avg, Sum
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
-from .models import Team, Player, Match, PlayerMatchStat, PlayerAlias, PlayerTeamHistory, ScrimGroup, FileUpload, TeamManagerRole
-from .serializers import TeamSerializer, PlayerSerializer, PlayerAliasSerializer, MatchSerializer, ScrimGroupSerializer, PlayerMatchStatSerializer, FileUploadSerializer, UserSerializer, TeamManagerRoleSerializer
+from .models import Team, Player, Match, PlayerMatchStat, PlayerAlias, PlayerTeamHistory, ScrimGroup, FileUpload, TeamManagerRole, Draft, DraftBan, DraftPick, Hero
+from .serializers import TeamSerializer, PlayerSerializer, PlayerAliasSerializer, MatchSerializer, ScrimGroupSerializer, PlayerMatchStatSerializer, FileUploadSerializer, UserSerializer, TeamManagerRoleSerializer, DraftSerializer, DraftBanSerializer, DraftPickSerializer, HeroSerializer
 from .permissions import IsTeamManager, IsTeamMember
 from django.contrib.auth.models import User
 from rest_framework import generics
 from django.http import JsonResponse
 from django.contrib.admin.views.decorators import staff_member_required
 from .utils import get_player_role_stats, get_hero_pairing_stats
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
+from rest_framework.renderers import JSONRenderer
+from django.contrib.auth import authenticate, login, logout
+# from services.team_services import TeamService # Commented out - module/class not found
+from services.player_services import PlayerService # Corrected import path
+from services.match_services import MatchStatsService # Corrected import path - only import existing class
+# from services.scrim_group_services import ScrimGroupService # Commented out - module not found
+# from services.hero_services import HeroService # Commented out - module not found
+from services.match_service import MatchService # Import the new MatchService
+from django.middleware.csrf import get_token
+from django.views.decorators.csrf import ensure_csrf_cookie
 
 # Create your views here.
 
@@ -26,15 +38,21 @@ class TeamViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     filterset_fields = ['team_category']
     search_fields = ['team_name', 'team_abbreviation']
+    renderer_classes = [JSONRenderer]  # Only use JSON renderer, not HTML
     
     def get_permissions(self):
         """
         Custom permissions:
-        - List/retrieve: Any authenticated user
-        - Create/update/delete: Admin users only
+        - List/retrieve/create: Any authenticated user
+        - Update/delete: Admin users only
         """
-        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+        # Allow any authenticated user to create a team
+        if self.action == 'create':
+            return [permissions.IsAuthenticated()]
+        # Restrict update/delete to admins
+        if self.action in ['update', 'partial_update', 'destroy']:
             return [permissions.IsAdminUser()]
+        # Default to IsAuthenticated for list/retrieve etc.
         return super().get_permissions()
     
     @action(detail=True, methods=['get'])
@@ -67,6 +85,9 @@ class TeamPlayersView(APIView):
     Get a list of players for a specific team, used for autocomplete/dropdown
     when entering player stats.
     """
+    permission_classes = [permissions.IsAuthenticated]
+    renderer_classes = [JSONRenderer]  # Only use JSON renderer, not HTML
+    
     def get(self, request, team_id, format=None):
         try:
             team = Team.objects.get(pk=team_id)
@@ -92,6 +113,9 @@ class PlayerLookupView(APIView):
     Look up a player by IGN, including potential matches from aliases and other teams.
     Used to identify players when submitting stats.
     """
+    permission_classes = [permissions.IsAuthenticated]
+    renderer_classes = [JSONRenderer]  # Only use JSON renderer, not HTML
+    
     def get(self, request, format=None):
         ign = request.query_params.get('ign', '')
         team_id = request.query_params.get('team_id')
@@ -164,6 +188,9 @@ class PlayerLookupView(APIView):
 
 class VerifyMatchPlayersView(APIView):
     """Handles player verification and match stat submission"""
+    permission_classes = [permissions.IsAuthenticated]
+    renderer_classes = [JSONRenderer]  # Only use JSON renderer, not HTML
+    
     def post(self, request, format=None):
         match_id = request.data.get('match_id')
         team_stats = request.data.get('team_stats', []) # Stats for our team
@@ -426,8 +453,9 @@ class VerifyMatchPlayersView(APIView):
                 # Log error but continue processing other stats
                 print(f"Error: Player {player_id} not found")
         
-        # Recalculate match statistics
-        match.calculate_score_details()
+        # Process the match with the service layer
+        from services.match_services import MatchStatsService
+        MatchStatsService.process_match_save(match)
 
 class PlayerViewSet(viewsets.ModelViewSet):
     """
@@ -439,6 +467,7 @@ class PlayerViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     filterset_fields = ['primary_role']
     search_fields = ['current_ign', 'aliases__alias']
+    renderer_classes = [JSONRenderer]  # Only use JSON renderer, not HTML
     
     def get_permissions(self):
         if self.action in ['create', 'update', 'partial_update', 'destroy']:
@@ -457,8 +486,10 @@ class PlayerViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
             
-        # Use the model method we created earlier
-        player.change_ign(new_ign)
+        # Use the service instead of the direct model method
+        from services.player_services import PlayerService
+        PlayerService.change_player_ign(player, new_ign)
+        
         return Response(PlayerSerializer(player).data)
     
     @action(detail=True, methods=['get'])
@@ -476,6 +507,17 @@ class PlayerViewSet(viewsets.ModelViewSet):
         serializer = PlayerMatchStatSerializer(player_stats, many=True)
         return Response(serializer.data)
 
+    @action(detail=True, methods=['get'])
+    def stats(self, request, pk=None):
+        """Get comprehensive player statistics"""
+        player = self.get_object()
+        
+        # Use the service to get comprehensive stats
+        from services.player_services import PlayerService
+        player_stats = PlayerService.get_player_stats(player)
+        
+        return Response(player_stats)
+
 class ScrimGroupViewSet(viewsets.ModelViewSet):
     """
     API endpoint for scrim groups (series of matches).
@@ -485,8 +527,9 @@ class ScrimGroupViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['scrim_group_name']
-    ordering_fields = ['start_date', 'end_date']
+    ordering_fields = ['start_date']
     ordering = ['-start_date']  # Default ordering
+    renderer_classes = [JSONRenderer]  # Only use JSON renderer, not HTML
     
     def get_queryset(self):
         """Only return scrim groups the user submitted if they're not admin"""
@@ -503,34 +546,95 @@ class MatchViewSet(viewsets.ModelViewSet):
     serializer_class = MatchSerializer
     permission_classes = [permissions.IsAuthenticated]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['match_outcome', 'scrim_type', 'opponent_category', 'team_side']
-    search_fields = ['opponent_team_name']
+    filterset_fields = ['match_outcome', 'scrim_type', 'our_team__team_category', 'opponent_team__team_category', 'team_side'] # Updated filters
+    search_fields = ['our_team__team_name', 'opponent_team__team_name', 'scrim_group__scrim_group_name'] # Updated search fields
     ordering_fields = ['match_date']
-    
+    renderer_classes = [JSONRenderer]  # Only use JSON renderer, not HTML
+
     def get_queryset(self):
-        """Filter matches by date range if provided"""
-        queryset = super().get_queryset()
-        
-        # Date range filtering
-        start_date = self.request.query_params.get('start_date', None)
-        end_date = self.request.query_params.get('end_date', None)
-        
-        if start_date:
-            queryset = queryset.filter(match_date__gte=start_date)
-        if end_date:
-            queryset = queryset.filter(match_date__lte=end_date)
-            
-        # Only return matches the user submitted if they're not admin
+        """
+        Optionally restricts the returned matches to those associated with
+        teams managed by the currently authenticated user, unless user is admin.
+        """
         user = self.request.user
-        if not user.is_staff:
-            queryset = queryset.filter(submitted_by=user)
-            
-        return queryset
-    
-    def perform_create(self, serializer):
-        """Set the submitter automatically to the current user"""
-        serializer.save(submitted_by=self.request.user)
+        if user.is_staff: # Admins see all matches
+            return Match.objects.all().order_by('-match_date')
         
+        # Find teams managed by the user
+        managed_team_ids = TeamManagerRole.objects.filter(user=user).values_list('team_id', flat=True)
+        
+        # Filter matches where either our_team or opponent_team is managed by the user
+        # Also include external matches if needed (assuming logic exists to determine this)
+        # We might want to adjust this logic depending on how external matches are handled
+        queryset = Match.objects.filter(
+            Q(our_team_id__in=managed_team_ids) |
+            Q(opponent_team_id__in=managed_team_ids)
+            # Add condition for external matches if applicable
+            # Q(is_external_match=True)
+        ).select_related('our_team', 'opponent_team', 'scrim_group', 'mvp').order_by('-match_date')
+        return queryset
+
+    def perform_create(self, serializer):
+        """
+        Customize the creation process to set submitted_by and assign ScrimGroup.
+        """
+        # Set the submitter to the current user
+        match_instance = serializer.save(submitted_by=self.request.user)
+        
+        # Assign the ScrimGroup using the service
+        match_service = MatchService()
+        match_service.assign_scrim_group_for_match(match_instance)
+
+    @action(detail=False, methods=['get'])
+    def suggest_game_number(self, request):
+        """
+        API endpoint to suggest the next game number based on existing matches
+        within 8 hours of the specified date/time.
+        """
+        from services.match_services import MatchStatsService
+        
+        # Get parameters from request
+        our_team_id = request.query_params.get('our_team_id')
+        opponent_team_id = request.query_params.get('opponent_team_id')
+        match_date = request.query_params.get('match_date')
+        scrim_type = request.query_params.get('scrim_type')
+        
+        # Validate parameters
+        if not all([our_team_id, opponent_team_id, match_date, scrim_type]):
+            return Response(
+                {"error": "Missing required parameters"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+        try:
+            # Get team objects
+            our_team = Team.objects.get(pk=our_team_id)
+            opponent_team = Team.objects.get(pk=opponent_team_id)
+            
+            # Parse match date
+            from django.utils.dateparse import parse_datetime
+            match_datetime = parse_datetime(match_date)
+            if not match_datetime:
+                return Response(
+                    {"error": "Invalid date format"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+                
+            # Get suggestion
+            suggested_game_number = MatchStatsService.suggest_game_number(
+                our_team, opponent_team, match_datetime, scrim_type
+            )
+            
+            return Response({
+                "suggested_game_number": suggested_game_number
+            })
+            
+        except (Team.DoesNotExist, ValueError) as e:
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
     @action(detail=False, methods=['get'])
     def recent(self, request):
         """Get recent matches with aggregated statistics"""
@@ -557,6 +661,7 @@ class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [permissions.AllowAny]
+    renderer_classes = [JSONRenderer]  # Only use JSON renderer, not HTML
     
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -574,6 +679,7 @@ class TeamRoleManagementView(APIView):
     API endpoint for managing team roles
     """
     permission_classes = [permissions.IsAuthenticated, IsTeamManager]
+    renderer_classes = [JSONRenderer]  # Only use JSON renderer, not HTML
     
     def post(self, request):
         """Add a user to a team with a specific role"""
@@ -655,6 +761,7 @@ class PlayerRoleStatsView(APIView):
     API endpoint for computed player role statistics
     """
     permission_classes = [permissions.IsAuthenticated]
+    renderer_classes = [JSONRenderer]  # Only use JSON renderer, not HTML
     
     def get(self, request, format=None):
         player_id = request.query_params.get('player_id')
@@ -674,6 +781,7 @@ class HeroPairingStatsView(APIView):
     API endpoint for computed hero pairing statistics
     """
     permission_classes = [permissions.IsAuthenticated]
+    renderer_classes = [JSONRenderer]  # Only use JSON renderer, not HTML
     
     def get(self, request, format=None):
         team_id = request.query_params.get('team_id')
@@ -687,3 +795,169 @@ class HeroPairingStatsView(APIView):
         stats_list = list(stats.values())
         
         return Response(stats_list)
+
+# CSRF Token view for frontend authentication
+@api_view(['GET'])
+@permission_classes([permissions.AllowAny])
+def get_csrf_token(request):
+    """
+    API endpoint that returns a CSRF token for the frontend
+    """
+    from django.middleware.csrf import get_token
+    
+    # Get the CSRF token for the current session
+    csrf_token = get_token(request)
+    
+    return Response({
+        'csrfToken': csrf_token
+    })
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def health_check(request):
+    """
+    A simple endpoint to check if the API is running.
+    This endpoint doesn't require authentication.
+    """
+    return Response({"status": "ok", "message": "API is running"})
+
+class HeroViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint for Heroes
+    """
+    queryset = Hero.objects.all().order_by('name')
+    serializer_class = HeroSerializer
+    renderer_classes = [JSONRenderer]  # Only use JSON renderer, not HTML
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+class DraftViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint for Drafts
+    """
+    queryset = Draft.objects.all()
+    serializer_class = DraftSerializer
+    renderer_classes = [JSONRenderer]  # Only use JSON renderer, not HTML
+    
+    @action(detail=False, methods=['get'], url_path='match/(?P<match_id>[^/.]+)')
+    def get_by_match(self, request, match_id=None):
+        """Get draft by match ID"""
+        try:
+            draft = Draft.objects.get(match_id=match_id)
+            serializer = self.get_serializer(draft)
+            return Response(serializer.data)
+        except Draft.DoesNotExist:
+            return Response(
+                {"detail": "Draft not found for this match"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+    
+    def create(self, request, *args, **kwargs):
+        """
+        Create draft with nested bans and picks
+        """
+        # Extract nested data
+        bans_data = request.data.pop('bans', [])
+        picks_data = request.data.pop('picks', [])
+        
+        # Create draft
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        draft = serializer.save()
+        
+        # Create bans
+        for ban_data in bans_data:
+            ban_data['draft'] = draft.id
+            ban_serializer = DraftBanSerializer(data=ban_data)
+            ban_serializer.is_valid(raise_exception=True)
+            ban_serializer.save()
+            
+        # Create picks
+        for pick_data in picks_data:
+            pick_data['draft'] = draft.id
+            pick_serializer = DraftPickSerializer(data=pick_data)
+            pick_serializer.is_valid(raise_exception=True)
+            pick_serializer.save()
+            
+        # Return the full draft object with bans and picks
+        return Response(self.get_serializer(draft).data, status=status.HTTP_201_CREATED)
+
+class DraftBanViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint for Draft Bans
+    """
+    queryset = DraftBan.objects.all()
+    serializer_class = DraftBanSerializer
+    renderer_classes = [JSONRenderer]  # Only use JSON renderer, not HTML
+    
+class DraftPickViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint for Draft Picks
+    """
+    queryset = DraftPick.objects.all()
+    serializer_class = DraftPickSerializer
+    renderer_classes = [JSONRenderer]  # Only use JSON renderer, not HTML
+
+class ApiRootView(APIView):
+    """
+    The API root view that provides a directory of all available endpoints.
+    """
+    permission_classes = [permissions.AllowAny]
+    renderer_classes = [JSONRenderer]  # Only use JSON renderer, not HTML
+    
+    def get(self, request, format=None):
+        """Return a directory of all available API endpoints."""
+        host = request.get_host()
+        scheme = request.scheme
+        base_url = f"{scheme}://{host}"
+        
+        endpoints = {
+            "status": f"{base_url}/api/status/",
+            "teams": f"{base_url}/api/teams/",
+            "players": f"{base_url}/api/players/",
+            "matches": f"{base_url}/api/matches/",
+            "scrim_groups": f"{base_url}/api/scrim-groups/",
+            "heroes": f"{base_url}/api/heroes/",
+            "drafts": f"{base_url}/api/drafts/",
+            "draft_bans": f"{base_url}/api/draft-bans/",
+            "draft_picks": f"{base_url}/api/draft-picks/",
+            "authentication": {
+                "token": f"{base_url}/api/token/",
+                "token_refresh": f"{base_url}/api/token/refresh/",
+                "token_verify": f"{base_url}/api/token/verify/",
+            }
+        }
+        
+        return Response({
+            "status": "API is running",
+            "endpoints": endpoints,
+            "documentation": "Documentation not yet available",
+            "api_version": "1.0.0"
+        })
+
+class ApiStatus(APIView):
+    """
+    Returns the status of the API.
+    """
+    permission_classes = [permissions.AllowAny]
+    renderer_classes = [JSONRenderer]  # Only use JSON renderer, not HTML
+    
+    def get(self, request, format=None):
+        """Return a simple status message."""
+        return Response({"status": "ok", "message": "API is running"})
+
+class ManagedTeamListView(generics.ListAPIView):
+    """
+    API endpoint to list only the teams managed by the current authenticated user.
+    Used for populating 'Our Team' dropdowns.
+    """
+    serializer_class = TeamSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        """
+        This view should return a list of all the teams
+        for the currently authenticated user.
+        """
+        user = self.request.user
+        queryset = Team.objects.filter(manager_roles__user=user).distinct()
+        return queryset
