@@ -27,4 +27,4 @@ export interface Player {
 }
 
 // Import Team type from team.types.ts
-import { Team } from './team.types'; 
+import type { Team } from './team.types'; 

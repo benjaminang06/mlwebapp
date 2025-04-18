@@ -10,7 +10,7 @@ interface MatchDetailsStepProps {
   getTeamName: (teamId: string | undefined) => string;
   teams: Team[]; // All teams for opponent/external selectors
   managedTeams: Team[]; // Managed teams for 'Our Team' selector
-  handleAddNewTeam: (teamData: Partial<Team>, formik: FormikProps<MatchFormData>, teamType: 'opponent' | 'team1' | 'team2') => void;
+  handleAddNewTeam: (teamData: Partial<Team>, teamType: 'opponent' | 'team1' | 'team2') => void;
   // Dialog state and setters
   newOpponentDialogOpen: boolean;
   setNewOpponentDialogOpen: (open: boolean) => void;
@@ -18,6 +18,10 @@ interface MatchDetailsStepProps {
   setNewTeam1DialogOpen: (open: boolean) => void;
   newTeam2DialogOpen: boolean;
   setNewTeam2DialogOpen: (open: boolean) => void;
+  // --- NEW: Props for draft choice --- 
+  includeDraftInfo: boolean | null;
+  setIncludeDraftInfo: (value: boolean) => void;
+  // --- END NEW PROPS ---
 }
 
 const ADD_NEW_TEAM_OPTION_ID = "__add_new__";
@@ -34,6 +38,10 @@ const MatchDetailsStep: React.FC<MatchDetailsStepProps> = ({
   setNewTeam1DialogOpen,
   newTeam2DialogOpen,
   setNewTeam2DialogOpen,
+  // --- NEW: Destructure props ---
+  includeDraftInfo,
+  setIncludeDraftInfo,
+  // --- END NEW ---
 }) => {
   const { values, errors, touched, handleChange, handleBlur, setFieldValue } = formik;
   const generateId = (name: string) => `match-details-${name}`; // Prefix ids
@@ -151,7 +159,7 @@ const MatchDetailsStep: React.FC<MatchDetailsStepProps> = ({
                         )}
                     />
                  )}
-                  <NewTeamDialog open={newTeam1DialogOpen} onClose={() => { setNewTeam1DialogOpen(false); setFieldValue('team_1_new', false); }} onSave={(teamData) => handleAddNewTeam(teamData, formik, 'team1')} dialogTitle="Add New Blue Side Team" initialData={{ team_name: values.team_1_name, team_abbreviation: values.team_1_abbreviation, team_category: values.team_1_category }} />
+                  <NewTeamDialog open={newTeam1DialogOpen} onClose={() => { setNewTeam1DialogOpen(false); setFieldValue('team_1_new', false); }} onSave={(teamData) => handleAddNewTeam(teamData, 'team1')} dialogTitle="Add New Blue Side Team" initialData={{ team_name: values.team_1_name, team_abbreviation: values.team_1_abbreviation, team_category: values.team_1_category }} />
               </Grid>
               {/* Red Side Team */}
               <Grid item xs={12} md={6}>
@@ -174,7 +182,7 @@ const MatchDetailsStep: React.FC<MatchDetailsStepProps> = ({
                         )}
                     />
                 )}
-                  <NewTeamDialog open={newTeam2DialogOpen} onClose={() => { setNewTeam2DialogOpen(false); setFieldValue('team_2_new', false); }} onSave={(teamData) => handleAddNewTeam(teamData, formik, 'team2')} dialogTitle="Add New Red Side Team" initialData={{ team_name: values.team_2_name, team_abbreviation: values.team_2_abbreviation, team_category: values.team_2_category }} />
+                  <NewTeamDialog open={newTeam2DialogOpen} onClose={() => { setNewTeam2DialogOpen(false); setFieldValue('team_2_new', false); }} onSave={(teamData) => handleAddNewTeam(teamData, 'team2')} dialogTitle="Add New Red Side Team" initialData={{ team_name: values.team_2_name, team_abbreviation: values.team_2_abbreviation, team_category: values.team_2_category }} />
               </Grid>
             </Grid>
           </Paper>
@@ -214,7 +222,7 @@ const MatchDetailsStep: React.FC<MatchDetailsStepProps> = ({
                             renderInput={(params) => ( <TextField {...params} name="opponent_team" label="Opponent Team" variant="outlined" fullWidth error={touched.opponent_team && Boolean(errors.opponent_team)} helperText={touched.opponent_team && errors.opponent_team as string} sx={{ mb: 2 }} /> )}
                         />
                      )}
-                    <NewTeamDialog open={newOpponentDialogOpen} onClose={() => { setNewOpponentDialogOpen(false); setFieldValue('is_new_opponent', false); }} onSave={(teamData) => handleAddNewTeam(teamData, formik, 'opponent')} dialogTitle="Add New Opponent Team" initialData={{ team_name: values.opponent_team_name, team_abbreviation: values.opponent_team_abbreviation, team_category: values.opponent_category }} />
+                    <NewTeamDialog open={newOpponentDialogOpen} onClose={() => { setNewOpponentDialogOpen(false); setFieldValue('is_new_opponent', false); }} onSave={(teamData) => handleAddNewTeam(teamData, 'opponent')} dialogTitle="Add New Opponent Team" initialData={{ team_name: values.opponent_team_name, team_abbreviation: values.opponent_team_abbreviation, team_category: values.opponent_category }} />
                 </Grid>
                 {/* Team Side Selection */}
                 <Grid item xs={12}>
@@ -261,7 +269,39 @@ const MatchDetailsStep: React.FC<MatchDetailsStepProps> = ({
               </Grid>
           </Grid>
         </Paper>
-      </Box>
+
+        {/* --- NEW: Draft Choice Section --- */} 
+        <Paper elevation={2} sx={{ p: 2, mt: 3, border: includeDraftInfo === null ? '1px solid red' : undefined }}>
+          <Typography variant="subtitle1" gutterBottom>
+            Draft Information
+          </Typography>
+          <Typography variant="body2" sx={{ mb: 2 }}>
+            Do you want to include detailed draft information (bans and pick order) for the next step?
+          </Typography>
+          <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2 }}>
+            <Button 
+              variant={includeDraftInfo === true ? "contained" : "outlined"}
+              color="primary" 
+              onClick={() => setIncludeDraftInfo(true)}
+            >
+              Yes, Include Draft
+            </Button>
+            <Button 
+              variant={includeDraftInfo === false ? "contained" : "outlined"}
+              color="secondary" 
+              onClick={() => setIncludeDraftInfo(false)}
+            >
+              No, Basic Stats Only
+            </Button>
+          </Box>
+          {includeDraftInfo === null && (
+            <Typography color="error" variant="caption" display="block" sx={{ textAlign: 'center', mt: 1 }}>
+              Please make a selection to proceed.
+            </Typography>
+          )}
+        </Paper>
+        {/* --- END NEW SECTION --- */}
+    </Box>
   );
 };
 

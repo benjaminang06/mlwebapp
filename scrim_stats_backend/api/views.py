@@ -1,15 +1,14 @@
 from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status, viewsets, permissions, filters
-from django.db.models import Count, Q, Avg, Sum
+from rest_framework import status, viewsets, permissions, filters, generics
+from django.db.models import Count, Q, Avg, Sum, Max, Min, F, ExpressionWrapper, FloatField, Case, When, Value, IntegerField
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
 from .models import Team, Player, Match, PlayerMatchStat, PlayerAlias, PlayerTeamHistory, ScrimGroup, FileUpload, TeamManagerRole, Draft, DraftBan, DraftPick, Hero
 from .serializers import TeamSerializer, PlayerSerializer, PlayerAliasSerializer, MatchSerializer, ScrimGroupSerializer, PlayerMatchStatSerializer, FileUploadSerializer, UserSerializer, TeamManagerRoleSerializer, DraftSerializer, DraftBanSerializer, DraftPickSerializer, HeroSerializer
 from .permissions import IsTeamManager, IsTeamMember
 from django.contrib.auth.models import User
-from rest_framework import generics
 from django.http import JsonResponse
 from django.contrib.admin.views.decorators import staff_member_required
 from .utils import get_player_role_stats, get_hero_pairing_stats
@@ -17,16 +16,27 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.renderers import JSONRenderer
 from django.contrib.auth import authenticate, login, logout
-# from services.team_services import TeamService # Commented out - module/class not found
-from services.player_services import PlayerService # Corrected import path
-from services.match_services import MatchStatsService # Corrected import path - only import existing class
-# from services.scrim_group_services import ScrimGroupService # Commented out - module not found
-# from services.hero_services import HeroService # Commented out - module not found
-from services.match_service import MatchService # Import the new MatchService
+from services.player_services import PlayerService
+from services.match_services import MatchStatsService
+from services.match_service import MatchService
 from django.middleware.csrf import get_token
 from django.views.decorators.csrf import ensure_csrf_cookie
+from rest_framework.pagination import PageNumberPagination
+from rest_framework import mixins # Import mixins
+from django.utils import timezone # Added timezone
 
 # Create your views here.
+
+class PlayerMatchStatViewSet(mixins.CreateModelMixin,
+                           viewsets.GenericViewSet):
+    """
+    API endpoint allowing creation of PlayerMatchStat entries.
+    Only implements the 'create' action needed by the frontend form.
+    """
+    queryset = PlayerMatchStat.objects.all()
+    serializer_class = PlayerMatchStatSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    renderer_classes = [JSONRenderer]  # Only use JSON renderer, not HTML
 
 class TeamViewSet(viewsets.ModelViewSet):
     """
@@ -56,57 +66,136 @@ class TeamViewSet(viewsets.ModelViewSet):
         return super().get_permissions()
     
     @action(detail=True, methods=['get'])
-    def players(self, request, pk=None):
-        """Get all players for a specific team"""
-        team = self.get_object()
-        players = Player.objects.filter(teams=team)
-        serializer = PlayerSerializer(players, many=True)
-        return Response(serializer.data)
-    
-    @action(detail=True, methods=['get'])
     def statistics(self, request, pk=None):
         """Get aggregated statistics for a team"""
         team = self.get_object()
-        # Get matches where this team participated
-        matches = Match.objects.filter(team=team)
+        # TODO: Update this query based on the new Match model structure (blue/red teams)
+        # The current filter(team=team) likely won't work anymore.
+        matches = Match.objects.filter(Q(blue_side_team=team) | Q(red_side_team=team)) # Tentative fix
         
         # Calculate aggregated statistics
         stats = {
             'total_matches': matches.count(),
-            'wins': matches.filter(match_outcome='Win').count(),
-            'losses': matches.filter(match_outcome='Loss').count(),
-            'win_rate': matches.filter(match_outcome='Win').count() / matches.count() if matches.count() > 0 else 0,
+            # TODO: Update win/loss logic based on 'winning_team' field
+            'wins': matches.filter(winning_team=team).count(), # Tentative fix
+            'losses': matches.exclude(winning_team=team).filter(winning_team__isnull=False).count(), # Tentative fix
         }
-        
+        # Handle division by zero
+        stats['win_rate'] = (stats['wins'] / stats['total_matches']) * 100 if stats['total_matches'] > 0 else 0
+
         return Response(stats)
 
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    def add_player(self, request, pk=None):
+        """
+        Adds a new player to the specified team.
+        Creates a Player record and a PlayerTeamHistory record linking them.
+        Expects {'ign': 'NewPlayerIGN', 'primary_role': 'ROLE'} in request body.
+        """
+        team = self.get_object()
+        ign = request.data.get('ign')
+        primary_role = request.data.get('primary_role') # Optional
+
+        if not ign:
+            return Response(
+                {"error": "In-Game Name (ign) is required."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+        # Consider adding validation for role if it's required or needs specific values
+        # if primary_role and primary_role not in [choice[0] for choice in Player.ROLE_CHOICES]:
+        #     return Response(
+        #         {"error": f"Invalid primary_role: {primary_role}"}, 
+        #         status=status.HTTP_400_BAD_REQUEST
+        #     )
+
+        # Check if player with this IGN already exists *anywhere*? 
+        # For now, we allow creating potentially duplicate IGNs across different teams or even same team?
+        # More robust logic might involve checking existing players first.
+        
+        try:
+            # Create the new player
+            new_player = Player.objects.create(
+                current_ign=ign,
+                primary_role=primary_role # Will be null if not provided
+            )
+            
+            # Determine if the new player should be a starter for the given role
+            make_starter = False
+            if primary_role: # Only consider for starter if role is provided
+                has_existing_starter = PlayerTeamHistory.objects.filter(
+                    team=team,
+                    left_date=None, # Ensure the history record is active
+                    is_starter=True,
+                    player__primary_role=primary_role # Check the role on the linked player
+                ).exists()
+                make_starter = not has_existing_starter # Make starter if no existing starter for this role
+
+            # Link the player to this team via history
+            PlayerTeamHistory.objects.create(
+                player=new_player,
+                team=team,
+                joined_date=timezone.now().date(), # Corrected: Use joined_date
+                is_starter=make_starter # Set starter status based on check
+            )
+            
+            # Serialize the newly created player data
+            serializer = PlayerSerializer(new_player, context={'request': request})
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        except Exception as e:
+            # Log the exception e
+            # Consider more specific error handling/logging
+            print(f"Error adding player: {e}") # Example logging
+            return Response(
+                {"error": f"An error occurred while adding the player: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+# Restore original logic for TeamPlayersView (APIView with manual pagination)
 class TeamPlayersView(APIView):
     """
-    Get a list of players for a specific team, used for autocomplete/dropdown
-    when entering player stats.
+    Get a paginated list of current players for a specific team.
+    Used for populating player stat rows.
     """
     permission_classes = [permissions.IsAuthenticated]
-    renderer_classes = [JSONRenderer]  # Only use JSON renderer, not HTML
-    
-    def get(self, request, team_id, format=None):
+    renderer_classes = [JSONRenderer]
+
+    def get(self, request, pk, format=None):
+        """
+        Return current players for the team specified in the URL (pk).
+        Handles pagination manually.
+        """
+        # --- Start Original Code ---
+        team_id = pk # Use pk directly from the URL
+
         try:
+            # Validate that the team exists
             team = Team.objects.get(pk=team_id)
         except Team.DoesNotExist:
-            return Response({"error": "Team not found"}, status=status.HTTP_404_NOT_FOUND)
-        
-        # Get all current players for this team - updated query
-        players = Player.objects.filter(team_history__team=team, team_history__left_date=None)
-        
-        # Format response with player info
-        player_data = [{
-            'player_id': player.player_id,
-            'ign': player.current_ign,
-            'role': player.primary_role,
-            'team_id': team.team_id,
-            'team_name': team.team_name
-        } for player in players]
-        
-        return Response(player_data)
+            # Return 404 if team doesn't exist
+            return Response({"error": f"Team with ID {team_id} not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Correct query: Filter players whose team history includes this team
+        # and where the membership record has no left_date.
+        queryset = Player.objects.filter(
+            team_history__team=team,
+            team_history__left_date=None
+        ).distinct().order_by('-team_history__is_starter', 'current_ign')
+
+        # Apply pagination
+        paginator = PageNumberPagination()
+        page = paginator.paginate_queryset(queryset, request, view=self)
+
+        # If paginated, serialize the page and return paginated response
+        if page is not None:
+            serializer = PlayerSerializer(page, many=True, context={'request': request})
+            return paginator.get_paginated_response(serializer.data)
+
+        # If not paginated, serialize the whole queryset and return.
+        serializer = PlayerSerializer(queryset, many=True, context={'request': request})
+        return Response(serializer.data)
+        # --- End Original Code ---
 
 class PlayerLookupView(APIView):
     """
@@ -454,7 +543,6 @@ class VerifyMatchPlayersView(APIView):
                 print(f"Error: Player {player_id} not found")
         
         # Process the match with the service layer
-        from services.match_services import MatchStatsService
         MatchStatsService.process_match_save(match)
 
 class PlayerViewSet(viewsets.ModelViewSet):
@@ -487,7 +575,6 @@ class PlayerViewSet(viewsets.ModelViewSet):
             )
             
         # Use the service instead of the direct model method
-        from services.player_services import PlayerService
         PlayerService.change_player_ign(player, new_ign)
         
         return Response(PlayerSerializer(player).data)
@@ -513,7 +600,6 @@ class PlayerViewSet(viewsets.ModelViewSet):
         player = self.get_object()
         
         # Use the service to get comprehensive stats
-        from services.player_services import PlayerService
         player_stats = PlayerService.get_player_stats(player)
         
         return Response(player_stats)

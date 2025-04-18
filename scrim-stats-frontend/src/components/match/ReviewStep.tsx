@@ -174,8 +174,8 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
                 <th style={{ padding: '8px', textAlign: 'left', width: '18%' }}>Player</th>
                 <th style={{ padding: '8px', textAlign: 'left', width: '18%' }}>Hero</th>
                 <th style={{ padding: '8px', textAlign: 'left', width: '12%' }}>Role</th>
+                <th style={{ padding: '8px', textAlign: 'right', width: '8%' }}>K/D/A</th>
                 <th style={{ padding: '8px', textAlign: 'right', width: '8%' }}>KDA</th>
-                <th style={{ padding: '8px', textAlign: 'right', width: '8%' }}>Calc KDA</th>
                 <th style={{ padding: '8px', textAlign: 'right', width: '8%' }}>Medal</th>
                 <th style={{ padding: '8px', textAlign: 'right', width: '8%' }}>Damage</th>
                 <th style={{ padding: '8px', textAlign: 'right', width: '8%' }}>DMG Tkn</th>
@@ -184,20 +184,30 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
               </tr>
             </thead>
             <tbody>
-              {values.team_players.map((player: Partial<PlayerMatchStat>, idx: number) => (
-                <tr key={`team1-${idx}`} style={{ borderBottom: '1px solid rgba(224, 224, 224, 0.5)' }}>
-                  <td style={{ padding: '8px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{player.ign || `Player ${idx + 1}`}</td>
-                  <td style={{ padding: '8px' }}>{renderHero(player.hero_played)}</td>
-                  <td style={{ padding: '8px' }}>{player.role_played || '-'}</td>
-                  <td style={{ padding: '8px', textAlign: 'right' }}>{player.kills ?? 0}/{player.deaths ?? 0}/{player.assists ?? 0}</td>
-                  <td style={{ padding: '8px', textAlign: 'right' }}>{player.computed_kda?.toFixed(2) ?? '-'}</td>
-                  <td style={{ padding: '8px', textAlign: 'right' }}>{formatMedal(player.medal)}</td>
-                  <td style={{ padding: '8px', textAlign: 'right' }}>{player.damage_dealt ?? '-'}</td>
-                  <td style={{ padding: '8px', textAlign: 'right' }}>{player.damage_taken ?? '-'}</td>
-                  <td style={{ padding: '8px', textAlign: 'right' }}>{player.turret_damage ?? '-'}</td>
-                  <td style={{ padding: '8px', textAlign: 'right' }}>{player.gold_earned ?? '-'}</td>
-                </tr>
-              ))}
+              {values.team_players.map((player: Partial<PlayerMatchStat>, idx: number) => {
+                // --- NEW: Safely format KDA ---
+                const kdaValue = typeof player.kda === 'number' 
+                    ? player.kda 
+                    : parseFloat(String(player.kda)); // Attempt to parse if not number
+                const formattedKDA = !isNaN(kdaValue) ? kdaValue.toFixed(2) : '-';
+                // --- END NEW ---
+                return (
+                    <tr key={`team1-${idx}`} style={{ borderBottom: '1px solid rgba(224, 224, 224, 0.5)' }}>
+                    <td style={{ padding: '8px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{player.ign || `Player ${idx + 1}`}</td>
+                    <td style={{ padding: '8px' }}>{renderHero(player.hero_played)}</td>
+                    <td style={{ padding: '8px' }}>{player.role_played || '-'}</td>
+                    <td style={{ padding: '8px', textAlign: 'right' }}>{player.kills ?? 0}/{player.deaths ?? 0}/{player.assists ?? 0}</td>
+                    {/* --- UPDATED: Use formatted KDA --- */}
+                    <td style={{ padding: '8px', textAlign: 'right' }}>{formattedKDA}</td>
+                    {/* --- END UPDATE --- */}
+                    <td style={{ padding: '8px', textAlign: 'right' }}>{formatMedal(player.medal)}</td>
+                    <td style={{ padding: '8px', textAlign: 'right' }}>{player.damage_dealt ?? '-'}</td>
+                    <td style={{ padding: '8px', textAlign: 'right' }}>{player.damage_taken ?? '-'}</td>
+                    <td style={{ padding: '8px', textAlign: 'right' }}>{player.turret_damage ?? '-'}</td>
+                    <td style={{ padding: '8px', textAlign: 'right' }}>{player.gold_earned ?? '-'}</td>
+                    </tr>
+                );
+              })}
             </tbody>
           </table>
         </Box>
@@ -218,8 +228,8 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
                 <th style={{ padding: '8px', textAlign: 'left', width: '18%' }}>Player</th>
                 <th style={{ padding: '8px', textAlign: 'left', width: '18%' }}>Hero</th>
                 <th style={{ padding: '8px', textAlign: 'left', width: '12%' }}>Role</th>
+                <th style={{ padding: '8px', textAlign: 'right', width: '8%' }}>K/D/A</th>
                 <th style={{ padding: '8px', textAlign: 'right', width: '8%' }}>KDA</th>
-                <th style={{ padding: '8px', textAlign: 'right', width: '8%' }}>Calc KDA</th>
                 <th style={{ padding: '8px', textAlign: 'right', width: '8%' }}>Medal</th>
                 <th style={{ padding: '8px', textAlign: 'right', width: '8%' }}>Damage</th>
                 <th style={{ padding: '8px', textAlign: 'right', width: '8%' }}>DMG Tkn</th>
@@ -228,20 +238,30 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
                </tr>
              </thead>
             <tbody>
-              {values.enemy_players.map((player: Partial<PlayerMatchStat>, idx: number) => (
-                 <tr key={`team2-${idx}`} style={{ borderBottom: '1px solid rgba(224, 224, 224, 0.5)' }}>
-                  <td style={{ padding: '8px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{player.ign || `Player ${idx + 1}`}</td>
-                  <td style={{ padding: '8px' }}>{renderHero(player.hero_played)}</td>
-                  <td style={{ padding: '8px' }}>{player.role_played || '-'}</td>
-                  <td style={{ padding: '8px', textAlign: 'right' }}>{player.kills ?? 0}/{player.deaths ?? 0}/{player.assists ?? 0}</td>
-                  <td style={{ padding: '8px', textAlign: 'right' }}>{player.computed_kda?.toFixed(2) ?? '-'}</td>
-                  <td style={{ padding: '8px', textAlign: 'right' }}>{formatMedal(player.medal)}</td>
-                  <td style={{ padding: '8px', textAlign: 'right' }}>{player.damage_dealt ?? '-'}</td>
-                  <td style={{ padding: '8px', textAlign: 'right' }}>{player.damage_taken ?? '-'}</td>
-                  <td style={{ padding: '8px', textAlign: 'right' }}>{player.turret_damage ?? '-'}</td>
-                  <td style={{ padding: '8px', textAlign: 'right' }}>{player.gold_earned ?? '-'}</td>
-                </tr>
-              ))}
+              {values.enemy_players.map((player: Partial<PlayerMatchStat>, idx: number) => {
+                 // --- NEW: Safely format KDA ---
+                 const kdaValue = typeof player.kda === 'number' 
+                    ? player.kda 
+                    : parseFloat(String(player.kda)); // Attempt to parse if not number
+                 const formattedKDA = !isNaN(kdaValue) ? kdaValue.toFixed(2) : '-';
+                 // --- END NEW ---
+                 return (
+                    <tr key={`team2-${idx}`} style={{ borderBottom: '1px solid rgba(224, 224, 224, 0.5)' }}>
+                    <td style={{ padding: '8px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{player.ign || `Player ${idx + 1}`}</td>
+                    <td style={{ padding: '8px' }}>{renderHero(player.hero_played)}</td>
+                    <td style={{ padding: '8px' }}>{player.role_played || '-'}</td>
+                    <td style={{ padding: '8px', textAlign: 'right' }}>{player.kills ?? 0}/{player.deaths ?? 0}/{player.assists ?? 0}</td>
+                    {/* --- UPDATED: Use formatted KDA --- */}
+                    <td style={{ padding: '8px', textAlign: 'right' }}>{formattedKDA}</td>
+                    {/* --- END UPDATE --- */}
+                    <td style={{ padding: '8px', textAlign: 'right' }}>{formatMedal(player.medal)}</td>
+                    <td style={{ padding: '8px', textAlign: 'right' }}>{player.damage_dealt ?? '-'}</td>
+                    <td style={{ padding: '8px', textAlign: 'right' }}>{player.damage_taken ?? '-'}</td>
+                    <td style={{ padding: '8px', textAlign: 'right' }}>{player.turret_damage ?? '-'}</td>
+                    <td style={{ padding: '8px', textAlign: 'right' }}>{player.gold_earned ?? '-'}</td>
+                    </tr>
+                );
+              })}
             </tbody>
           </table>
         </Box>

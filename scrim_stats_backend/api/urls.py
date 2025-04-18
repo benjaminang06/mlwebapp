@@ -6,7 +6,8 @@ from .views import (
     DraftBanViewSet, DraftPickViewSet, ApiStatus, ApiRootView,
     ManagedTeamListView,
     RegisterView,
-    TeamPlayersView
+    TeamPlayersView,
+    PlayerMatchStatViewSet
 )
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
@@ -23,6 +24,7 @@ router.register(r'heroes', HeroViewSet)
 router.register(r'drafts', DraftViewSet)
 router.register(r'draft-bans', DraftBanViewSet)
 router.register(r'draft-picks', DraftPickViewSet)
+router.register(r'player-stats', PlayerMatchStatViewSet)
 
 # The API URLs are now determined automatically by the router.
 urlpatterns = [

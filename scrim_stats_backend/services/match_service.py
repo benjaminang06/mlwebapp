@@ -13,7 +13,7 @@ class MatchService:
         the same two teams. If it occurred less than 6 hours ago, assigns the
         new match to the same ScrimGroup. Otherwise, creates a new ScrimGroup.
         """
-        if not match or not match.our_team or not match.opponent_team or not match.match_date:
+        if not match or not match.blue_side_team or not match.red_side_team or not match.match_date:
             # Cannot proceed without essential match details
             # Consider logging a warning or raising an error
             return 
@@ -23,8 +23,8 @@ class MatchService:
         # Find the most recent previous match between the same teams
         # Exclude the current match instance itself if it's already saved
         previous_match = Match.objects.filter(
-            our_team=match.our_team,
-            opponent_team=match.opponent_team,
+            blue_side_team=match.blue_side_team,
+            red_side_team=match.red_side_team,
             match_date__lt=match.match_date,
             match_date__gte=six_hours_ago
         ).order_by('-match_date').first()
@@ -34,7 +34,7 @@ class MatchService:
             match.scrim_group = previous_match.scrim_group
         else:
             # Create a new ScrimGroup
-            group_name = f"{match.our_team.team_name} vs {match.opponent_team.team_name} - {match.match_date.strftime('%Y-%m-%d')}"
+            group_name = f"{match.blue_side_team.team_name} vs {match.red_side_team.team_name} - {match.match_date.strftime('%Y-%m-%d')}"
             
             # Check if a group with this name and date *might* already exist 
             # This handles cases where multiple matches starting a new group happen close together

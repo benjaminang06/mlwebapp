@@ -357,7 +357,7 @@ class PlayerMatchStat(models.Model):
     kills = models.IntegerField()
     deaths = models.IntegerField()
     assists = models.IntegerField()
-    computed_kda = models.FloatField(null=True, blank=True, help_text="(K+A)/D ratio, calculated on save") # Allow null
+    kda = models.FloatField(null=True, blank=True, help_text="KDA ratio provided by the game (user input)")
     damage_dealt = models.IntegerField(blank=True, null=True)
     damage_taken = models.IntegerField(blank=True, null=True)
     turret_damage = models.IntegerField(blank=True, null=True)
@@ -395,16 +395,6 @@ class PlayerMatchStat(models.Model):
         return False # Default if context cannot be determined
 
     def save(self, *args, **kwargs):
-        # Calculate KDA
-        if self.deaths > 0:
-            self.computed_kda = (self.kills + self.assists) / self.deaths
-        elif self.kills > 0 or self.assists > 0:
-             # Handle division by zero - infinite KDA or just K+A?
-             # Let's represent perfect KDA with a high number or just K+A
-             self.computed_kda = float(self.kills + self.assists) # Or set a specific large number like 999?
-        else:
-            self.computed_kda = 0.0 # 0/0 KDA is 0
-            
         # Set role_played to player's primary role if not specified
         if self.player and not self.role_played:
             self.role_played = self.player.primary_role
@@ -412,7 +402,7 @@ class PlayerMatchStat(models.Model):
         # Basic validation - complex validation will be moved to service layer
         # (Validation logic removed for brevity, assume it exists)
                 
-        super().save(*args, **kwargs) 
+        super().save(*args, **kwargs)
 
 class FileUpload(models.Model):
     """
@@ -438,13 +428,16 @@ class PlayerTeamHistory(models.Model):
     team = models.ForeignKey(Team, on_delete=models.CASCADE)
     joined_date = models.DateField()
     left_date = models.DateField(null=True, blank=True)
+    is_starter = models.BooleanField(default=False, help_text="Indicates if the player is part of the main starting lineup for this team during this period")
     notes = models.TextField(blank=True, null=True)
     
     def __str__(self):
-        return f"{self.player.current_ign} - {self.team.team_name}"
+        status = "Starter" if self.is_starter else "Sub"
+        return f"{self.player.current_ign} - {self.team.team_name} ({status})"
     
     class Meta:
         ordering = ['-joined_date']
+        # Consider adding constraints later if needed, e.g., only 5 starters per team active
 
 # Add a TeamManager model with roles
 class TeamManagerRole(models.Model):

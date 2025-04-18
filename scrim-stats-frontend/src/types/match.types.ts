@@ -60,7 +60,7 @@ export interface PlayerMatchStat {
   kills?: number;
   deaths?: number;
   assists?: number;
-  computed_kda?: number | null;
+  kda?: number | null;
   damage_dealt?: number | null;
   damage_taken?: number | null;
   turret_damage?: number | null;
@@ -72,6 +72,7 @@ export interface PlayerMatchStat {
   updated_at?: string;
   is_blue_side?: boolean;
   medal?: string | null;
+  pick_order?: number | null;
 }
 
 export interface FileUpload {
@@ -123,12 +124,15 @@ export interface MatchFormData {
   scrim_type: string;
   team_side: string;
 
-  mvp_player_id?: number;
-  mvp_loss_player_id?: number;
+  mvp_player_id?: number | string | Player | undefined;
+  mvp_loss_player_id?: number | string | Player | undefined;
 
   draft: DraftFormData;
   team_players: Partial<PlayerMatchStat>[];
   enemy_players: Partial<PlayerMatchStat>[];
   files: File[];
   players: Player[];
+  blueBans: (Hero | null)[];
+  redBans: (Hero | null)[];
+  draft_format: 'THREE_BANS' | 'FIVE_BANS';
 } 

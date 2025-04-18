@@ -1,6 +1,6 @@
 import api from './api';
 import { DraftFormData, Draft, DraftBan, DraftPick } from '../types/draft';
-import { Hero } from '../types/hero';
+import { Hero } from '../types/hero.types';
 import { PaginatedResponse } from '../types/api';
 import { AxiosResponse } from 'axios';
 

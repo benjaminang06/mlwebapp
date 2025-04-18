@@ -166,9 +166,12 @@ class PlayerMatchStatCreateSerializer(serializers.Serializer):
 class PlayerMatchStatSerializer(serializers.ModelSerializer):
     """Serializer for player statistics in a specific match"""
     player_details = PlayerSerializer(source='player', read_only=True)
-    player_id = serializers.PrimaryKeyRelatedField(
+    player = serializers.PrimaryKeyRelatedField(
         queryset=Player.objects.all(),
-        source='player',
+        write_only=True
+    )
+    hero_played = serializers.PrimaryKeyRelatedField(
+        queryset=Hero.objects.all(),
         write_only=True
     )
     is_our_team = serializers.SerializerMethodField()
@@ -178,34 +181,33 @@ class PlayerMatchStatSerializer(serializers.ModelSerializer):
     class Meta:
         model = PlayerMatchStat
         fields = [
-            'stats_id', 'match', 'player_details', 'player_id', 'role_played',
-            'hero_played', 'hero_name', 'kills', 'deaths', 'assists', 'computed_kda',
+            'stats_id', 'match', 'team',
+            'player_details',
+            'player',
+            'player_ign',
+            'role_played',
+            'hero_played',
+            'hero_name',
+            'kills', 'deaths', 'assists', 'kda',
             'damage_dealt', 'damage_taken', 'turret_damage',
             'teamfight_participation', 'gold_earned', 'player_notes',
-            'medal', 'is_our_team', 'created_at', 'updated_at'
+            'medal', 'is_our_team', 'created_at', 'updated_at',
         ]
-        read_only_fields = ['stats_id', 'player_ign', 'hero_name', 'computed_kda', 'created_at', 'updated_at']
+        read_only_fields = [
+            'stats_id', 
+            'player_ign',
+            'hero_name', 
+            'created_at', 'updated_at', 
+            'player_details',
+            'is_our_team'
+        ]
     
     def get_is_our_team(self, obj):
         """Use the model's is_for_our_team method"""
         return obj.is_for_our_team()
     
     def validate(self, data):
-        """
-        Calculate the computed KDA if not provided.
-        KDA formula: (Kills + Assists) / Deaths, with special handling for 0 deaths
-        """
-        if 'computed_kda' not in data:
-            kills = data.get('kills', 0)
-            deaths = data.get('deaths', 0)
-            assists = data.get('assists', 0)
-            
-            # If deaths is 0, use a high KDA or perhaps kills + assists
-            if deaths == 0:
-                data['computed_kda'] = float(kills + assists)
-            else:
-                data['computed_kda'] = float(kills + assists) / deaths
-        
+        # KDA Calculation removed from validate
         return data
     
     def create(self, validated_data):
@@ -213,9 +215,9 @@ class PlayerMatchStatSerializer(serializers.ModelSerializer):
         # Create the stat record
         stat = PlayerMatchStat.objects.create(**validated_data)
         
-        # Trigger score details recalculation
-        match = stat.match
-        match.calculate_score_details()
+        # Trigger score details recalculation (if needed - this method doesn't exist)
+        # match = stat.match
+        # match.calculate_score_details()
         
         return stat
 
@@ -247,35 +249,28 @@ class MatchSerializer(serializers.ModelSerializer):
     player_stats = PlayerMatchStatSerializer(many=True, read_only=True)
     files = FileUploadSerializer(many=True, read_only=True)
     
-    # --- Writeable fields from Frontend --- 
-    # These fields mimic the frontend form but are NOT directly saved to the DB model.
-    # They are used in the .validate() or .create()/.update() methods for translation.
-    is_external_match = serializers.BooleanField(write_only=True, required=True)
-    team_side = serializers.ChoiceField(choices=['BLUE', 'RED'], write_only=True, required=False, allow_null=True)
-    our_team_id_input = serializers.PrimaryKeyRelatedField(
-        queryset=Team.objects.all(), write_only=True, required=False, source='our_team' # Temporarily map source for validation
+    # --- Writable Fields (aligning with frontend payload & model) ---
+    # Use PrimaryKeyRelatedField for FKs the frontend sends as IDs
+    blue_side_team = serializers.PrimaryKeyRelatedField(
+        queryset=Team.objects.all(), required=True # Model requires it
     )
-    opponent_team_id_input = serializers.PrimaryKeyRelatedField(
-        queryset=Team.objects.all(), write_only=True, required=False
+    red_side_team = serializers.PrimaryKeyRelatedField(
+        queryset=Team.objects.all(), required=True # Model requires it
     )
-    blue_side_team_id_input = serializers.PrimaryKeyRelatedField(
-        queryset=Team.objects.all(), write_only=True, required=False, source='blue_side_team' # Map source
+    our_team = serializers.PrimaryKeyRelatedField(
+        queryset=Team.objects.all(), required=False, allow_null=True # Model allows null
     )
-    red_side_team_id_input = serializers.PrimaryKeyRelatedField(
-        queryset=Team.objects.all(), write_only=True, required=False, source='red_side_team' # Map source
+    winning_team = serializers.PrimaryKeyRelatedField(
+        queryset=Team.objects.all(), required=False, allow_null=True # Model allows null
     )
-    # Allow writing standard FKs too
-    scrim_group_id = serializers.PrimaryKeyRelatedField(
-        queryset=ScrimGroup.objects.all(), source='scrim_group', write_only=True, required=False, allow_null=True
+    mvp = serializers.PrimaryKeyRelatedField(
+        queryset=Player.objects.all(), required=False, allow_null=True
     )
-    winning_team_id = serializers.PrimaryKeyRelatedField(
-        queryset=Team.objects.all(), source='winning_team', write_only=True, required=False, allow_null=True
+    mvp_loss = serializers.PrimaryKeyRelatedField(
+        queryset=Player.objects.all(), required=False, allow_null=True
     )
-    mvp_id = serializers.PrimaryKeyRelatedField(
-        queryset=Player.objects.all(), source='mvp', write_only=True, required=False, allow_null=True
-    )
-    mvp_loss_id = serializers.PrimaryKeyRelatedField(
-        queryset=Player.objects.all(), source='mvp_loss', write_only=True, required=False, allow_null=True
+    scrim_group = serializers.PrimaryKeyRelatedField(
+        queryset=ScrimGroup.objects.all(), required=False, allow_null=True
     )
 
     class Meta:
@@ -286,206 +281,38 @@ class MatchSerializer(serializers.ModelSerializer):
             'blue_side_team_details', 'red_side_team_details', 'our_team_details',
             'winning_team_details', 'mvp_details', 'mvp_loss_details',
             'player_stats', 'files', 'created_at', 'updated_at',
-            'match_outcome', # Read-only, calculated in model save
+            'match_outcome', # Read-only from model
             
             # Direct Model Fields (Writable)
             'match_date', 'match_duration', 'scrim_type', 
             'general_notes', 'game_number', 
             
-            # Writable FKs (standard)
-            'scrim_group_id', 'winning_team_id', 'mvp_id', 'mvp_loss_id',
-            
-            # --- Frontend Input Fields (Write-Only) ---
-            'is_external_match', 'team_side', 
-            'our_team_id_input', 'opponent_team_id_input',
-            'blue_side_team_id_input', 'red_side_team_id_input',
-            
-            # --- Direct Model FKs (Populated by translation logic) ---
-            # These are the actual fields saved, but populated in create/update
-            # We list them here so they are included in validated_data if needed
+            # Writable FKs (defined above or handled by name convention)
             'blue_side_team', 'red_side_team', 'our_team',
+            'winning_team', 'mvp', 'mvp_loss', 'scrim_group'
         ]
         read_only_fields = [
             'match_id', 'scrim_group_details', 'submitted_by_details',
             'blue_side_team_details', 'red_side_team_details', 'our_team_details',
             'winning_team_details', 'mvp_details', 'mvp_loss_details',
-            'player_stats', 'files', 'created_at', 'updated_at', 'match_outcome',
+            'player_stats', 'files', 'created_at', 'updated_at', 'match_outcome', 
         ]
         # Hide the direct FKs from automatic write handling if populated manually
-        extra_kwargs = {
-            'blue_side_team': {'write_only': True, 'required': False},
-            'red_side_team': {'write_only': True, 'required': False},
-            'our_team': {'write_only': True, 'required': False},
-        }
+        # extra_kwargs = { ... } # Clear this out - no longer needed for translation fields
         
-    def validate(self, data):
-        # Validate based on the frontend input fields
-        is_external = data.get('is_external_match')
-
-        if is_external is None:
-            # This flag is crucial for translation
-            raise serializers.ValidationError({"is_external_match": "This field is required."}) 
-
-        if is_external:
-            # External Match Validation
-            blue_team = data.get('blue_side_team') # Gets the Team instance via source mapping
-            red_team = data.get('red_side_team')
-            if not blue_team:
-                raise serializers.ValidationError({"blue_side_team_id_input": "Blue side team is required for external matches."})
-            if not red_team:
-                raise serializers.ValidationError({"red_side_team_id_input": "Red side team is required for external matches."})
-            if blue_team == red_team:
-                 raise serializers.ValidationError("Blue and Red side teams cannot be the same.")
-            # Clear internal match fields if they were somehow submitted
-            data.pop('our_team', None)
-            data.pop('opponent_team_id_input', None)
-            data.pop('team_side', None)
-        else:
-            # Internal Match Validation
-            our_team = data.get('our_team') # Gets the Team instance via source mapping
-            opponent_team = data.get('opponent_team_id_input') # This is just the ID
-            team_side = data.get('team_side')
-            if not our_team:
-                raise serializers.ValidationError({"our_team_id_input": "Our team is required for internal matches."})
-            if not opponent_team:
-                raise serializers.ValidationError({"opponent_team_id_input": "Opponent team is required for internal matches."})
-            if not team_side:
-                raise serializers.ValidationError({"team_side": "Team side is required for internal matches."})
-            if our_team == opponent_team:
-                 raise serializers.ValidationError("Our team and Opponent team cannot be the same.")
-            # Clear external match fields if they were somehow submitted
-            data.pop('blue_side_team', None)
-            data.pop('red_side_team', None)
-            
-        # Basic validation for winning team (if provided)
-        winning_team = data.get('winning_team')
-        if winning_team:
-            blue = data.get('blue_side_team') if is_external else (our_team if team_side == 'BLUE' else opponent_team)
-            red = data.get('red_side_team') if is_external else (opponent_team if team_side == 'BLUE' else our_team)
-            if winning_team != blue and winning_team != red:
-                 raise serializers.ValidationError({"winning_team_id": "Winning team must be one of the participating teams."}) 
-
-        return data
-
-    def _get_managed_teams(self, user):
-        if user and user.is_authenticated:
-             # Assuming TeamManagerRole model exists and links users to teams they manage
-             # Adjust query based on your actual TeamManagerRole model structure
-             try:
-                 from .models import TeamManagerRole
-                 return list(TeamManagerRole.objects.filter(user=user).values_list('team_id', flat=True))
-             except ImportError:
-                  # Fallback or error if TeamManagerRole is not defined as expected
-                  print("Warning: TeamManagerRole model not found, cannot determine managed teams.")
-                  return []
-        return []
-
     def create(self, validated_data):
+        # Simplified create - assumes validated_data matches model fields
         user = self.context['request'].user
-        is_external = validated_data.pop('is_external_match')
-        managed_team_ids = self._get_managed_teams(user)
-
-        # Prepare data for the new model structure
-        match_data = {
-             'submitted_by': user,
-             # Copy other direct fields
-             'match_date': validated_data.get('match_date'),
-             'match_duration': validated_data.get('match_duration'),
-             'scrim_type': validated_data.get('scrim_type'),
-             'general_notes': validated_data.get('general_notes'),
-             'game_number': validated_data.get('game_number'),
-             'scrim_group': validated_data.get('scrim_group'),
-             'winning_team': validated_data.get('winning_team'),
-             'mvp': validated_data.get('mvp'),
-             'mvp_loss': validated_data.get('mvp_loss'),
-        }
-
-        db_our_team_id = None # Nullable our_team FK
-        
-        if is_external:
-            blue_team = validated_data.get('blue_side_team')
-            red_team = validated_data.get('red_side_team')
-            match_data['blue_side_team'] = blue_team
-            match_data['red_side_team'] = red_team
-            
-            # Set our_team context if uploader manages one of the teams
-            if blue_team and blue_team.team_id in managed_team_ids:
-                 db_our_team_id = blue_team.team_id
-            elif red_team and red_team.team_id in managed_team_ids:
-                 db_our_team_id = red_team.team_id
-            # Add logic here if user manages BOTH teams (e.g., default to blue, keep null, etc.)
-            # Current logic prioritizes blue side if both are managed.
-
-        else: # Internal Match
-            our_team = validated_data.get('our_team')
-            opponent_team = data.get('opponent_team_id_input') # This is a Team instance now
-            team_side = validated_data.get('team_side')
-            
-            if team_side == 'BLUE':
-                match_data['blue_side_team'] = our_team
-                match_data['red_side_team'] = opponent_team 
-            else: # team_side == 'RED'
-                match_data['blue_side_team'] = opponent_team
-                match_data['red_side_team'] = our_team
-            
-            # Set our_team context (it's guaranteed to be 'our_team' from input)
-            db_our_team_id = our_team.team_id
-            
-        # Assign the determined our_team ID (can be None)
-        if db_our_team_id:
-             match_data['our_team_id'] = db_our_team_id
-        else:
-             match_data['our_team'] = None # Explicitly set to None if no context
-
-        # Create the match instance
-        # We pass specific fields to create() to avoid issues with write_only/read_only mixups
-        instance = Match.objects.create(**match_data)
+        validated_data['submitted_by'] = user
+        # The validated_data should now contain the correct Team/Player instances for FKs
+        instance = Match.objects.create(**validated_data)
+        # Directly return the instance. The view's create method will handle
+        # serializing this saved instance for the response body.
         return instance
 
     def update(self, instance, validated_data):
         # Update logic needs similar translation
-        user = self.context['request'].user
-        is_external = validated_data.pop('is_external_match')
-        managed_team_ids = self._get_managed_teams(user)
-        
-        db_our_team_id = None
-
-        if is_external:
-            blue_team = validated_data.get('blue_side_team', instance.blue_side_team) # Use existing if not provided
-            red_team = validated_data.get('red_side_team', instance.red_side_team)
-            instance.blue_side_team = blue_team
-            instance.red_side_team = red_team
-            
-            if blue_team and blue_team.team_id in managed_team_ids:
-                 db_our_team_id = blue_team.team_id
-            elif red_team and red_team.team_id in managed_team_ids:
-                 db_our_team_id = red_team.team_id
-
-        else: # Internal Match
-            our_team = validated_data.get('our_team', instance.our_team) # Get our_team directly
-            opponent_team = validated_data.get('opponent_team_id_input') # Opponent might change
-            team_side = validated_data.get('team_side') # Side might change
-
-            # If opponent or side not provided, we need to infer based on existing blue/red
-            if opponent_team is None or team_side is None:
-                 # This case is complex - need to decide how partial updates work.
-                 # For simplicity, assume frontend sends all necessary fields for internal updates.
-                 # Or raise validation error if trying partial update requiring translation.
-                 pass # Or raise error
-            else:
-                 if team_side == 'BLUE':
-                      instance.blue_side_team = our_team
-                      instance.red_side_team = opponent_team
-                 else:
-                      instance.blue_side_team = opponent_team
-                      instance.red_side_team = our_team
-            
-            db_our_team_id = our_team.team_id if our_team else None
-        
-        # Set the nullable our_team FK
-        instance.our_team_id = db_our_team_id
-
-        # Update other fields
+        # Simply update fields present in validated_data
         instance.match_date = validated_data.get('match_date', instance.match_date)
         instance.match_duration = validated_data.get('match_duration', instance.match_duration)
         instance.scrim_type = validated_data.get('scrim_type', instance.scrim_type)
@@ -495,6 +322,9 @@ class MatchSerializer(serializers.ModelSerializer):
         instance.winning_team = validated_data.get('winning_team', instance.winning_team)
         instance.mvp = validated_data.get('mvp', instance.mvp)
         instance.mvp_loss = validated_data.get('mvp_loss', instance.mvp_loss)
+        instance.blue_side_team = validated_data.get('blue_side_team', instance.blue_side_team)
+        instance.red_side_team = validated_data.get('red_side_team', instance.red_side_team)
+        instance.our_team = validated_data.get('our_team', instance.our_team)
 
         instance.save()
         return instance
