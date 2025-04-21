@@ -29,8 +29,8 @@ export interface Match {
   match_date: string;
   our_team_details?: Team;
   our_team_id?: number; // For write operations
-  opponent_team_details?: Team;
-  opponent_team_id?: number; // For write operations
+  blue_side_team_details?: Team;
+  red_side_team_details?: Team;
   match_duration?: string;
   is_external_match?: boolean;
   scrim_type: 'SCRIMMAGE' | 'TOURNAMENT' | 'RANKED';
@@ -130,7 +130,6 @@ export interface MatchFormData {
   draft: DraftFormData;
   team_players: Partial<PlayerMatchStat>[];
   enemy_players: Partial<PlayerMatchStat>[];
-  files: File[];
   players: Player[];
   blueBans: (Hero | null)[];
   redBans: (Hero | null)[];

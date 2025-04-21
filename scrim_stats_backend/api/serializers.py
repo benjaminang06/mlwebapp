@@ -177,6 +177,7 @@ class PlayerMatchStatSerializer(serializers.ModelSerializer):
     is_our_team = serializers.SerializerMethodField()
     player_ign = serializers.CharField(source='player.current_ign', read_only=True)
     hero_name = serializers.CharField(source='hero_played.name', read_only=True)
+    is_blue_side = serializers.SerializerMethodField()
     
     class Meta:
         model = PlayerMatchStat
@@ -191,20 +192,24 @@ class PlayerMatchStatSerializer(serializers.ModelSerializer):
             'kills', 'deaths', 'assists', 'kda',
             'damage_dealt', 'damage_taken', 'turret_damage',
             'teamfight_participation', 'gold_earned', 'player_notes',
-            'medal', 'is_our_team', 'created_at', 'updated_at',
+            'medal', 'is_our_team', 'is_blue_side', 'created_at', 'updated_at',
         ]
         read_only_fields = [
-            'stats_id', 
-            'player_ign',
-            'hero_name', 
-            'created_at', 'updated_at', 
-            'player_details',
-            'is_our_team'
+            'stats_id', 'player_details', 'player_ign', 'hero_name',
+            'is_our_team', 'is_blue_side', 'created_at', 'updated_at'
         ]
     
     def get_is_our_team(self, obj):
-        """Use the model's is_for_our_team method"""
-        return obj.is_for_our_team()
+        """Determine if this player is on 'our team'"""
+        if not obj.match.our_team:
+            return False
+        return obj.team.team_id == obj.match.our_team.team_id
+    
+    def get_is_blue_side(self, obj):
+        """Determine if this player is on the blue side team"""
+        if not obj.match or not obj.team:
+            return None
+        return obj.team.team_id == obj.match.blue_side_team.team_id
     
     def validate(self, data):
         # KDA Calculation removed from validate

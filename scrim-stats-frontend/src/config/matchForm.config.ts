@@ -76,7 +76,6 @@ export const initialMatchValues: MatchFormData = {
     player_notes: '',
     pick_order: null,
   })),
-  files: [],
   players: [], // Existing players list fetched for dropdowns? (Confirm usage)
   // --- NEW Ban fields initial values ---
   blueBans: Array(5).fill(null),
@@ -239,8 +238,6 @@ const step4Schema = Yup.object({});
 // Export array of schemas
 export const matchValidationSchema = [
   step0Schema, // Index 0
-  step1Schema, // Index 1
-  step2Schema, // Index 2
-  step3Schema, // Index 3
-  step4Schema, // Index 4 (Review)
+  step2Schema, // Index 1 (Player Stats)
+  step4Schema, // Index 2 (Review)
 ]; 

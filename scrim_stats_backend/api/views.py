@@ -632,8 +632,8 @@ class MatchViewSet(viewsets.ModelViewSet):
     serializer_class = MatchSerializer
     permission_classes = [permissions.IsAuthenticated]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['match_outcome', 'scrim_type', 'our_team__team_category', 'opponent_team__team_category', 'team_side'] # Updated filters
-    search_fields = ['our_team__team_name', 'opponent_team__team_name', 'scrim_group__scrim_group_name'] # Updated search fields
+    filterset_fields = ['match_outcome', 'scrim_type', 'blue_side_team__team_category', 'red_side_team__team_category', 'our_team__team_category'] # Updated to use current model fields
+    search_fields = ['blue_side_team__team_name', 'red_side_team__team_name', 'our_team__team_name', 'scrim_group__scrim_group_name'] # Updated search fields
     ordering_fields = ['match_date']
     renderer_classes = [JSONRenderer]  # Only use JSON renderer, not HTML
 
@@ -649,15 +649,12 @@ class MatchViewSet(viewsets.ModelViewSet):
         # Find teams managed by the user
         managed_team_ids = TeamManagerRole.objects.filter(user=user).values_list('team_id', flat=True)
         
-        # Filter matches where either our_team or opponent_team is managed by the user
-        # Also include external matches if needed (assuming logic exists to determine this)
-        # We might want to adjust this logic depending on how external matches are handled
+        # Filter matches where any participating team is managed by the user
         queryset = Match.objects.filter(
-            Q(our_team_id__in=managed_team_ids) |
-            Q(opponent_team_id__in=managed_team_ids)
-            # Add condition for external matches if applicable
-            # Q(is_external_match=True)
-        ).select_related('our_team', 'opponent_team', 'scrim_group', 'mvp').order_by('-match_date')
+            Q(blue_side_team_id__in=managed_team_ids) |
+            Q(red_side_team_id__in=managed_team_ids) |
+            Q(our_team_id__in=managed_team_ids)
+        ).select_related('blue_side_team', 'red_side_team', 'our_team', 'scrim_group', 'mvp').order_by('-match_date')
         return queryset
 
     def perform_create(self, serializer):

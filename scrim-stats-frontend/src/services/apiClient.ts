@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Configure base API client
 export const apiClient = axios.create({
-  baseURL: 'http://localhost:8000/api', // Adjust this to your Django backend URL
+  baseURL: 'http://localhost:8000', // Adjust this to your Django backend URL
   headers: {
     'Content-Type': 'application/json',
   },
@@ -12,11 +12,11 @@ export const apiClient = axios.create({
 apiClient.interceptors.request.use(
   (config) => {
     // Get token from localStorage or other storage
-    const token = localStorage.getItem('authToken');
+    const token = localStorage.getItem('token');
     
     // If token exists, add to headers
     if (token) {
-      config.headers['Authorization'] = `Token ${token}`;
+      config.headers['Authorization'] = `Bearer ${token}`;
     }
     
     return config;
@@ -35,7 +35,7 @@ apiClient.interceptors.response.use(
     // Handle errors like 401 Unauthorized
     if (error.response && error.response.status === 401) {
       // Redirect to login or clear token
-      localStorage.removeItem('authToken');
+      localStorage.removeItem('token');
       // window.location.href = '/login';
     }
     

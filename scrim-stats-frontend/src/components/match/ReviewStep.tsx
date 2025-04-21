@@ -1,55 +1,32 @@
 import React from 'react';
 import { FormikProps } from 'formik';
-import { Box, Typography, Paper, Button, Grid } from '@mui/material';
+import { Box, Typography, Paper, Button, Grid, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Tooltip } from '@mui/material';
 import { MatchFormData, PlayerMatchStat } from '../../types/match.types'; // Adjust path
 import { Team } from '../../types/team.types'; // Adjust path
 import { Hero } from '../../types/hero.types'; // Adjust path
 import { formatDuration } from '../../utils/matchUtils'; // Adjust path
+import StarIcon from '@mui/icons-material/Star'; // Import Star icon for MVP
 
 interface ReviewStepProps {
-  formik: FormikProps<MatchFormData>;
-  teams: Team[]; // Pass all teams for getTeamName
+  values: MatchFormData;
+  getTeamName: (teamId: string | undefined) => string;
+  getHeroName: (heroValue: Hero | Partial<Hero> | string | null | undefined) => string;
+  includeDraftInfo: boolean | null;
+  navigateToStep: (step: number) => void;
   onBack: () => void;
   onSubmit: () => void;
-  navigateToStep: (step: number) => void;
 }
 
 const ReviewStep: React.FC<ReviewStepProps> = ({ 
-  formik, 
-  teams: reviewTeams, // Rename prop to avoid conflict
-  onBack, 
-  onSubmit, 
-  navigateToStep 
+  values, 
+  getTeamName,
+  getHeroName,
+  includeDraftInfo,
+  navigateToStep, 
+  onBack,
+  onSubmit
 }) => {
-  const { values } = formik;
-  
-  // Helper function to find team by ID
-  const getTeamName = (teamId: string | undefined): string => {
-    if (!teamId) return 'N/A';
-    const team = reviewTeams.find(t => String(t.team_id) === teamId);
-    return team ? team.team_name : 'Unknown Team';
-  };
-
-  // Get team names based on match type
-  const getTeamNames = (): { team1Label: string, team1Value: string, team2Label: string, team2Value: string } => {
-    if (values.is_external_match) {
-      return {
-        team1Label: 'Blue Side Team',
-        team1Value: getTeamName(values.team_1) + (values.team_1_new ? ' (New)' : ''),
-        team2Label: 'Red Side Team',
-        team2Value: getTeamName(values.team_2) + (values.team_2_new ? ' (New)' : ''),
-      };
-    } else {
-      return {
-        team1Label: 'Our Team',
-        team1Value: getTeamName(values.our_team),
-        team2Label: 'Opponent Team',
-        team2Value: getTeamName(values.opponent_team) + (values.is_new_opponent ? ' (New)' : ''),
-      };
-    }
-  };
-  
-  const teamInfo = getTeamNames();
+  const { team_players, enemy_players } = values;
   
   const formatDate = (dateString: string): string => {
     if (!dateString) return 'Invalid Date';
@@ -59,8 +36,8 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
   
   const formatTime = (timeString: string): string => {
     if (!timeString) return 'Invalid Time';
-    const time = new Date(timeString);
-    return isNaN(time.getTime()) ? 'Invalid Time' : time.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    const date = new Date(timeString);
+    return isNaN(date.getTime()) ? 'Invalid Time' : date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
   };
   
   const renderHero = (hero: Hero | string | number | null | undefined): string => {
@@ -90,7 +67,7 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
   );
 
   // Find selected players for MVP display
-  const allPlayersForMvp = [...values.team_players, ...values.enemy_players];
+  const allPlayersForMvp = [...team_players, ...enemy_players];
   const mvpPlayer = allPlayersForMvp.find(p => p.player_id === values.mvp_player_id);
   const mvpLossPlayer = allPlayersForMvp.find(p => p.player_id === values.mvp_loss_player_id);
 
@@ -113,8 +90,6 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
         <Grid container spacing={2}>
             <Grid item xs={12} md={6}> <Typography variant="body2" color="text.secondary">Match Type</Typography> <Typography variant="body1">{values.is_external_match ? 'External Match' : 'Our Team\'s Match'}</Typography> </Grid>
             <Grid item xs={12} md={6}> <Typography variant="body2" color="text.secondary">Date & Time</Typography> <Typography variant="body1">{formatDate(values.match_datetime)} at {formatTime(values.match_datetime)}</Typography> </Grid>
-            <Grid item xs={12} md={6}> <Typography variant="body2" color="text.secondary">{teamInfo.team1Label}</Typography> <Typography variant="body1">{teamInfo.team1Value}</Typography> </Grid>
-            <Grid item xs={12} md={6}> <Typography variant="body2" color="text.secondary">{teamInfo.team2Label}</Typography> <Typography variant="body1">{teamInfo.team2Value}</Typography> </Grid>
             <Grid item xs={12} md={6}> <Typography variant="body2" color="text.secondary">Match Outcome</Typography> <Typography variant="body1">{getOutcomeText()}</Typography> </Grid>
             <Grid item xs={12} md={6}> <Typography variant="body2" color="text.secondary">Scrim Type</Typography> <Typography variant="body1">{values.scrim_type || 'N/A'}</Typography> </Grid>
             {!values.is_external_match && ( <Grid item xs={12} md={6}> <Typography variant="body2" color="text.secondary">Team Side</Typography> <Typography variant="body1">{values.team_side || 'N/A'}</Typography> </Grid> )}
@@ -125,165 +100,102 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
         </Grid>
       </Paper>
       
-      {/* Draft Section */}
-      {values.draft.trackDraft && (
+      {/* --- NEW: Conditional Bans Section --- */}
+      {includeDraftInfo && (
         <Paper elevation={2} sx={{ p: 2, mb: 3 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-            <Typography variant="subtitle1" fontWeight="bold">Draft</Typography>
-            <Button size="small" onClick={() => navigateToStep(1)}>Edit</Button>
+            <Typography variant="subtitle1" fontWeight="bold">Draft Bans</Typography>
+            {/* Optional: Add Edit button if bans are editable in a specific step */}
+            {/* <Button size="small" onClick={() => navigateToStep(STEP_INDEX_FOR_DRAFT)}>Edit</Button> */}
           </Box>
-           <Typography variant="body2" color="text.secondary">Format</Typography>
-           <Typography variant="body1">{values.draft.format === '6_BANS' ? '6 Bans (3 per team)' : '10 Bans (5 per team)'}</Typography>
-           <Box sx={{ mt: 2 }}>
-             <Typography variant="body2" color="text.secondary">Blue Side Bans</Typography>
-             <Typography variant="body1">{values.draft.blueSideBans?.filter(Boolean).map((hero: Hero | null) => hero?.name).join(', ') || 'None'}</Typography>
-           </Box>
-           <Box sx={{ mt: 2 }}>
-             <Typography variant="body2" color="text.secondary">Red Side Bans</Typography>
-             <Typography variant="body1">{values.draft.redSideBans?.filter(Boolean).map((hero: Hero | null) => hero?.name).join(', ') || 'None'}</Typography>
-           </Box>
-           <Box sx={{ mt: 2 }}>
-             <Typography variant="body2" color="text.secondary">Blue Side Picks</Typography>
-             <Typography variant="body1">{values.draft.blueSidePicks?.filter(Boolean).map((hero: Hero | null) => hero?.name).join(', ') || 'None'}</Typography>
-           </Box>
-           <Box sx={{ mt: 2 }}>
-             <Typography variant="body2" color="text.secondary">Red Side Picks</Typography>
-             <Typography variant="body1">{values.draft.redSidePicks?.filter(Boolean).map((hero: Hero | null) => hero?.name).join(', ') || 'None'}</Typography>
-           </Box>
-           {values.draft.notes && (
-             <Box sx={{ mt: 2 }}>
-               <Typography variant="body2" color="text.secondary">Draft Notes</Typography>
-               <Typography variant="body1" style={{ whiteSpace: 'pre-wrap' }}>{values.draft.notes}</Typography>
-             </Box>
-           )}
+          <Grid container spacing={2}>
+            <Grid item xs={12} sm={6}>
+                <Typography variant="body2" color="text.secondary">Blue Side Bans</Typography>
+                <Typography variant="body1">
+                    {values.blueBans?.filter(Boolean).map((hero) => getHeroName(hero)).join(', ') || 'None'}
+                </Typography>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+                <Typography variant="body2" color="text.secondary">Red Side Bans</Typography>
+                <Typography variant="body1">
+                    {values.redBans?.filter(Boolean).map((hero) => getHeroName(hero)).join(', ') || 'None'}
+                </Typography>
+            </Grid>
+          </Grid>
         </Paper>
       )}
+      {/* --- END NEW Bans Section --- */}
       
-      {/* Team Players Section (Blue Side) */}
-      <Paper elevation={2} sx={{ p: 2, mb: 3 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-          <Typography variant="subtitle1" fontWeight="bold">
-            {teamInfo.team1Label === 'Blue Side Team' ? (getTeamName(values.team_1) || 'Blue Side') : teamInfo.team1Value} Players
-          </Typography>
-          <Button size="small" onClick={() => navigateToStep(2)}>Edit</Button>
-        </Box>
-        <Box sx={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
-            <thead>
-              <tr style={{ borderBottom: '1px solid rgba(224, 224, 224, 1)' }}>
-                <th style={{ padding: '8px', textAlign: 'left', width: '18%' }}>Player</th>
-                <th style={{ padding: '8px', textAlign: 'left', width: '18%' }}>Hero</th>
-                <th style={{ padding: '8px', textAlign: 'left', width: '12%' }}>Role</th>
-                <th style={{ padding: '8px', textAlign: 'right', width: '8%' }}>K/D/A</th>
-                <th style={{ padding: '8px', textAlign: 'right', width: '8%' }}>KDA</th>
-                <th style={{ padding: '8px', textAlign: 'right', width: '8%' }}>Medal</th>
-                <th style={{ padding: '8px', textAlign: 'right', width: '8%' }}>Damage</th>
-                <th style={{ padding: '8px', textAlign: 'right', width: '8%' }}>DMG Tkn</th>
-                <th style={{ padding: '8px', textAlign: 'right', width: '8%' }}>Turret</th>
-                <th style={{ padding: '8px', textAlign: 'right', width: '8%' }}>Gold</th>
-              </tr>
-            </thead>
-            <tbody>
-              {values.team_players.map((player: Partial<PlayerMatchStat>, idx: number) => {
-                // --- NEW: Safely format KDA ---
-                const kdaValue = typeof player.kda === 'number' 
-                    ? player.kda 
-                    : parseFloat(String(player.kda)); // Attempt to parse if not number
-                const formattedKDA = !isNaN(kdaValue) ? kdaValue.toFixed(2) : '-';
-                // --- END NEW ---
-                return (
-                    <tr key={`team1-${idx}`} style={{ borderBottom: '1px solid rgba(224, 224, 224, 0.5)' }}>
-                    <td style={{ padding: '8px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{player.ign || `Player ${idx + 1}`}</td>
-                    <td style={{ padding: '8px' }}>{renderHero(player.hero_played)}</td>
-                    <td style={{ padding: '8px' }}>{player.role_played || '-'}</td>
-                    <td style={{ padding: '8px', textAlign: 'right' }}>{player.kills ?? 0}/{player.deaths ?? 0}/{player.assists ?? 0}</td>
-                    {/* --- UPDATED: Use formatted KDA --- */}
-                    <td style={{ padding: '8px', textAlign: 'right' }}>{formattedKDA}</td>
-                    {/* --- END UPDATE --- */}
-                    <td style={{ padding: '8px', textAlign: 'right' }}>{formatMedal(player.medal)}</td>
-                    <td style={{ padding: '8px', textAlign: 'right' }}>{player.damage_dealt ?? '-'}</td>
-                    <td style={{ padding: '8px', textAlign: 'right' }}>{player.damage_taken ?? '-'}</td>
-                    <td style={{ padding: '8px', textAlign: 'right' }}>{player.turret_damage ?? '-'}</td>
-                    <td style={{ padding: '8px', textAlign: 'right' }}>{player.gold_earned ?? '-'}</td>
-                    </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </Box>
-      </Paper>
+      {/* --- REMOVED Old Draft Section relying on values.draft --- */}
+      {/* {values.draft.trackDraft && ( ... )} */}
       
-      {/* Enemy Players Section (Red Side) */}
-      <Paper elevation={2} sx={{ p: 2, mb: 3 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-          <Typography variant="subtitle1" fontWeight="bold">
-             {teamInfo.team2Label === 'Red Side Team' ? (getTeamName(values.team_2) || 'Red Side') : teamInfo.team2Value} Players
-          </Typography>
-          <Button size="small" onClick={() => navigateToStep(2)}>Edit</Button>
-        </Box>
-        <Box sx={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
-             <thead>
-               <tr style={{ borderBottom: '1px solid rgba(224, 224, 224, 1)' }}>
-                <th style={{ padding: '8px', textAlign: 'left', width: '18%' }}>Player</th>
-                <th style={{ padding: '8px', textAlign: 'left', width: '18%' }}>Hero</th>
-                <th style={{ padding: '8px', textAlign: 'left', width: '12%' }}>Role</th>
-                <th style={{ padding: '8px', textAlign: 'right', width: '8%' }}>K/D/A</th>
-                <th style={{ padding: '8px', textAlign: 'right', width: '8%' }}>KDA</th>
-                <th style={{ padding: '8px', textAlign: 'right', width: '8%' }}>Medal</th>
-                <th style={{ padding: '8px', textAlign: 'right', width: '8%' }}>Damage</th>
-                <th style={{ padding: '8px', textAlign: 'right', width: '8%' }}>DMG Tkn</th>
-                <th style={{ padding: '8px', textAlign: 'right', width: '8%' }}>Turret</th>
-                <th style={{ padding: '8px', textAlign: 'right', width: '8%' }}>Gold</th>
-               </tr>
-             </thead>
-            <tbody>
-              {values.enemy_players.map((player: Partial<PlayerMatchStat>, idx: number) => {
-                 // --- NEW: Safely format KDA ---
-                 const kdaValue = typeof player.kda === 'number' 
-                    ? player.kda 
-                    : parseFloat(String(player.kda)); // Attempt to parse if not number
-                 const formattedKDA = !isNaN(kdaValue) ? kdaValue.toFixed(2) : '-';
-                 // --- END NEW ---
-                 return (
-                    <tr key={`team2-${idx}`} style={{ borderBottom: '1px solid rgba(224, 224, 224, 0.5)' }}>
-                    <td style={{ padding: '8px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{player.ign || `Player ${idx + 1}`}</td>
-                    <td style={{ padding: '8px' }}>{renderHero(player.hero_played)}</td>
-                    <td style={{ padding: '8px' }}>{player.role_played || '-'}</td>
-                    <td style={{ padding: '8px', textAlign: 'right' }}>{player.kills ?? 0}/{player.deaths ?? 0}/{player.assists ?? 0}</td>
-                    {/* --- UPDATED: Use formatted KDA --- */}
-                    <td style={{ padding: '8px', textAlign: 'right' }}>{formattedKDA}</td>
-                    {/* --- END UPDATE --- */}
-                    <td style={{ padding: '8px', textAlign: 'right' }}>{formatMedal(player.medal)}</td>
-                    <td style={{ padding: '8px', textAlign: 'right' }}>{player.damage_dealt ?? '-'}</td>
-                    <td style={{ padding: '8px', textAlign: 'right' }}>{player.damage_taken ?? '-'}</td>
-                    <td style={{ padding: '8px', textAlign: 'right' }}>{player.turret_damage ?? '-'}</td>
-                    <td style={{ padding: '8px', textAlign: 'right' }}>{player.gold_earned ?? '-'}</td>
-                    </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </Box>
-      </Paper>
-      
-      {/* Files Section */}
-      {values.files.length > 0 && (
-        <Paper elevation={2} sx={{ p: 2, mb: 3 }}>
+      {/* --- RESTRUCTURED Player Stats Sections --- */}
+      {[ 
+        { sideLabel: 'Blue Side', players: team_players, editStep: 1 /* Assuming step 1 is BoxScoreInput */ },
+        { sideLabel: 'Red Side', players: enemy_players, editStep: 1 },
+      ].map((teamData, teamIndex) => (
+        <Paper key={teamIndex} elevation={2} sx={{ p: 2, mb: 3 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-            <Typography variant="subtitle1" fontWeight="bold">Uploaded Files</Typography>
-            <Button size="small" onClick={() => navigateToStep(3)}>Edit</Button>
+            <Typography variant="subtitle1" fontWeight="bold">{teamData.sideLabel} Players</Typography>
+            <Button size="small" onClick={() => navigateToStep(teamData.editStep)}>Edit</Button>
           </Box>
-          <Typography variant="body1">{values.files.length} file(s) to be uploaded</Typography>
-          <Box sx={{ mt: 1 }}>
-            {values.files.map((file: File, idx: number) => (
-              <Typography key={idx} variant="body2" sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {file.name}
-              </Typography>
-            ))}
-          </Box>
+          <TableContainer>
+            <Table size="small" sx={{ tableLayout: 'auto' }}>
+              <TableHead>
+                <TableRow sx={{ '& th': { fontWeight: 'bold', whiteSpace: 'nowrap', p: 1 } }}>
+                  {includeDraftInfo && <TableCell align="center">Pick</TableCell>}
+                  <TableCell>Player</TableCell>
+                  <TableCell>Role</TableCell>
+                  <TableCell>Hero</TableCell>
+                  <TableCell align="center">K</TableCell>
+                  <TableCell align="center">D</TableCell>
+                  <TableCell align="center">A</TableCell>
+                  <TableCell align="right">DMG Dealt</TableCell>
+                  <TableCell align="right">DMG Tkn</TableCell>
+                  <TableCell align="right">Turret DMG</TableCell>
+                  <TableCell align="right">KDA</TableCell>
+                  <TableCell align="center">Medal</TableCell>
+                  {/* Gold column removed to match BoxScoreInput closer */}
+                  {/* <TableCell align="right">Gold</TableCell> */} 
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {teamData.players.map((player: Partial<PlayerMatchStat>, idx: number) => {
+                  const kdaValue = typeof player.kda === 'number' 
+                      ? player.kda 
+                      : parseFloat(String(player.kda));
+                  const formattedKDA = !isNaN(kdaValue) ? kdaValue.toFixed(2) : '-';
+                  const isMvp = player.player_id === values.mvp_player_id;
+                  const isMvpLoss = player.player_id === values.mvp_loss_player_id;
+
+                  return (
+                    <TableRow key={`${teamData.sideLabel}-${idx}`} sx={{ '& td': { p: 1 } }}>
+                      {includeDraftInfo && <TableCell align="center">{player.pick_order ?? '-'}</TableCell>}
+                      <TableCell sx={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '150px' }}>
+                          {player.ign || `Player ${idx + 1}`}
+                          {isMvp && <Tooltip title="MVP"><StarIcon sx={{ fontSize: '1rem', verticalAlign: 'middle', color: 'gold', ml: 0.5 }} /></Tooltip>}
+                          {isMvpLoss && <Tooltip title="MVP (Loss)"><StarIcon sx={{ fontSize: '1rem', verticalAlign: 'middle', color: 'silver', ml: 0.5 }} /></Tooltip>}
+                      </TableCell>
+                      <TableCell sx={{ whiteSpace: 'nowrap' }}>{player.role_played || '-'}</TableCell>
+                      <TableCell sx={{ whiteSpace: 'nowrap' }}>{getHeroName(player.hero_played)}</TableCell>
+                      <TableCell align="center">{player.kills ?? '-'}</TableCell>
+                      <TableCell align="center">{player.deaths ?? '-'}</TableCell>
+                      <TableCell align="center">{player.assists ?? '-'}</TableCell>
+                      <TableCell align="right">{player.damage_dealt ?? '-'}</TableCell>
+                      <TableCell align="right">{player.damage_taken ?? '-'}</TableCell>
+                      <TableCell align="right">{player.turret_damage ?? '-'}</TableCell>
+                      <TableCell align="right">{formattedKDA}</TableCell>
+                      <TableCell align="center">{formatMedal(player.medal)}</TableCell>
+                      {/* <TableCell align="right">{player.gold_earned ?? '-'}</TableCell> */}
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </TableContainer>
         </Paper>
-      )}
+      ))}
+      {/* --- END RESTRUCTURED Player Stats --- */}
       
       {/* Notes Section */}
       {values.general_notes && (

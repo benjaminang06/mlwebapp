@@ -24,8 +24,13 @@ The application follows a client-server architecture:
 ### Frontend Components
 
 1.  **Components**: Reusable React UI components (`src/components/`). This now includes extracted step components like `MatchDetailsStep`, `ReviewStep`, and helpers like `NewTeamDialog`. `BoxScoreInput` now handles fetching team rosters and uses Autocomplete for player selection.
-    *   **`BoxScoreInput.tsx` (Enhanced):** Uses Material UI `Autocomplete` with `freeSolo` enabled for player selection in both Blue and Red side slots. If a typed IGN doesn't match an existing player in the fetched roster, an option "Add '[typed name]' as new player..." is presented. Selecting this option opens the `AddNewPlayerDialog`.
+    *   **`MatchUploadForm.tsx` (Enhanced):** Orchestrates the match upload process using a multi-step form. The current steps are: `Match Details`, `Player Stats`, and `Review`. The `File Uploads` step has been removed.
+    *   **`BoxScoreInput.tsx` (Enhanced):** Handles input for player stats (K/D/A, damage, etc.) and hero picks for both teams. Uses Material UI `Autocomplete` with `freeSolo` enabled for player selection. If a typed IGN doesn't match an existing player in the fetched roster, an option "Add '[typed name]' as new player..." is presented, opening the `AddNewPlayerDialog`. **Pick order** is now handled via a conditional dropdown `Select` (1-5, None) in the first column for each player, with uniqueness enforced per team.
+    *   **`ReviewStep.tsx` (Enhanced):** Displays a summary of all entered match data before submission. Player stats are presented in a table mirroring the final column order of `BoxScoreInput` (`Pick` (Cond.), `Player`, `Role`, `Hero`, `K`, `D`, `A`, `DMG Dealt`, `DMG Tkn`, `Turret DMG`, `KDA`, `Medal`), including MVP indicators. Conditionally displays Draft Bans based on the `includeDraftInfo` flag.
     *   **`AddNewPlayerDialog.tsx` (New):** A modal dialog used within `BoxScoreInput` to quickly add a new player (providing IGN and optional primary role) to a selected team (Blue or Red).
+    *   **`FileUploader.tsx` (Removed):** This component, previously used for file uploads, has been removed.
+    *   **`MatchListPage.tsx` (Implemented):** Displays a paginated list of all matches with basic information (ID, date, type, outcome). Handles loading states, error messages, and empty states. Provides links to individual match detail pages.
+    *   **`MatchDetailPage.tsx` (Implemented):** Shows comprehensive details for a single match, including match metadata, team information, and player statistics. Features a tabbed interface to view all players or filter by team (Blue/Red). Displays awards like MVP and MVP Loss.
 2.  **Pages**: Top-level React components representing application screens (`src/pages/`).
 3.  **Context**: State management using React Context API (e.g., `AuthContext.tsx`).
 4.  **Services**: API integration services for communicating with the backend (`src/services/`).
@@ -63,7 +68,7 @@ The application follows a client-server architecture:
     - An additional field `our_team` (FK to Team, nullable) is stored. This field **provides context based on the user submitting the data**; it is populated by the frontend with the ID of the participating team (either blue or red) *if* that team is managed by the user performing the upload. It remains `NULL` if the uploader manages neither participating team.
     - `winning_team` field stores the winner (FK to Team, nullable).
 - **Frontend UI (`MatchUploadForm.tsx`):** While the UI might still use concepts like "Our Team" vs "Opponent Team" (controlled by an "Is this an external match?" toggle in `MatchDetailsStep.tsx`), the `handleSubmit` logic in `MatchUploadForm.tsx` **correctly translates** this input into the required backend payload format (`blue_side_team`, `red_side_team`, and the contextual `our_team`).
-- **Backend Serializer (`MatchSerializer`):** Correctly accepts the `blue_side_team`, `red_side_team`, and `our_team` fields from the frontend payload.
+- **Backend Serializer (`MatchSerializer`):** Correctly accepts the `blue_side_team`, `red_side_team`, and `our_team` fields from the frontend payload. Returns nested details via `blue_side_team_details`, `red_side_team_details`, and `our_team_details` for the client.
 - **Duration Input:**
     - Backend (`Match` model) stores `match_duration` as a `DurationField`.
     - Frontend (`MatchUploadForm.tsx`) uses separate numeric inputs for hours, minutes, and seconds for easier entry. These are formatted into an `HH:MM:SS` string before submission.
@@ -74,8 +79,10 @@ The application follows a client-server architecture:
 
 - Detailed statistics for each player in a match (`PlayerMatchStat` model)
 - Records KDA, damage dealt/taken, gold, turret damage, etc.
-- Links players to the heroes/champions they played (`Hero` model).
+- Includes `pick_order` field, now populated via a validated dropdown in `BoxScoreInput.tsx`.
+- Links players to the heroes/champions they played (`Hero` model, currently stored as objects in frontend state).
 - **Submission:** After a `Match` is created via `POST /api/matches/`, the frontend (`MatchUploadForm.tsx`) sends **individual** `POST` requests for each player's stats to `/api/player-stats/`, linking them to the newly created `matchId`.
+- **Team Indicators:** Includes computed fields `is_our_team` and `is_blue_side` to help with UI organization and filtering.
 
 ### Drafts
 
@@ -103,7 +110,43 @@ The application aims to use dedicated service classes for business logic located
 - **Frontend Usage:** Tokens stored in localStorage (`token`, `refreshToken`). API requests must include the `Authorization: Bearer <token>` header. Token refresh via `/api/token/refresh/`.
 - **Permissions:** DRF permission classes are used. Default is `IsAuthenticated`. Specific views/actions have overrides (e.g., `HeroViewSet` is `IsAuthenticatedOrReadOnly`, `RegisterView`/`ApiStatus` are `AllowAny`, some `TeamViewSet` actions require admin). Custom permissions like `IsTeamManager` exist.
 - **Status Check:** Unprotected `/api/status/` endpoint exists for connectivity checks.
-- **Frontend Diagnostics:** The spec previously mentioned `BackendConnectionTest` components and functions (`testBackendConnection`, `checkApiStatus`, `checkEndpoint`) in the frontend (`api.ts` or `api.service.ts`) for troubleshooting; verify their current implementation state if needed.
+- **Frontend Diagnostics:** Includes `testBackendConnection`, `checkApiStatus`, and `checkEndpoint` functions in the frontend (`api.ts`) for troubleshooting connectivity issues.
+
+## Match History and Detail Pages
+
+The application includes comprehensive match viewing capabilities:
+
+### Match List Page (`MatchListPage.tsx`)
+
+- Displays a paginated list of matches from the `/api/matches/` endpoint
+- Shows key information for each match: ID, date, type (SCRIMMAGE/TOURNAMENT/RANKED), outcome (VICTORY/DEFEAT)
+- Includes proper loading states with spinner, error handling, and empty state messaging
+- Each match is a clickable link that navigates to the detailed match view
+
+### Match Detail Page (`MatchDetailPage.tsx`)
+
+- Shows comprehensive information for a single match from `/api/matches/{id}/`
+- Structured in sections:
+  - **General Information**: Date, type, outcome, duration, game number, notes
+  - **Teams**: Shows both blue and red side teams with winner indicator
+  - **Player Statistics**: Tabbed interface with three views:
+    - All Players: Shows all participant statistics
+    - Blue Team: Filtered view of blue side players only
+    - Red Team: Filtered view of red side players only
+- Player statistics include:
+  - Basic info: Player name, team, role, hero played
+  - Performance metrics: K/D/A, KDA ratio, damage dealt/taken, turret damage
+  - Awards: MVP, MVP Loss, medals
+- Uses `/api/player-stats/?match={id}` to fetch player statistics
+- Proper error handling, loading states, and conditional rendering throughout
+
+### Recent Implementation Fixes
+
+- Updated Match interface to correctly reflect the backend model changes:
+  - Added `blue_side_team_details` and `red_side_team_details` properties
+  - Removed deprecated `opponent_team_details` and `opponent_team_id` properties
+- Fixed team name display in `MatchDetailPage` to properly show red side team name by using the correct property
+- Added debugging logs to help identify data structure issues from API responses
 
 ## Frontend Structure (Based on Spec)
 
@@ -113,12 +156,12 @@ src/
 │   ├── auth/
 │   ├── common/
 │   ├── match/
-│   │   ├── MatchUploadForm.tsx       # Main orchestrator
-│   │   ├── MatchDetailsStep.tsx    # Extracted Step 0
-│   │   ├── DraftForm.tsx           # Step 1
-│   │   ├── BoxScoreInput.tsx       # Step 2 (Handles roster fetching, Autocomplete with Quick Add)
-│   │   ├── FileUploader.tsx        # Step 3
-│   │   ├── ReviewStep.tsx          # Extracted Step 4
+│   │   ├── MatchUploadForm.tsx       # Main orchestrator (Steps: Details, Stats, Review)
+│   │   ├── MatchDetailsStep.tsx    # Step 0
+│   │   ├── DraftForm.tsx           # (Potentially unused if integrated into BoxScoreInput or MatchDetailsStep)
+│   │   ├── BoxScoreInput.tsx       # Step 1 (Stats, Picks, Pick Order Dropdown)
+│   │   # ├── FileUploader.tsx        # (REMOVED)
+│   │   ├── ReviewStep.tsx          # Step 2 (Includes conditional Bans display)
 │   │   ├── NewTeamDialog.tsx       # Helper dialog
 │   │   └── AddNewPlayerDialog.tsx  # New: Dialog for Quick Add Player
 │   │   └── ... 
@@ -131,22 +174,24 @@ src/
 ├── services/
 │   ├── api.ts / apiClient.ts / api.service.ts
 │   ├── auth.ts
-│   ├── match.ts
-│   ├── player.ts             # Contains addPlayerToTeam function
+│   ├── match.ts                 # Contains getMatches(), getMatchById(), getPlayerStatsForMatch()
+│   ├── player.ts                # Contains addPlayerToTeam function
 │   └── team.ts
 ├── types/
-│   ├── match.types.ts
+│   ├── match.types.ts           # Updated to match current backend structure
 │   └── ...
 ├── utils/
 │   ├── matchUtils.ts
 │   └── playerUtils.ts
 └── pages/
     ├── MatchUploadPage.tsx
+    ├── MatchListPage.tsx        # Implemented match history listing
+    ├── MatchDetailPage.tsx      # Implemented match detail view with tabbed interface
     └── ...
 ```
 *(Review actual frontend structure for deviations)*
 
-## Current Backend Implementation Status (as of April 6, 2025)
+## Current Backend Implementation Status (as of April 21, 2025)
 
 While the overall architecture aims to follow the spec, recent refactoring is incomplete, leading to some inconsistencies.
 
@@ -165,6 +210,8 @@ While the overall architecture aims to follow the spec, recent refactoring is in
 
 - Uses DRF `ModelViewSet` for main entities (`Team`, `Player`, `Match`, `ScrimGroup`, `Hero`, `Draft`).
 - Contains `TeamPlayersView` (`GET /api/teams/{pk}/players/`) which fetches the current roster for a given team, sorting by `is_starter` (descending) then `current_ign`.
+- **Match Filtering**: The MatchViewSet has been updated to use the new model structure with `filterset_fields` for `blue_side_team__team_category`, `red_side_team__team_category` and `our_team__team_category`.
+- **Player Stats Filtering**: PlayerMatchStatViewSet now includes a SerializerMethodField for `is_blue_side` to support frontend filtering.
 - Other views: `ApiStatus`, `ApiRootView`, `RegisterView`, `ManagedTeamListView`.
 - **Player Stat Creation:** A simplified `PlayerMatchStatViewSet` (using `CreateModelMixin` and `GenericViewSet`) exists at `/api/player-stats/` to handle `POST` requests for creating individual player stats after a match is created.
 - Permissions and custom actions are implemented as described under "Authentication and Permissions".
@@ -173,6 +220,8 @@ While the overall architecture aims to follow the spec, recent refactoring is in
 ### 4. Serializers (`api/serializers.py`)
 
 - Standard DRF `ModelSerializer` classes exist for most models.
+- MatchSerializer includes nested details for `blue_side_team_details`, `red_side_team_details`, and `our_team_details`.
+- PlayerMatchStatSerializer includes computed fields `is_our_team` and `is_blue_side` to help with UI organization.
 - Uses `DefaultRouter` for viewsets.
 - Specific paths exist for non-router views (status, register, token, managed teams, csrf).
 - **Important Note:** The order of URL patterns matters. Specific paths (like `teams/managed/`) should generally be placed *before* the `include(router.urls)` line to ensure they are matched correctly and not mistakenly handled by a more general router pattern (e.g., the router's `/teams/` pattern conflicting with `/teams/managed/`).

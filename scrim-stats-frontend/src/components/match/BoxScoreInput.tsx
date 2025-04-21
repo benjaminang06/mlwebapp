@@ -274,6 +274,18 @@ const BoxScoreInput: React.FC<BoxScoreInputProps> = ({
   // --- END NEW ---
 
   const renderTeamBoxScore = (teamLabel: string, fieldNamePrefix: 'team_players' | 'enemy_players', roster: Player[]) => {
+    const teamPlayers = values[fieldNamePrefix] || [];
+
+    // Calculate used pick orders for this team
+    const getUsedPickOrders = (currentIndex: number): Set<number> => {
+        const usedOrders = new Set<number>();
+        teamPlayers.forEach((player, index) => {
+            if (index !== currentIndex && player?.pick_order && player.pick_order >= 1 && player.pick_order <= 5) {
+                usedOrders.add(player.pick_order);
+            }
+        });
+        return usedOrders;
+    };
 
     // Determine team ID for context in Autocomplete
     // This logic mirrors the useEffect hook
@@ -350,19 +362,38 @@ const BoxScoreInput: React.FC<BoxScoreInputProps> = ({
 
             return (
               <Grid container spacing={1} key={`${fieldNamePrefix}-${index}`} sx={{ mt: 0.5 }} alignItems="center">
-                {/* Pick Order Input (Conditional) */}
+                {/* Pick Order Input (Conditional) - REPLACED TextField with Select */} 
                 {includeDraftInfo && (
                    <Grid item xs={colWidths.pick}>
-                     <TextField 
-                       name={pickOrderFieldName} 
-                       value={playerValues.pick_order ?? ''} 
-                       onChange={handleChange} 
-                       onBlur={handleBlur} 
-                       type="number" 
-                       size="small" 
-                       variant="outlined" 
-                       InputProps={{ inputProps: { min: 1, style: { textAlign: 'center' } } }} 
-                     />
+                     <FormControl fullWidth size="small">
+                         {/* Intentionally no InputLabel here to keep it compact like the TextField */}
+                         <Select
+                             id={`${fieldNamePrefix}-${index}-pick-order`}
+                             value={playerValues.pick_order ?? ''} // Use empty string for null/undefined
+                             displayEmpty // Allow showing empty value
+                             onChange={(event: SelectChangeEvent<string | number>) => {
+                                 const value = event.target.value;
+                                 const pickOrderValue = value === '' ? null : Number(value);
+                                 setFieldValue(pickOrderFieldName, pickOrderValue);
+                             }}
+                             sx={{ textAlign: 'center' }} // Center the selected value
+                         >
+                             <MenuItem value="">
+                                 <em>-</em> {/* Represent None with a dash */}
+                             </MenuItem>
+                             {[1, 2, 3, 4, 5].map((order) => {
+                                 const usedOrders = getUsedPickOrders(index);
+                                 const isDisabled = usedOrders.has(order);
+                                 const currentPickOrder = playerValues.pick_order;
+                                 const shouldDisable = isDisabled && currentPickOrder !== order;
+                                 return (
+                                     <MenuItem key={order} value={order} disabled={shouldDisable}>
+                                         {order}
+                                     </MenuItem>
+                                 );
+                             })}
+                         </Select>
+                     </FormControl>
                    </Grid>
                 )}
                 {/* Player (IGN) Autocomplete */}

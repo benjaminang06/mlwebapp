@@ -242,14 +242,16 @@ class Match(models.Model):
                 elif self.our_team_id == self.red_side_team_id:
                      self.match_outcome = 'DEFEAT'
                 else: # No 'our_team' context or our_team was not playing
-                     self.match_outcome = None # Or potentially determine based on Blue/Red win?
+                     # For external matches, set outcome from blue side perspective
+                     self.match_outcome = 'VICTORY'  # Blue side won
             elif self.winning_team_id == self.red_side_team_id:
                 if self.our_team_id == self.red_side_team_id:
                     self.match_outcome = 'VICTORY'
                 elif self.our_team_id == self.blue_side_team_id:
                     self.match_outcome = 'DEFEAT'
                 else:
-                     self.match_outcome = None
+                     # For external matches, set outcome from blue side perspective
+                     self.match_outcome = 'DEFEAT'  # Red side won
             else:
                  # Winning team is neither blue nor red? Should not happen.
                  self.match_outcome = None

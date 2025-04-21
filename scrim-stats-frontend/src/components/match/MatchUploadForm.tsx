@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Formik, FormikProps } from 'formik';
 import { Box, Stepper, Step, StepLabel, Button, Typography, Paper, FormControl, InputLabel, Select, MenuItem, TextField, Alert, Snackbar, Switch, FormControlLabel, CircularProgress, Dialog, DialogTitle, DialogContent, DialogActions, Grid, SelectChangeEvent, RadioGroup, FormControlLabel as MuiFormControlLabel, Radio, Autocomplete } from '@mui/material';
-import FileUploader from './FileUploader';
 import { useNavigate } from 'react-router-dom';
 import { Match, PlayerMatchStat, ScrimGroup, MatchFormData } from '../../types/match.types';
 import { Player } from '../../types/player.types';
@@ -31,7 +30,7 @@ interface SavedFormState {
 }
 // --- END NEW ---
 
-const steps = ['Match Details', 'Player Stats', 'File Uploads', 'Review'];
+const steps = ['Match Details', 'Player Stats', 'Review'];
 
 export const getEmptyPlayerStat = (isOurTeam: boolean): Partial<PlayerMatchStat> => ({
   is_our_team: isOurTeam,
@@ -245,6 +244,22 @@ const MatchUploadForm: React.FC = () => {
     return team ? `${team.team_name} (${team.team_abbreviation})` : 'Unknown Team';
   };
 
+  // Helper to get Hero Name (used by ReviewStep)
+  const getHeroName = (heroValue: Hero | Partial<Hero> | string | null | undefined): string => {
+    if (!heroValue) return '-';
+    if (typeof heroValue === 'string') return heroValue;
+    if (typeof heroValue === 'number') return `Hero ID ${heroValue}`; // Fallback
+    if (typeof heroValue === 'object' && heroValue !== null && 'name' in heroValue) {
+      return heroValue.name || 'Unknown Hero';
+    }
+    return 'Invalid Hero Data';
+  };
+
+  // Helper to navigate steps (used by ReviewStep)
+  const navigateToStep = (stepIndex: number) => {
+    setActiveStep(stepIndex);
+  };
+
   const handleSubmit = async (values: MatchFormData) => {
     setIsSubmitting(true);
     setConnectionAlert({ show: false, message: '', severity: 'info' });
@@ -449,47 +464,44 @@ const MatchUploadForm: React.FC = () => {
             />
         );
       case 1:
+        // Determine team labels based on match type
         let blueTeamLabel = "Blue Side";
         let redTeamLabel = "Red Side";
+
         if (values.is_external_match) {
-          const blueName = getTeamName(values.team_1); const redName = getTeamName(values.team_2);
-          if (blueName !== 'N/A' && blueName !== 'Unknown Team') blueTeamLabel = blueName;
-          if (redName !== 'N/A' && redName !== 'Unknown Team') redTeamLabel = redName;
+            const blueName = getTeamName(values.team_1); const redName = getTeamName(values.team_2);
+            if (blueName !== 'N/A' && blueName !== 'Unknown Team') blueTeamLabel = blueName;
+            if (redName !== 'N/A' && redName !== 'Unknown Team') redTeamLabel = redName;
         } else {
-          const ourName = getTeamName(values.our_team); const oppName = getTeamName(values.opponent_team);
-          if (values.team_side === 'BLUE') {
-            if (ourName !== 'N/A' && ourName !== 'Unknown Team') blueTeamLabel = `${ourName} (Our Team)`; else blueTeamLabel = "Our Team (Blue)";
-            if (oppName !== 'N/A' && oppName !== 'Unknown Team') redTeamLabel = `${oppName} (Opponent)`; else redTeamLabel = "Opponent (Red)";
-          } else if (values.team_side === 'RED') {
-            if (oppName !== 'N/A' && oppName !== 'Unknown Team') blueTeamLabel = `${oppName} (Opponent)`; else blueTeamLabel = "Opponent (Blue)";
-            if (ourName !== 'N/A' && ourName !== 'Unknown Team') redTeamLabel = `${ourName} (Our Team)`; else redTeamLabel = "Our Team (Red)";
-          }
+            const ourName = getTeamName(values.our_team); const oppName = getTeamName(values.opponent_team);
+            if (values.team_side === 'BLUE') {
+                if (ourName !== 'N/A' && ourName !== 'Unknown Team') blueTeamLabel = `${ourName} (Our Team)`; else blueTeamLabel = "Our Team (Blue)";
+                if (oppName !== 'N/A' && oppName !== 'Unknown Team') redTeamLabel = `${oppName} (Opponent)`; else redTeamLabel = "Opponent (Red)";
+            } else if (values.team_side === 'RED') {
+                if (oppName !== 'N/A' && oppName !== 'Unknown Team') blueTeamLabel = `${oppName} (Opponent)`; else blueTeamLabel = "Opponent (Blue)";
+                if (ourName !== 'N/A' && ourName !== 'Unknown Team') redTeamLabel = `${ourName} (Our Team)`; else redTeamLabel = "Our Team (Red)";
+            }
         }
+
         return (
-          <Box>
-            <BoxScoreInput 
-              formik={formikProps}
-              availableHeroes={availableHeroes}
-              team1Label={blueTeamLabel} 
-              team2Label={redTeamLabel}
-              includeDraftInfo={includeDraftInfo ?? false}
-            />
-          </Box>
+          <BoxScoreInput
+            formik={formikProps}
+            availableHeroes={availableHeroes}
+            team1Label={blueTeamLabel}
+            team2Label={redTeamLabel}
+            includeDraftInfo={includeDraftInfo ?? false}
+          />
         );
       case 2:
         return (
-            <FileUploader 
-                onChange={(files) => setFieldValue('files', files)} 
-            />
-        );
-      case 3:
-        return (
             <ReviewStep 
-                formik={formikProps} 
-                teams={teams}
+                values={values} 
+                getTeamName={getTeamName} 
+                getHeroName={getHeroName} 
+                includeDraftInfo={includeDraftInfo}
+                navigateToStep={navigateToStep} 
                 onBack={handleBack} 
-                onSubmit={() => handleSubmit(values)}
-                navigateToStep={setActiveStep}
+                onSubmit={formikProps.submitForm}
             />
         );
       default: return <Typography>Unknown Step</Typography>;
@@ -617,6 +629,17 @@ const MatchUploadForm: React.FC = () => {
                       Next
                   </Button>
                  </Box>
+            )}
+
+            {activeStep === steps.length - 1 && (
+              <Button 
+                variant="contained" 
+                color="primary" 
+                onClick={() => formikProps.submitForm()}
+                disabled={isSubmitting || !formikProps.isValid || !formikProps.dirty}
+              >
+                {isSubmitting ? <CircularProgress size={24} /> : 'Submit Match'}
+              </Button>
             )}
 
           </form>

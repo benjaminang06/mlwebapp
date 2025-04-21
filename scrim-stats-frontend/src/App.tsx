@@ -5,6 +5,8 @@ import CssBaseline from '@mui/material/CssBaseline';
 import { Box, Button, Typography, AppBar, Toolbar } from '@mui/material';
 // import MatchUploadForm from './components/match/MatchUploadForm'; // No longer needed here
 import MatchUploadPage from './pages/MatchUploadPage'; // Import the page component
+import MatchListPage from './pages/MatchListPage'; // <-- Corrected path
+import MatchDetailPage from './pages/MatchDetailPage'; // <-- Corrected path
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
 import ProtectedRoute from './components/auth/ProtectedRoute';
@@ -39,7 +41,7 @@ const Navigation = () => {
           <Button color="inherit" component={Link} to="/matches">
             Matches
           </Button>
-          <Button color="inherit" component={Link} to="/matches/new">
+          <Button color="inherit" component={Link} to="/upload-match">
             Upload Match
           </Button>
           <Button color="inherit" component={Link} to="/login">
@@ -88,12 +90,28 @@ function App() {
                 
                 {/* Protected Routes */}
                 <Route 
-                  path="/upload-match" 
+                  path="/upload-match"
                   element={
                     <ProtectedRoute>
                       <MatchUploadPage />
                     </ProtectedRoute>
                   } 
+                />
+                <Route
+                  path="/matches"
+                  element={
+                    <ProtectedRoute>
+                      <MatchListPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/matches/:matchId"
+                  element={
+                    <ProtectedRoute>
+                      <MatchDetailPage />
+                    </ProtectedRoute>
+                  }
                 />
                 
                 {/* Diagnostic Tools */}
