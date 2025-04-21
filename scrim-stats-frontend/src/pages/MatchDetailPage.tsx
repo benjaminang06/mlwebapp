@@ -144,6 +144,16 @@ const MatchDetailPage: React.FC = () => {
 
   const { blueTeamStats, redTeamStats } = groupPlayerStatsByTeam();
 
+  // Calculate team KDA
+  const calculateTeamKDA = (teamStats: PlayerMatchStat[]): string => {
+    const totalKills = teamStats.reduce((sum, stat) => sum + (stat.kills || 0), 0);
+    const totalDeaths = teamStats.reduce((sum, stat) => sum + (stat.deaths || 0), 0);
+    const totalAssists = teamStats.reduce((sum, stat) => sum + (stat.assists || 0), 0);
+    
+    if (totalDeaths === 0) return (totalKills + totalAssists).toFixed(2);
+    return ((totalKills + totalAssists) / totalDeaths).toFixed(2);
+  };
+
   return (
     <Box sx={{ p: 3 }}>
       <Button 
@@ -213,6 +223,50 @@ const MatchDetailPage: React.FC = () => {
                       <Chip label="Winner" color="success" size="small" sx={{ ml: 1 }} />
                     )}
                   </Typography>
+                  
+                  {/* Display match score if available */}
+                  {match.score_details && (
+                    <Box sx={{ 
+                      mt: 2, 
+                      p: 1, 
+                      border: 1, 
+                      borderColor: 'divider',
+                      borderRadius: 1,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center'
+                    }}>
+                      <Typography variant="h6" sx={{ mb: 1 }}>
+                        Final Score
+                      </Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
+                        <Typography variant="body1" fontWeight="bold" textAlign="right" sx={{ flex: 1 }}>
+                          {match.score_details.blue_side_team_name}
+                        </Typography>
+                        <Box 
+                          sx={{ 
+                            mx: 2, 
+                            px: 2, 
+                            py: 0.5, 
+                            borderRadius: 1, 
+                            bgcolor: 'grey.200',
+                            minWidth: '80px',
+                            textAlign: 'center'
+                          }}
+                        >
+                          <Typography variant="h6" fontWeight="bold">
+                            {match.score_details.blue_side_score} - {match.score_details.red_side_score}
+                          </Typography>
+                        </Box>
+                        <Typography variant="body1" fontWeight="bold" textAlign="left" sx={{ flex: 1 }}>
+                          {match.score_details.red_side_team_name}
+                        </Typography>
+                      </Box>
+                      <Typography variant="caption" color="text.secondary" sx={{ mt: 1 }}>
+                        Score based on total kills
+                      </Typography>
+                    </Box>
+                  )}
                 </Box>
               </Grid>
             </Grid>
@@ -335,54 +389,78 @@ const MatchDetailPage: React.FC = () => {
               )}
               
               {!statsLoading && !statsError && blueTeamStats.length > 0 && (
-                <TableContainer component={Paper} sx={{ mb: 3 }}>
-                  <Table size="small">
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>Player</TableCell>
-                        <TableCell>Role</TableCell>
-                        <TableCell>Hero</TableCell>
-                        <TableCell align="right">K/D/A</TableCell>
-                        <TableCell align="right">KDA Ratio</TableCell>
-                        <TableCell align="right">DMG Dealt</TableCell>
-                        <TableCell align="right">DMG Taken</TableCell>
-                        <TableCell>Awards</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {blueTeamStats.map((stat) => (
-                        <TableRow key={stat.stats_id}>
-                          <TableCell>{stat.player_details?.current_ign || stat.ign || 'Unknown'}</TableCell>
-                          <TableCell>{stat.role_played || 'N/A'}</TableCell>
-                          <TableCell>{getHeroName(stat.hero_played)}</TableCell>
-                          <TableCell align="right">{formatKDA(stat)}</TableCell>
-                          <TableCell align="right">{calculateKDA(stat)}</TableCell>
-                          <TableCell align="right">{stat.damage_dealt || 'N/A'}</TableCell>
-                          <TableCell align="right">{stat.damage_taken || 'N/A'}</TableCell>
-                          <TableCell>
-                            {match.mvp === stat.player_id && (
-                              <Chip 
-                                icon={<StarIcon />} 
-                                label="MVP"
-                                color="primary"
-                                size="small"
-                                sx={{ mr: 1 }}
-                              />
-                            )}
-                            {stat.medal && (
-                              <Chip 
-                                label={stat.medal}
-                                size="small"
-                                color="default"
-                                variant="outlined"
-                              />
-                            )}
-                          </TableCell>
+                <>
+                  {/* Blue Team Summary */}
+                  <Box sx={{ mb: 3, p: 2, bgcolor: 'background.paper', borderRadius: 1, border: 1, borderColor: 'divider' }}>
+                    <Grid container spacing={2}>
+                      <Grid item xs={6} md={3}>
+                        <Typography variant="body2" color="text.secondary">Total Kills</Typography>
+                        <Typography variant="h6">{blueTeamStats.reduce((sum, stat) => sum + (stat.kills || 0), 0)}</Typography>
+                      </Grid>
+                      <Grid item xs={6} md={3}>
+                        <Typography variant="body2" color="text.secondary">Total Deaths</Typography>
+                        <Typography variant="h6">{blueTeamStats.reduce((sum, stat) => sum + (stat.deaths || 0), 0)}</Typography>
+                      </Grid>
+                      <Grid item xs={6} md={3}>
+                        <Typography variant="body2" color="text.secondary">Total Assists</Typography>
+                        <Typography variant="h6">{blueTeamStats.reduce((sum, stat) => sum + (stat.assists || 0), 0)}</Typography>
+                      </Grid>
+                      <Grid item xs={6} md={3}>
+                        <Typography variant="body2" color="text.secondary">Team KDA</Typography>
+                        <Typography variant="h6">{calculateTeamKDA(blueTeamStats)}</Typography>
+                      </Grid>
+                    </Grid>
+                  </Box>
+                  
+                  <TableContainer component={Paper} sx={{ mb: 3 }}>
+                    <Table size="small">
+                      <TableHead>
+                        <TableRow>
+                          <TableCell>Player</TableCell>
+                          <TableCell>Role</TableCell>
+                          <TableCell>Hero</TableCell>
+                          <TableCell align="right">K/D/A</TableCell>
+                          <TableCell align="right">KDA Ratio</TableCell>
+                          <TableCell align="right">DMG Dealt</TableCell>
+                          <TableCell align="right">DMG Taken</TableCell>
+                          <TableCell>Awards</TableCell>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
+                      </TableHead>
+                      <TableBody>
+                        {blueTeamStats.map((stat) => (
+                          <TableRow key={stat.stats_id}>
+                            <TableCell>{stat.player_details?.current_ign || stat.ign || 'Unknown'}</TableCell>
+                            <TableCell>{stat.role_played || 'N/A'}</TableCell>
+                            <TableCell>{getHeroName(stat.hero_played)}</TableCell>
+                            <TableCell align="right">{formatKDA(stat)}</TableCell>
+                            <TableCell align="right">{calculateKDA(stat)}</TableCell>
+                            <TableCell align="right">{stat.damage_dealt || 'N/A'}</TableCell>
+                            <TableCell align="right">{stat.damage_taken || 'N/A'}</TableCell>
+                            <TableCell>
+                              {match.mvp === stat.player_id && (
+                                <Chip 
+                                  icon={<StarIcon />} 
+                                  label="MVP"
+                                  color="primary"
+                                  size="small"
+                                  sx={{ mr: 1 }}
+                                />
+                              )}
+                              {stat.medal && (
+                                <Chip 
+                                  label={stat.medal}
+                                  size="small"
+                                  color="default"
+                                  variant="outlined"
+                                />
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                </>
               )}
             </TabPanel>
             
@@ -404,62 +482,86 @@ const MatchDetailPage: React.FC = () => {
               )}
               
               {!statsLoading && !statsError && redTeamStats.length > 0 && (
-                <TableContainer component={Paper} sx={{ mb: 3 }}>
-                  <Table size="small">
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>Player</TableCell>
-                        <TableCell>Role</TableCell>
-                        <TableCell>Hero</TableCell>
-                        <TableCell align="right">K/D/A</TableCell>
-                        <TableCell align="right">KDA Ratio</TableCell>
-                        <TableCell align="right">DMG Dealt</TableCell>
-                        <TableCell align="right">DMG Taken</TableCell>
-                        <TableCell>Awards</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {redTeamStats.map((stat) => (
-                        <TableRow key={stat.stats_id}>
-                          <TableCell>{stat.player_details?.current_ign || stat.ign || 'Unknown'}</TableCell>
-                          <TableCell>{stat.role_played || 'N/A'}</TableCell>
-                          <TableCell>{getHeroName(stat.hero_played)}</TableCell>
-                          <TableCell align="right">{formatKDA(stat)}</TableCell>
-                          <TableCell align="right">{calculateKDA(stat)}</TableCell>
-                          <TableCell align="right">{stat.damage_dealt || 'N/A'}</TableCell>
-                          <TableCell align="right">{stat.damage_taken || 'N/A'}</TableCell>
-                          <TableCell>
-                            {match.mvp === stat.player_id && (
-                              <Chip 
-                                icon={<StarIcon />} 
-                                label="MVP"
-                                color="primary"
-                                size="small"
-                                sx={{ mr: 1 }}
-                              />
-                            )}
-                            {match.mvp_loss === stat.player_id && (
-                              <Chip 
-                                icon={<StarIcon />} 
-                                label="MVP Loss"
-                                color="secondary"
-                                size="small"
-                              />
-                            )}
-                            {stat.medal && (
-                              <Chip 
-                                label={stat.medal}
-                                size="small"
-                                color="default"
-                                variant="outlined"
-                              />
-                            )}
-                          </TableCell>
+                <>
+                  {/* Red Team Summary */}
+                  <Box sx={{ mb: 3, p: 2, bgcolor: 'background.paper', borderRadius: 1, border: 1, borderColor: 'divider' }}>
+                    <Grid container spacing={2}>
+                      <Grid item xs={6} md={3}>
+                        <Typography variant="body2" color="text.secondary">Total Kills</Typography>
+                        <Typography variant="h6">{redTeamStats.reduce((sum, stat) => sum + (stat.kills || 0), 0)}</Typography>
+                      </Grid>
+                      <Grid item xs={6} md={3}>
+                        <Typography variant="body2" color="text.secondary">Total Deaths</Typography>
+                        <Typography variant="h6">{redTeamStats.reduce((sum, stat) => sum + (stat.deaths || 0), 0)}</Typography>
+                      </Grid>
+                      <Grid item xs={6} md={3}>
+                        <Typography variant="body2" color="text.secondary">Total Assists</Typography>
+                        <Typography variant="h6">{redTeamStats.reduce((sum, stat) => sum + (stat.assists || 0), 0)}</Typography>
+                      </Grid>
+                      <Grid item xs={6} md={3}>
+                        <Typography variant="body2" color="text.secondary">Team KDA</Typography>
+                        <Typography variant="h6">{calculateTeamKDA(redTeamStats)}</Typography>
+                      </Grid>
+                    </Grid>
+                  </Box>
+                
+                  <TableContainer component={Paper} sx={{ mb: 3 }}>
+                    <Table size="small">
+                      <TableHead>
+                        <TableRow>
+                          <TableCell>Player</TableCell>
+                          <TableCell>Role</TableCell>
+                          <TableCell>Hero</TableCell>
+                          <TableCell align="right">K/D/A</TableCell>
+                          <TableCell align="right">KDA Ratio</TableCell>
+                          <TableCell align="right">DMG Dealt</TableCell>
+                          <TableCell align="right">DMG Taken</TableCell>
+                          <TableCell>Awards</TableCell>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
+                      </TableHead>
+                      <TableBody>
+                        {redTeamStats.map((stat) => (
+                          <TableRow key={stat.stats_id}>
+                            <TableCell>{stat.player_details?.current_ign || stat.ign || 'Unknown'}</TableCell>
+                            <TableCell>{stat.role_played || 'N/A'}</TableCell>
+                            <TableCell>{getHeroName(stat.hero_played)}</TableCell>
+                            <TableCell align="right">{formatKDA(stat)}</TableCell>
+                            <TableCell align="right">{calculateKDA(stat)}</TableCell>
+                            <TableCell align="right">{stat.damage_dealt || 'N/A'}</TableCell>
+                            <TableCell align="right">{stat.damage_taken || 'N/A'}</TableCell>
+                            <TableCell>
+                              {match.mvp === stat.player_id && (
+                                <Chip 
+                                  icon={<StarIcon />} 
+                                  label="MVP"
+                                  color="primary"
+                                  size="small"
+                                  sx={{ mr: 1 }}
+                                />
+                              )}
+                              {match.mvp_loss === stat.player_id && (
+                                <Chip 
+                                  icon={<StarIcon />} 
+                                  label="MVP Loss"
+                                  color="secondary"
+                                  size="small"
+                                />
+                              )}
+                              {stat.medal && (
+                                <Chip 
+                                  label={stat.medal}
+                                  size="small"
+                                  color="default"
+                                  variant="outlined"
+                                />
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                </>
               )}
             </TabPanel>
           </Paper>
