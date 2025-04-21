@@ -9,18 +9,51 @@ import {
   CardContent, 
   Chip, 
   CircularProgress, 
-  Divider, 
   Grid, 
-  Paper, 
   Typography, 
   Stack,
   useTheme
 } from '@mui/material';
-import { formatDate, formatDuration } from '../utils/dateUtils';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import SportsEsportsIcon from '@mui/icons-material/SportsEsports';
 import TournamentIcon from '@mui/icons-material/EmojiEvents';
 import RankedIcon from '@mui/icons-material/Leaderboard';
+
+// Helper function to format date
+const formatDate = (dateString: string): string => {
+  if (!dateString) return 'Not available';
+  
+  try {
+    const date = new Date(dateString);
+    return date.toLocaleDateString(undefined, { 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric' 
+    });
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return dateString; // Return original if parsing fails
+  }
+};
+
+// Helper function to format duration
+const formatDuration = (durationString?: string): string => {
+  if (!durationString) return 'Not recorded';
+  
+  // Parse HH:MM:SS format
+  const match = durationString.match(/^(\d{2}):(\d{2}):(\d{2})$/);
+  if (!match) return durationString;
+  
+  const [_, hours, minutes, seconds] = match;
+  
+  // Build readable format
+  const parts = [];
+  if (parseInt(hours) > 0) parts.push(`${parseInt(hours)}h`);
+  if (parseInt(minutes) > 0) parts.push(`${parseInt(minutes)}m`);
+  if (parseInt(seconds) > 0 || parts.length === 0) parts.push(`${parseInt(seconds)}s`);
+  
+  return parts.join(' ');
+};
 
 const MatchListPage: React.FC = () => {
   const [matches, setMatches] = useState<Match[]>([]);
@@ -58,10 +91,29 @@ const MatchListPage: React.FC = () => {
     }
   };
 
-  // Helper to format match outcome
-  const getOutcomeChip = (outcome: string | null) => {
+  // Helper to format match outcome - Modified to handle external matches better
+  const getOutcomeChip = (match: Match) => {
+    const outcome = match.match_outcome;
+    const isExternalMatch = match.our_team_details === undefined || match.our_team_details === null;
+    
     if (!outcome) return <Chip size="small" label="No Result" color="default" />;
     
+    // For external matches, show which team won instead of Victory/Defeat
+    if (isExternalMatch) {
+      const winningTeam = match.winning_team === match.blue_side_team ? 
+                          match.blue_side_team_details?.team_name : 
+                          match.red_side_team_details?.team_name;
+      
+      return <Chip 
+        size="small" 
+        label={`${winningTeam || 'Blue Team'} Won`}
+        color="primary"
+        icon={<EmojiEventsIcon />} 
+        sx={{ fontWeight: 'bold' }} 
+      />;
+    }
+    
+    // For our team's matches, show victory/defeat as before
     return outcome === 'VICTORY' 
       ? <Chip 
           size="small" 
@@ -80,17 +132,19 @@ const MatchListPage: React.FC = () => {
 
   // Helper to get team names with appropriate fallbacks
   const getTeamDisplay = (match: Match) => {
-    const ourTeam = match.blue_side_team_details?.team_name || 
-                     match.our_team_details?.team_name || 
-                     'Our Team';
+    const ourTeam = match.our_team_details?.team_name || 'Our Team';
     
-    const opponentTeam = match.red_side_team_details?.team_name || 
-                         match.opponent_details?.team_name || 
-                         'Opponent Team';
+    const opponentTeam = 'Opponent Team';
     
     // Determine which team is which side
     let blueTeam = match.team_side === 'BLUE' ? ourTeam : opponentTeam;
     let redTeam = match.team_side === 'BLUE' ? opponentTeam : ourTeam;
+    
+    // For external matches, use the actual blue/red side team names
+    if (!match.our_team_details) {
+      blueTeam = match.blue_side_team_details?.team_name || 'Blue Team';
+      redTeam = match.red_side_team_details?.team_name || 'Red Team';
+    }
     
     return { blueTeam, redTeam, ourTeam, opponentTeam };
   };
@@ -115,7 +169,7 @@ const MatchListPage: React.FC = () => {
       
       <Grid container spacing={2}>
         {matches.map((match) => {
-          const { blueTeam, redTeam, ourTeam, opponentTeam } = getTeamDisplay(match);
+          const { blueTeam, redTeam } = getTeamDisplay(match);
           return (
             <Grid item xs={12} key={match.match_id}>
               <Card 
@@ -178,28 +232,12 @@ const MatchListPage: React.FC = () => {
                           {redTeam}
                         </Typography>
                       </Box>
-                      <Box sx={{ mt: 1 }}>
-                        <Typography 
-                          variant="body2" 
-                          textAlign="center" 
-                          sx={{ 
-                            mt: 1,
-                            color: match.general_notes ? 'text.primary' : 'text.disabled',
-                            fontStyle: match.general_notes ? 'normal' : 'italic'
-                          }}
-                        >
-                          {match.general_notes || 'No match notes'}
-                        </Typography>
-                      </Box>
                     </Grid>
 
                     {/* Right: Outcome */}
                     <Grid item xs={12} md={3} sx={{ textAlign: 'right' }}>
                       <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-                        {getOutcomeChip(match.match_outcome)}
-                        <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                          Match #{match.match_id}
-                        </Typography>
+                        {getOutcomeChip(match)}
                       </Box>
                     </Grid>
                   </Grid>
