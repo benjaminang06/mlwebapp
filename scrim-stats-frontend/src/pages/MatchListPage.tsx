@@ -517,14 +517,31 @@ const MatchListPage: React.FC = () => {
                             alignItems: 'center'
                           }}
                         >
-                          <Typography variant="body2" fontWeight="bold">
-                            VS
-                          </Typography>
+                          {match.score_details ? (
+                            <Typography variant="body2" fontWeight="bold">
+                              {match.score_details.blue_side_score} - {match.score_details.red_side_score}
+                            </Typography>
+                          ) : (
+                            <Typography variant="body2" fontWeight="bold">
+                              VS
+                            </Typography>
+                          )}
                         </Box>
                         <Typography variant="body1" fontWeight="bold" textAlign="left" sx={{ flex: 1 }}>
                           {redTeam}
                         </Typography>
                       </Box>
+                      {/* Add score explanation if score exists */}
+                      {match.score_details && (
+                        <Typography 
+                          variant="caption" 
+                          align="center" 
+                          display="block" 
+                          sx={{ mt: 0.5, color: 'text.secondary' }}
+                        >
+                          Score based on total kills
+                        </Typography>
+                      )}
                     </Grid>
 
                     {/* Right: Outcome */}

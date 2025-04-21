@@ -259,6 +259,38 @@ class Match(models.Model):
             self.match_outcome = None # No winner specified
             
         super().save(*args, **kwargs)
+        
+        # After saving, update the score_details based on player stats
+        self.update_score_details()
+
+    def update_score_details(self):
+        """Calculate and update score details based on player kills for each team"""
+        # Skip if this is a new match without player stats yet
+        if not self.pk:
+            return
+            
+        # Get all player stats for this match
+        player_stats = self.player_stats.all()
+        if not player_stats:
+            return
+            
+        # Calculate total kills for each team
+        blue_side_kills = sum(stat.kills for stat in player_stats if stat.team_id == self.blue_side_team_id)
+        red_side_kills = sum(stat.kills for stat in player_stats if stat.team_id == self.red_side_team_id)
+        
+        # Create score details object
+        score_details = {
+            'blue_side_score': blue_side_kills,
+            'red_side_score': red_side_kills,
+            'blue_side_team_name': self.blue_side_team.team_name if self.blue_side_team else 'Blue Team',
+            'red_side_team_name': self.red_side_team.team_name if self.red_side_team else 'Red Team',
+            'score_by': 'kills'  # Indicates how score was calculated
+        }
+        
+        # Update the model
+        self.score_details = score_details
+        # Use update to avoid recursion
+        Match.objects.filter(pk=self.pk).update(score_details=score_details)
 
     def get_mvp(self):
         """Returns the manually selected MVP for this match."""
@@ -384,27 +416,28 @@ class PlayerMatchStat(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     
     def __str__(self):
-        return f"{self.player.current_ign} - {self.match}"
-
+        return f"{self.player.current_ign} stats for {self.match}"
+    
     def is_for_our_team(self):
-        """
-        Determine if this stat belongs to 'our team' based on the match relationship.
-        This replaces the static is_our_team field.
-        """
-        # Check if match and our_team exist before accessing team_id
-        if self.match and self.match.our_team:
-             return self.team_id == self.match.our_team_id
-        return False # Default if context cannot be determined
-
+        """Check if this stat is for our team"""
+        return self.team_id == self.match.our_team_id
+        
+    def is_blue_side(self):
+        """Check if this stat is for blue side team"""
+        return self.team_id == self.match.blue_side_team_id
+    
     def save(self, *args, **kwargs):
         # Set role_played to player's primary role if not specified
-        if self.player and not self.role_played:
+        if not self.role_played and self.player.primary_role:
             self.role_played = self.player.primary_role
             
-        # Basic validation - complex validation will be moved to service layer
-        # (Validation logic removed for brevity, assume it exists)
-                
-        super().save(*args, **kwargs)
+        result = super().save(*args, **kwargs)
+        
+        # Update match score details after saving player stats
+        if self.match:
+            self.match.update_score_details()
+            
+        return result
 
 class FileUpload(models.Model):
     """
