@@ -20,7 +20,10 @@ import {
   OutlinedInput,
   SelectChangeEvent,
   Paper,
-  IconButton
+  IconButton,
+  Tabs,
+  Tab,
+  styled
 } from '@mui/material';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import SportsEsportsIcon from '@mui/icons-material/SportsEsports';
@@ -28,6 +31,28 @@ import TournamentIcon from '@mui/icons-material/EmojiEvents';
 import RankedIcon from '@mui/icons-material/Leaderboard';
 import FilterAltIcon from '@mui/icons-material/FilterAlt';
 import ClearIcon from '@mui/icons-material/Clear';
+import GroupIcon from '@mui/icons-material/Group';
+import PublicIcon from '@mui/icons-material/Public';
+import AllInclusiveIcon from '@mui/icons-material/AllInclusive';
+
+// Styled tabs for better visibility
+const StyledTabs = styled(Tabs)(({ theme }) => ({
+  marginBottom: theme.spacing(2),
+  borderBottom: `1px solid ${theme.palette.divider}`,
+  '& .MuiTabs-indicator': {
+    height: 3,
+  },
+}));
+
+const StyledTab = styled(Tab)(({ theme }) => ({
+  textTransform: 'none',
+  fontWeight: theme.typography.fontWeightRegular,
+  fontSize: theme.typography.pxToRem(15),
+  marginRight: theme.spacing(1),
+  '&.Mui-selected': {
+    fontWeight: theme.typography.fontWeightMedium,
+  },
+}));
 
 // Helper function to format date
 const formatDate = (dateString: string): string => {
@@ -77,6 +102,7 @@ const MatchListPage: React.FC = () => {
   const [outcomeFilter, setOutcomeFilter] = useState<string>('');
   const [teamFilter, setTeamFilter] = useState<string>('');
   const [dateFilter, setDateFilter] = useState<string>('all');
+  const [ownershipFilter, setOwnershipFilter] = useState<string>('our'); // Default to our matches
   const [teams, setTeams] = useState<{id: number, name: string}[]>([]);
   const [showFilters, setShowFilters] = useState<boolean>(true);
 
@@ -85,7 +111,10 @@ const MatchListPage: React.FC = () => {
       try {
         const data = await getMatches();
         setMatches(data);
-        setFilteredMatches(data);
+        
+        // Initial filtering based on default "our" tab
+        const initialFiltered = data.filter(match => match.our_team_details !== null);
+        setFilteredMatches(initialFiltered);
         
         // Extract unique teams for filter dropdown
         const uniqueTeams = new Map<number, string>();
@@ -119,6 +148,14 @@ const MatchListPage: React.FC = () => {
     if (!matches.length) return;
     
     let filtered = [...matches];
+    
+    // Apply ownership filter (tabs)
+    if (ownershipFilter === 'our') {
+      filtered = filtered.filter(match => match.our_team_details !== null);
+    } else if (ownershipFilter === 'external') {
+      filtered = filtered.filter(match => match.our_team_details === null);
+    }
+    // 'all' requires no filtering
     
     // Apply type filter
     if (typeFilter) {
@@ -165,7 +202,7 @@ const MatchListPage: React.FC = () => {
     }
     
     setFilteredMatches(filtered);
-  }, [matches, typeFilter, outcomeFilter, teamFilter, dateFilter]);
+  }, [matches, typeFilter, outcomeFilter, teamFilter, dateFilter, ownershipFilter]);
   
   const handleTypeFilterChange = (event: SelectChangeEvent) => {
     setTypeFilter(event.target.value);
@@ -183,11 +220,16 @@ const MatchListPage: React.FC = () => {
     setDateFilter(event.target.value);
   };
   
+  const handleTabChange = (event: React.SyntheticEvent, newValue: string) => {
+    setOwnershipFilter(newValue);
+  };
+  
   const clearFilters = () => {
     setTypeFilter('');
     setOutcomeFilter('');
     setTeamFilter('');
     setDateFilter('all');
+    // Don't clear the tab selection when clearing other filters
   };
 
   // Helper to get match type icon
@@ -270,6 +312,15 @@ const MatchListPage: React.FC = () => {
     return { blueTeam, redTeam, ourTeam, opponentTeam };
   };
 
+  // Get counts for tab badges
+  const getOurMatchesCount = () => {
+    return matches.filter(match => match.our_team_details !== null).length;
+  };
+  
+  const getExternalMatchesCount = () => {
+    return matches.filter(match => match.our_team_details === null).length;
+  };
+
   return (
     <Box sx={{ padding: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
@@ -284,6 +335,32 @@ const MatchListPage: React.FC = () => {
           </IconButton>
         </Box>
       </Box>
+      
+      {/* Tabs for Our / External / All Matches */}
+      <StyledTabs
+        value={ownershipFilter}
+        onChange={handleTabChange}
+        aria-label="match ownership tabs"
+      >
+        <StyledTab 
+          value="our" 
+          label={`Our Matches (${getOurMatchesCount()})`} 
+          icon={<GroupIcon />} 
+          iconPosition="start"
+        />
+        <StyledTab 
+          value="external" 
+          label={`External Matches (${getExternalMatchesCount()})`} 
+          icon={<PublicIcon />} 
+          iconPosition="start"
+        />
+        <StyledTab 
+          value="all" 
+          label="All Matches" 
+          icon={<AllInclusiveIcon />} 
+          iconPosition="start"
+        />
+      </StyledTabs>
       
       {showFilters && (
         <Paper sx={{ p: 2, mb: 2 }}>
