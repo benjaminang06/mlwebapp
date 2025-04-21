@@ -76,8 +76,9 @@ const MatchListPage: React.FC = () => {
   const [typeFilter, setTypeFilter] = useState<string>('');
   const [outcomeFilter, setOutcomeFilter] = useState<string>('');
   const [teamFilter, setTeamFilter] = useState<string>('');
+  const [dateFilter, setDateFilter] = useState<string>('all');
   const [teams, setTeams] = useState<{id: number, name: string}[]>([]);
-  const [showFilters, setShowFilters] = useState<boolean>(false);
+  const [showFilters, setShowFilters] = useState<boolean>(true);
 
   useEffect(() => {
     const fetchMatches = async () => {
@@ -137,8 +138,34 @@ const MatchListPage: React.FC = () => {
       );
     }
     
+    // Apply date filter
+    if (dateFilter !== 'all') {
+      const now = new Date();
+      let cutoffDate = new Date();
+      
+      switch (dateFilter) {
+        case 'week':
+          cutoffDate.setDate(now.getDate() - 7);
+          break;
+        case 'month':
+          cutoffDate.setDate(now.getDate() - 30);
+          break;
+        case 'quarter':
+          cutoffDate.setMonth(now.getMonth() - 3);
+          break;
+        case 'year':
+          cutoffDate.setFullYear(now.getFullYear() - 1);
+          break;
+      }
+      
+      filtered = filtered.filter(match => {
+        const matchDate = new Date(match.match_date);
+        return matchDate >= cutoffDate;
+      });
+    }
+    
     setFilteredMatches(filtered);
-  }, [matches, typeFilter, outcomeFilter, teamFilter]);
+  }, [matches, typeFilter, outcomeFilter, teamFilter, dateFilter]);
   
   const handleTypeFilterChange = (event: SelectChangeEvent) => {
     setTypeFilter(event.target.value);
@@ -152,10 +179,15 @@ const MatchListPage: React.FC = () => {
     setTeamFilter(event.target.value);
   };
   
+  const handleDateFilterChange = (event: SelectChangeEvent) => {
+    setDateFilter(event.target.value);
+  };
+  
   const clearFilters = () => {
     setTypeFilter('');
     setOutcomeFilter('');
     setTeamFilter('');
+    setDateFilter('all');
   };
 
   // Helper to get match type icon
@@ -256,7 +288,7 @@ const MatchListPage: React.FC = () => {
       {showFilters && (
         <Paper sx={{ p: 2, mb: 2 }}>
           <Grid container spacing={2} alignItems="center">
-            <Grid item xs={12} sm={3}>
+            <Grid item xs={12} sm={6} md={3}>
               <FormControl fullWidth size="small">
                 <InputLabel id="match-type-filter-label">Match Type</InputLabel>
                 <Select
@@ -273,7 +305,7 @@ const MatchListPage: React.FC = () => {
               </FormControl>
             </Grid>
             
-            <Grid item xs={12} sm={3}>
+            <Grid item xs={12} sm={6} md={3}>
               <FormControl fullWidth size="small">
                 <InputLabel id="outcome-filter-label">Outcome</InputLabel>
                 <Select
@@ -289,7 +321,7 @@ const MatchListPage: React.FC = () => {
               </FormControl>
             </Grid>
             
-            <Grid item xs={12} sm={3}>
+            <Grid item xs={12} sm={6} md={3}>
               <FormControl fullWidth size="small">
                 <InputLabel id="team-filter-label">Team</InputLabel>
                 <Select
@@ -306,9 +338,31 @@ const MatchListPage: React.FC = () => {
               </FormControl>
             </Grid>
             
-            <Grid item xs={12} sm={3}>
-              <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                <IconButton color="primary" onClick={clearFilters}>
+            <Grid item xs={12} sm={6} md={2}>
+              <FormControl fullWidth size="small">
+                <InputLabel id="date-filter-label">Date</InputLabel>
+                <Select
+                  labelId="date-filter-label"
+                  value={dateFilter}
+                  onChange={handleDateFilterChange}
+                  input={<OutlinedInput label="Date" />}
+                >
+                  <MenuItem value="all">All Time</MenuItem>
+                  <MenuItem value="week">Past Week</MenuItem>
+                  <MenuItem value="month">Past Month</MenuItem>
+                  <MenuItem value="quarter">Past Quarter</MenuItem>
+                  <MenuItem value="year">Past Year</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            
+            <Grid item xs={12} md={1}>
+              <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                <IconButton 
+                  color="primary" 
+                  onClick={clearFilters}
+                  title="Clear all filters"
+                >
                   <ClearIcon />
                 </IconButton>
               </Box>
