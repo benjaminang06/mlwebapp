@@ -12,12 +12,22 @@ import {
   Grid, 
   Typography, 
   Stack,
-  useTheme
+  useTheme,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  OutlinedInput,
+  SelectChangeEvent,
+  Paper,
+  IconButton
 } from '@mui/material';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import SportsEsportsIcon from '@mui/icons-material/SportsEsports';
 import TournamentIcon from '@mui/icons-material/EmojiEvents';
 import RankedIcon from '@mui/icons-material/Leaderboard';
+import FilterAltIcon from '@mui/icons-material/FilterAlt';
+import ClearIcon from '@mui/icons-material/Clear';
 
 // Helper function to format date
 const formatDate = (dateString: string): string => {
@@ -57,15 +67,41 @@ const formatDuration = (durationString?: string): string => {
 
 const MatchListPage: React.FC = () => {
   const [matches, setMatches] = useState<Match[]>([]);
+  const [filteredMatches, setFilteredMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const theme = useTheme();
+  
+  // Filter states
+  const [typeFilter, setTypeFilter] = useState<string>('');
+  const [outcomeFilter, setOutcomeFilter] = useState<string>('');
+  const [teamFilter, setTeamFilter] = useState<string>('');
+  const [teams, setTeams] = useState<{id: number, name: string}[]>([]);
+  const [showFilters, setShowFilters] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchMatches = async () => {
       try {
         const data = await getMatches();
         setMatches(data);
+        setFilteredMatches(data);
+        
+        // Extract unique teams for filter dropdown
+        const uniqueTeams = new Map<number, string>();
+        data.forEach(match => {
+          if (match.blue_side_team_details) {
+            uniqueTeams.set(match.blue_side_team, match.blue_side_team_details.team_name);
+          }
+          if (match.red_side_team_details) {
+            uniqueTeams.set(match.red_side_team, match.red_side_team_details.team_name);
+          }
+        });
+        
+        const teamOptions = Array.from(uniqueTeams.entries()).map(([id, name]) => ({
+          id, name
+        }));
+        
+        setTeams(teamOptions);
         setLoading(false);
       } catch (error) {
         console.error('Error fetching matches:', error);
@@ -76,6 +112,51 @@ const MatchListPage: React.FC = () => {
 
     fetchMatches();
   }, []);
+  
+  // Apply filters when any filter changes
+  useEffect(() => {
+    if (!matches.length) return;
+    
+    let filtered = [...matches];
+    
+    // Apply type filter
+    if (typeFilter) {
+      filtered = filtered.filter(match => match.scrim_type === typeFilter);
+    }
+    
+    // Apply outcome filter
+    if (outcomeFilter) {
+      filtered = filtered.filter(match => match.match_outcome === outcomeFilter);
+    }
+    
+    // Apply team filter
+    if (teamFilter) {
+      const teamId = parseInt(teamFilter, 10);
+      filtered = filtered.filter(
+        match => match.blue_side_team === teamId || match.red_side_team === teamId
+      );
+    }
+    
+    setFilteredMatches(filtered);
+  }, [matches, typeFilter, outcomeFilter, teamFilter]);
+  
+  const handleTypeFilterChange = (event: SelectChangeEvent) => {
+    setTypeFilter(event.target.value);
+  };
+  
+  const handleOutcomeFilterChange = (event: SelectChangeEvent) => {
+    setOutcomeFilter(event.target.value);
+  };
+  
+  const handleTeamFilterChange = (event: SelectChangeEvent) => {
+    setTeamFilter(event.target.value);
+  };
+  
+  const clearFilters = () => {
+    setTypeFilter('');
+    setOutcomeFilter('');
+    setTeamFilter('');
+  };
 
   // Helper to get match type icon
   const getMatchTypeIcon = (type: string) => {
@@ -159,9 +240,82 @@ const MatchListPage: React.FC = () => {
 
   return (
     <Box sx={{ padding: 3 }}>
-      <Typography variant="h4" gutterBottom>
-        Match History
-      </Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+        <Typography variant="h4">Match History</Typography>
+        <Box>
+          <IconButton 
+            color={showFilters ? "primary" : "default"} 
+            onClick={() => setShowFilters(!showFilters)}
+            sx={{ mr: 1 }}
+          >
+            <FilterAltIcon />
+          </IconButton>
+        </Box>
+      </Box>
+      
+      {showFilters && (
+        <Paper sx={{ p: 2, mb: 2 }}>
+          <Grid container spacing={2} alignItems="center">
+            <Grid item xs={12} sm={3}>
+              <FormControl fullWidth size="small">
+                <InputLabel id="match-type-filter-label">Match Type</InputLabel>
+                <Select
+                  labelId="match-type-filter-label"
+                  value={typeFilter}
+                  onChange={handleTypeFilterChange}
+                  input={<OutlinedInput label="Match Type" />}
+                >
+                  <MenuItem value="">All Types</MenuItem>
+                  <MenuItem value="SCRIMMAGE">Scrimmage</MenuItem>
+                  <MenuItem value="TOURNAMENT">Tournament</MenuItem>
+                  <MenuItem value="RANKED">Ranked</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            
+            <Grid item xs={12} sm={3}>
+              <FormControl fullWidth size="small">
+                <InputLabel id="outcome-filter-label">Outcome</InputLabel>
+                <Select
+                  labelId="outcome-filter-label"
+                  value={outcomeFilter}
+                  onChange={handleOutcomeFilterChange}
+                  input={<OutlinedInput label="Outcome" />}
+                >
+                  <MenuItem value="">All Outcomes</MenuItem>
+                  <MenuItem value="VICTORY">Victory</MenuItem>
+                  <MenuItem value="DEFEAT">Defeat</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            
+            <Grid item xs={12} sm={3}>
+              <FormControl fullWidth size="small">
+                <InputLabel id="team-filter-label">Team</InputLabel>
+                <Select
+                  labelId="team-filter-label"
+                  value={teamFilter}
+                  onChange={handleTeamFilterChange}
+                  input={<OutlinedInput label="Team" />}
+                >
+                  <MenuItem value="">All Teams</MenuItem>
+                  {teams.map(team => (
+                    <MenuItem key={team.id} value={team.id}>{team.name}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            
+            <Grid item xs={12} sm={3}>
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <IconButton color="primary" onClick={clearFilters}>
+                  <ClearIcon />
+                </IconButton>
+              </Box>
+            </Grid>
+          </Grid>
+        </Paper>
+      )}
       
       {loading && (
         <Box display="flex" justifyContent="center" my={4}>
@@ -171,12 +325,12 @@ const MatchListPage: React.FC = () => {
       
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
       
-      {!loading && !error && matches.length === 0 && (
-        <Alert severity="info">No matches found. Start by adding your first match!</Alert>
+      {!loading && !error && filteredMatches.length === 0 && (
+        <Alert severity="info">No matches found with the selected filters.</Alert>
       )}
       
       <Grid container spacing={2}>
-        {matches.map((match) => {
+        {filteredMatches.map((match) => {
           const { blueTeam, redTeam } = getTeamDisplay(match);
           return (
             <Grid item xs={12} key={match.match_id}>
