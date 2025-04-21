@@ -132,19 +132,27 @@ const MatchListPage: React.FC = () => {
 
   // Helper to get team names with appropriate fallbacks
   const getTeamDisplay = (match: Match) => {
-    const ourTeam = match.our_team_details?.team_name || 'Our Team';
-    
-    const opponentTeam = 'Opponent Team';
-    
-    // Determine which team is which side
-    let blueTeam = match.team_side === 'BLUE' ? ourTeam : opponentTeam;
-    let redTeam = match.team_side === 'BLUE' ? opponentTeam : ourTeam;
-    
-    // For external matches, use the actual blue/red side team names
+    // For external matches (no our_team_details), use the actual blue/red side team names
     if (!match.our_team_details) {
-      blueTeam = match.blue_side_team_details?.team_name || 'Blue Team';
-      redTeam = match.red_side_team_details?.team_name || 'Red Team';
+      const blueTeam = match.blue_side_team_details?.team_name || 'Blue Team';
+      const redTeam = match.red_side_team_details?.team_name || 'Red Team';
+      return { blueTeam, redTeam, ourTeam: null, opponentTeam: null };
     }
+    
+    // For our team's matches, determine which team is the opponent
+    const ourTeam = match.our_team_details?.team_name || 'Our Team';
+    let opponentTeam;
+    
+    // Find opponent based on which side our team is on
+    if (match.our_team_details?.team_id === match.blue_side_team) {
+      opponentTeam = match.red_side_team_details?.team_name || 'Opponent Team';
+    } else {
+      opponentTeam = match.blue_side_team_details?.team_name || 'Opponent Team';
+    }
+    
+    // Determine which team is on which side
+    const blueTeam = match.blue_side_team_details?.team_name || 'Blue Team';
+    const redTeam = match.red_side_team_details?.team_name || 'Red Team';
     
     return { blueTeam, redTeam, ourTeam, opponentTeam };
   };
