@@ -4,6 +4,9 @@ from .models import TeamManagerRole, Player, Team
 class IsTeamManager(permissions.BasePermission):
     """
     Custom permission to only allow team managers to create/edit players and matches.
+    Permissions:
+    - Safe methods (GET): Any authenticated user
+    - Other methods: Users who manage at least one team with appropriate role level
     """
     
     def has_permission(self, request, view):
@@ -15,10 +18,15 @@ class IsTeamManager(permissions.BasePermission):
         if not request.user.is_authenticated:
             return False
             
+        # Allow staff users full access
+        if request.user.is_staff:
+            return True
+            
+        # Check if user has appropriate role for any team
         return TeamManagerRole.objects.filter(
             user=request.user, 
-            role_level__in=['MANAGER', 'COACH', 'ADMIN']
-        ).exists() or request.user.is_staff
+            role__in=['head_coach', 'assistant', 'analyst']
+        ).exists()
     
     def has_object_permission(self, request, view, obj):
         # Read permissions are allowed to any authenticated user
@@ -31,10 +39,14 @@ class IsTeamManager(permissions.BasePermission):
             
         # If it's a Player object, check if user manages their team
         if isinstance(obj, Player):
+            current_team_history = obj.get_current_team_history()
+            if not current_team_history:
+                return False
+                
             return TeamManagerRole.objects.filter(
                 user=request.user,
-                team__in=obj.teams.all(),
-                role_level__in=['MANAGER', 'COACH', 'ADMIN']
+                team=current_team_history.team,
+                role__in=['head_coach', 'assistant', 'analyst']
             ).exists()
             
         # If it's a Team object, check if user is a manager of this team
@@ -42,21 +54,30 @@ class IsTeamManager(permissions.BasePermission):
             return TeamManagerRole.objects.filter(
                 user=request.user,
                 team=obj,
-                role_level__in=['MANAGER', 'COACH', 'ADMIN']
+                role__in=['head_coach', 'assistant', 'analyst']
             ).exists()
             
+        # Default to False for unknown objects
         return False
 
 class IsTeamMember(permissions.BasePermission):
     """
-    Permission to allow team members to view their team's data
+    Permission to allow team members to view their team's data.
+    Permissions:
+    - Safe methods (GET): Authenticated users who are members of the team
+    - Other methods: Never allowed (read-only permission)
     """
+    
+    def has_permission(self, request, view):
+        # All requests require authentication
+        return request.user.is_authenticated
     
     def has_object_permission(self, request, view, obj):
         # Read-only permissions for authenticated team members
         if not request.user.is_authenticated:
             return False
             
+        # Deny non-safe methods
         if request.method not in permissions.SAFE_METHODS:
             return False
             

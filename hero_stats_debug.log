@@ -1,0 +1,309 @@
+2025-04-23 01:11:36,275 - INFO - ====== Starting Hero Pick Stats Diagnosis ======
+2025-04-23 01:11:36,275 - INFO - Starting hero data diagnosis
+2025-04-23 01:11:36,280 - INFO - Examining 20 recent player match stats
+2025-04-23 01:11:36,281 - INFO - Stat #1 - Match ID: 54, Player: gyomei (JUNGLER)
+2025-04-23 01:11:36,282 - INFO -   hero_played: Chang'e
+2025-04-23 01:11:36,282 - INFO -   hero_played type: <class 'api.models.Hero'>
+2025-04-23 01:11:36,282 - INFO -   hero_played.id: 61
+2025-04-23 01:11:36,282 - INFO -   hero_played.name: Chang'e
+2025-04-23 01:11:36,282 - INFO -   hero_played_id: 61
+2025-04-23 01:11:36,282 - INFO -   Access via getattr hero_played_id: 61
+2025-04-23 01:11:36,282 - INFO -   Access via hero_played.id: 61
+2025-04-23 01:11:36,282 - INFO - Stat #2 - Match ID: 54, Player: FUNDYJAGO (EXP)
+2025-04-23 01:11:36,283 - INFO -   hero_played: Balmond
+2025-04-23 01:11:36,283 - INFO -   hero_played type: <class 'api.models.Hero'>
+2025-04-23 01:11:36,283 - INFO -   hero_played.id: 2
+2025-04-23 01:11:36,283 - INFO -   hero_played.name: Balmond
+2025-04-23 01:11:36,283 - INFO -   hero_played_id: 2
+2025-04-23 01:11:36,283 - INFO -   Access via getattr hero_played_id: 2
+2025-04-23 01:11:36,283 - INFO -   Access via hero_played.id: 2
+2025-04-23 01:11:36,283 - INFO - Stat #3 - Match ID: 54, Player: Gene. (MID)
+2025-04-23 01:11:36,283 - INFO -   hero_played: Badang
+2025-04-23 01:11:36,283 - INFO -   hero_played type: <class 'api.models.Hero'>
+2025-04-23 01:11:36,283 - INFO -   hero_played.id: 77
+2025-04-23 01:11:36,283 - INFO -   hero_played.name: Badang
+2025-04-23 01:11:36,283 - INFO -   hero_played_id: 77
+2025-04-23 01:11:36,283 - INFO -   Access via getattr hero_played_id: 77
+2025-04-23 01:11:36,283 - INFO -   Access via hero_played.id: 77
+2025-04-23 01:11:36,283 - INFO - Stat #4 - Match ID: 54, Player: Zrix (ROAMER)
+2025-04-23 01:11:36,284 - INFO -   hero_played: Chip
+2025-04-23 01:11:36,284 - INFO -   hero_played type: <class 'api.models.Hero'>
+2025-04-23 01:11:36,284 - INFO -   hero_played.id: 124
+2025-04-23 01:11:36,284 - INFO -   hero_played.name: Chip
+2025-04-23 01:11:36,284 - INFO -   hero_played_id: 124
+2025-04-23 01:11:36,284 - INFO -   Access via getattr hero_played_id: 124
+2025-04-23 01:11:36,284 - INFO -   Access via hero_played.id: 124
+2025-04-23 01:11:36,284 - INFO - Stat #5 - Match ID: 54, Player: goldlaner (GOLD)
+2025-04-23 01:11:36,284 - INFO -   hero_played: Claude
+2025-04-23 01:11:36,284 - INFO -   hero_played type: <class 'api.models.Hero'>
+2025-04-23 01:11:36,284 - INFO -   hero_played.id: 65
+2025-04-23 01:11:36,284 - INFO -   hero_played.name: Claude
+2025-04-23 01:11:36,284 - INFO -   hero_played_id: 65
+2025-04-23 01:11:36,284 - INFO -   Access via getattr hero_played_id: 65
+2025-04-23 01:11:36,284 - INFO -   Access via hero_played.id: 65
+2025-04-23 01:11:36,285 - INFO - Stat #6 - Match ID: 54, Player: schoolboydraken (MID)
+2025-04-23 01:11:36,285 - INFO -   hero_played: Clint
+2025-04-23 01:11:36,285 - INFO -   hero_played type: <class 'api.models.Hero'>
+2025-04-23 01:11:36,285 - INFO -   hero_played.id: 13
+2025-04-23 01:11:36,285 - INFO -   hero_played.name: Clint
+2025-04-23 01:11:36,285 - INFO -   hero_played_id: 13
+2025-04-23 01:11:36,285 - INFO -   Access via getattr hero_played_id: 13
+2025-04-23 01:11:36,285 - INFO -   Access via hero_played.id: 13
+2025-04-23 01:11:36,286 - INFO - Stat #7 - Match ID: 54, Player: Brandi (GOLD)
+2025-04-23 01:11:36,286 - INFO -   hero_played: Barats
+2025-04-23 01:11:36,286 - INFO -   hero_played type: <class 'api.models.Hero'>
+2025-04-23 01:11:36,286 - INFO -   hero_played.id: 99
+2025-04-23 01:11:36,286 - INFO -   hero_played.name: Barats
+2025-04-23 01:11:36,286 - INFO -   hero_played_id: 99
+2025-04-23 01:11:36,286 - INFO -   Access via getattr hero_played_id: 99
+2025-04-23 01:11:36,286 - INFO -   Access via hero_played.id: 99
+2025-04-23 01:11:36,286 - INFO - Stat #8 - Match ID: 54, Player: kyle so gwapo. (JUNGLER)
+2025-04-23 01:11:36,287 - INFO -   hero_played: Chou
+2025-04-23 01:11:36,287 - INFO -   hero_played type: <class 'api.models.Hero'>
+2025-04-23 01:11:36,287 - INFO -   hero_played.id: 26
+2025-04-23 01:11:36,287 - INFO -   hero_played.name: Chou
+2025-04-23 01:11:36,287 - INFO -   hero_played_id: 26
+2025-04-23 01:11:36,287 - INFO -   Access via getattr hero_played_id: 26
+2025-04-23 01:11:36,287 - INFO -   Access via hero_played.id: 26
+2025-04-23 01:11:36,287 - INFO - Stat #9 - Match ID: 54, Player: roamer
+2025-04-23 01:11:36,288 - INFO -   hero_played: Cecilion
+2025-04-23 01:11:36,288 - INFO -   hero_played type: <class 'api.models.Hero'>
+2025-04-23 01:11:36,288 - INFO -   hero_played.id: 91
+2025-04-23 01:11:36,288 - INFO -   hero_played.name: Cecilion
+2025-04-23 01:11:36,288 - INFO -   hero_played_id: 91
+2025-04-23 01:11:36,288 - INFO -   Access via getattr hero_played_id: 91
+2025-04-23 01:11:36,288 - INFO -   Access via hero_played.id: 91
+2025-04-23 01:11:36,288 - INFO - Stat #10 - Match ID: 54, Player: bartolo (EXP)
+2025-04-23 01:11:36,288 - INFO -   hero_played: Cici
+2025-04-23 01:11:36,288 - INFO -   hero_played type: <class 'api.models.Hero'>
+2025-04-23 01:11:36,288 - INFO -   hero_played.id: 123
+2025-04-23 01:11:36,288 - INFO -   hero_played.name: Cici
+2025-04-23 01:11:36,288 - INFO -   hero_played_id: 123
+2025-04-23 01:11:36,288 - INFO -   Access via getattr hero_played_id: 123
+2025-04-23 01:11:36,288 - INFO -   Access via hero_played.id: 123
+2025-04-23 01:11:36,289 - INFO - Stat #11 - Match ID: 46, Player: Jinx (EXP)
+2025-04-23 01:11:36,289 - INFO -   hero_played: Chip
+2025-04-23 01:11:36,289 - INFO -   hero_played type: <class 'api.models.Hero'>
+2025-04-23 01:11:36,289 - INFO -   hero_played.id: 124
+2025-04-23 01:11:36,289 - INFO -   hero_played.name: Chip
+2025-04-23 01:11:36,289 - INFO -   hero_played_id: 124
+2025-04-23 01:11:36,289 - INFO -   Access via getattr hero_played_id: 124
+2025-04-23 01:11:36,289 - INFO -   Access via hero_played.id: 124
+2025-04-23 01:11:36,289 - INFO - Stat #12 - Match ID: 46, Player: Gabo (GOLD)
+2025-04-23 01:11:36,290 - INFO -   hero_played: Badang
+2025-04-23 01:11:36,290 - INFO -   hero_played type: <class 'api.models.Hero'>
+2025-04-23 01:11:36,290 - INFO -   hero_played.id: 77
+2025-04-23 01:11:36,290 - INFO -   hero_played.name: Badang
+2025-04-23 01:11:36,290 - INFO -   hero_played_id: 77
+2025-04-23 01:11:36,290 - INFO -   Access via getattr hero_played_id: 77
+2025-04-23 01:11:36,290 - INFO -   Access via hero_played.id: 77
+2025-04-23 01:11:36,290 - INFO - Stat #13 - Match ID: 46, Player: Laytutu (ROAMER)
+2025-04-23 01:11:36,290 - INFO -   hero_played: Chou
+2025-04-23 01:11:36,290 - INFO -   hero_played type: <class 'api.models.Hero'>
+2025-04-23 01:11:36,290 - INFO -   hero_played.id: 26
+2025-04-23 01:11:36,290 - INFO -   hero_played.name: Chou
+2025-04-23 01:11:36,290 - INFO -   hero_played_id: 26
+2025-04-23 01:11:36,290 - INFO -   Access via getattr hero_played_id: 26
+2025-04-23 01:11:36,290 - INFO -   Access via hero_played.id: 26
+2025-04-23 01:11:36,291 - INFO - Stat #14 - Match ID: 46, Player: Aspect (JUNGLER)
+2025-04-23 01:11:36,291 - INFO -   hero_played: Balmond
+2025-04-23 01:11:36,291 - INFO -   hero_played type: <class 'api.models.Hero'>
+2025-04-23 01:11:36,291 - INFO -   hero_played.id: 2
+2025-04-23 01:11:36,291 - INFO -   hero_played.name: Balmond
+2025-04-23 01:11:36,291 - INFO -   hero_played_id: 2
+2025-04-23 01:11:36,291 - INFO -   Access via getattr hero_played_id: 2
+2025-04-23 01:11:36,291 - INFO -   Access via hero_played.id: 2
+2025-04-23 01:11:36,291 - INFO - Stat #15 - Match ID: 46, Player: Brandi (GOLD)
+2025-04-23 01:11:36,292 - INFO -   hero_played: Cici
+2025-04-23 01:11:36,292 - INFO -   hero_played type: <class 'api.models.Hero'>
+2025-04-23 01:11:36,292 - INFO -   hero_played.id: 123
+2025-04-23 01:11:36,292 - INFO -   hero_played.name: Cici
+2025-04-23 01:11:36,292 - INFO -   hero_played_id: 123
+2025-04-23 01:11:36,292 - INFO -   Access via getattr hero_played_id: 123
+2025-04-23 01:11:36,292 - INFO -   Access via hero_played.id: 123
+2025-04-23 01:11:36,292 - INFO - Stat #16 - Match ID: 46, Player: Aaronqt (MID)
+2025-04-23 01:11:36,292 - INFO -   hero_played: Barats
+2025-04-23 01:11:36,292 - INFO -   hero_played type: <class 'api.models.Hero'>
+2025-04-23 01:11:36,292 - INFO -   hero_played.id: 99
+2025-04-23 01:11:36,292 - INFO -   hero_played.name: Barats
+2025-04-23 01:11:36,292 - INFO -   hero_played_id: 99
+2025-04-23 01:11:36,292 - INFO -   Access via getattr hero_played_id: 99
+2025-04-23 01:11:36,292 - INFO -   Access via hero_played.id: 99
+2025-04-23 01:11:36,293 - INFO - Stat #17 - Match ID: 46, Player: FUNDYJAGO (EXP)
+2025-04-23 01:11:36,294 - INFO -   hero_played: Claude
+2025-04-23 01:11:36,294 - INFO -   hero_played type: <class 'api.models.Hero'>
+2025-04-23 01:11:36,294 - INFO -   hero_played.id: 65
+2025-04-23 01:11:36,294 - INFO -   hero_played.name: Claude
+2025-04-23 01:11:36,294 - INFO -   hero_played_id: 65
+2025-04-23 01:11:36,294 - INFO -   Access via getattr hero_played_id: 65
+2025-04-23 01:11:36,294 - INFO -   Access via hero_played.id: 65
+2025-04-23 01:11:36,294 - INFO - Stat #18 - Match ID: 46, Player: Zrix (ROAMER)
+2025-04-23 01:11:36,295 - INFO -   hero_played: Clint
+2025-04-23 01:11:36,295 - INFO -   hero_played type: <class 'api.models.Hero'>
+2025-04-23 01:11:36,295 - INFO -   hero_played.id: 13
+2025-04-23 01:11:36,295 - INFO -   hero_played.name: Clint
+2025-04-23 01:11:36,295 - INFO -   hero_played_id: 13
+2025-04-23 01:11:36,295 - INFO -   Access via getattr hero_played_id: 13
+2025-04-23 01:11:36,295 - INFO -   Access via hero_played.id: 13
+2025-04-23 01:11:36,295 - INFO - Stat #19 - Match ID: 46, Player: Gene. (MID)
+2025-04-23 01:11:36,296 - INFO -   hero_played: Chang'e
+2025-04-23 01:11:36,296 - INFO -   hero_played type: <class 'api.models.Hero'>
+2025-04-23 01:11:36,296 - INFO -   hero_played.id: 61
+2025-04-23 01:11:36,296 - INFO -   hero_played.name: Chang'e
+2025-04-23 01:11:36,296 - INFO -   hero_played_id: 61
+2025-04-23 01:11:36,296 - INFO -   Access via getattr hero_played_id: 61
+2025-04-23 01:11:36,296 - INFO -   Access via hero_played.id: 61
+2025-04-23 01:11:36,297 - INFO - Stat #20 - Match ID: 46, Player: kyle so gwapo. (JUNGLER)
+2025-04-23 01:11:36,297 - INFO -   hero_played: Cecilion
+2025-04-23 01:11:36,297 - INFO -   hero_played type: <class 'api.models.Hero'>
+2025-04-23 01:11:36,297 - INFO -   hero_played.id: 91
+2025-04-23 01:11:36,297 - INFO -   hero_played.name: Cecilion
+2025-04-23 01:11:36,297 - INFO -   hero_played_id: 91
+2025-04-23 01:11:36,297 - INFO -   Access via getattr hero_played_id: 91
+2025-04-23 01:11:36,297 - INFO -   Access via hero_played.id: 91
+2025-04-23 01:11:36,299 - INFO - Team Ateneo Blue Eagles (ID: 1) has 15 matches
+2025-04-23 01:11:36,299 - INFO - Testing team statistics for team ID: 1
+2025-04-23 01:11:36,299 - INFO - Found team: Ateneo Blue Eagles
+2025-04-23 01:11:36,299 - INFO - Calculating statistics for team ID: 1
+2025-04-23 01:11:36,300 - INFO - Found team: Ateneo Blue Eagles
+2025-04-23 01:11:36,300 - INFO - Found 13 blue side matches and 2 red side matches
+2025-04-23 01:11:36,303 - INFO - Team stats: 15 matches, 9 wins, 6 losses
+2025-04-23 01:11:36,304 - WARNING - Error parsing match duration for match 20: 'datetime.timedelta' object has no attribute 'split'
+2025-04-23 01:11:36,304 - WARNING - Error parsing match duration for match 22: 'datetime.timedelta' object has no attribute 'split'
+2025-04-23 01:11:36,304 - WARNING - Error parsing match duration for match 23: 'datetime.timedelta' object has no attribute 'split'
+2025-04-23 01:11:36,304 - WARNING - Error parsing match duration for match 27: 'datetime.timedelta' object has no attribute 'split'
+2025-04-23 01:11:36,304 - WARNING - Error parsing match duration for match 30: 'datetime.timedelta' object has no attribute 'split'
+2025-04-23 01:11:36,304 - WARNING - Error parsing match duration for match 31: 'datetime.timedelta' object has no attribute 'split'
+2025-04-23 01:11:36,304 - WARNING - Error parsing match duration for match 32: 'datetime.timedelta' object has no attribute 'split'
+2025-04-23 01:11:36,304 - WARNING - Error parsing match duration for match 39: 'datetime.timedelta' object has no attribute 'split'
+2025-04-23 01:11:36,304 - WARNING - Error parsing match duration for match 40: 'datetime.timedelta' object has no attribute 'split'
+2025-04-23 01:11:36,304 - WARNING - Error parsing match duration for match 51: 'datetime.timedelta' object has no attribute 'split'
+2025-04-23 01:11:36,304 - WARNING - Error parsing match duration for match 52: 'datetime.timedelta' object has no attribute 'split'
+2025-04-23 01:11:36,304 - WARNING - Error parsing match duration for match 53: 'datetime.timedelta' object has no attribute 'split'
+2025-04-23 01:11:36,304 - WARNING - Error parsing match duration for match 54: 'datetime.timedelta' object has no attribute 'split'
+2025-04-23 01:11:36,304 - WARNING - Error parsing match duration for match 45: 'datetime.timedelta' object has no attribute 'split'
+2025-04-23 01:11:36,304 - WARNING - Error parsing match duration for match 46: 'datetime.timedelta' object has no attribute 'split'
+2025-04-23 01:11:36,305 - INFO - Found 75 player stat records
+2025-04-23 01:11:36,306 - INFO - First stat record fields:
+2025-04-23 01:11:36,306 - INFO -   stats_id: 276
+2025-04-23 01:11:36,308 - INFO -   match: Ateneo Blue Eagles vs Ateneo de Davao University - 2023-03-17 - Game 1 (ADMU vs ADDU)
+2025-04-23 01:11:36,308 - INFO -   player: Brandi (GOLD)
+2025-04-23 01:11:36,308 - INFO -   team: Ateneo Blue Eagles
+2025-04-23 01:11:36,308 - INFO -   role_played: GOLD
+2025-04-23 01:11:36,308 - INFO -   hero_played: Aurora
+2025-04-23 01:11:36,308 - INFO -   kills: 13
+2025-04-23 01:11:36,308 - INFO -   deaths: 4
+2025-04-23 01:11:36,308 - INFO -   assists: 8
+2025-04-23 01:11:36,308 - INFO -   kda: 7.0
+2025-04-23 01:11:36,308 - INFO -   damage_dealt: 54443
+2025-04-23 01:11:36,308 - INFO -   damage_taken: 20234
+2025-04-23 01:11:36,308 - INFO -   turret_damage: 3718
+2025-04-23 01:11:36,308 - INFO -   teamfight_participation: None
+2025-04-23 01:11:36,308 - INFO -   gold_earned: 8192
+2025-04-23 01:11:36,308 - INFO -   player_notes: None
+2025-04-23 01:11:36,308 - INFO -   medal: GOLD
+2025-04-23 01:11:36,308 - INFO -   created_at: 2025-04-18 00:38:18.339986+00:00
+2025-04-23 01:11:36,309 - INFO -   updated_at: 2025-04-18 00:38:18.340007+00:00
+2025-04-23 01:11:36,310 - INFO - Team KDA: 146/96/93
+2025-04-23 01:11:36,310 - INFO - Found 5 unique players with valid IDs
+2025-04-23 01:11:36,338 - INFO - Found 10 heroes played by team
+2025-04-23 01:11:36,338 - INFO - Processing stats for player: Brandi
+2025-04-23 01:11:36,341 - INFO - Processing stats for player: Gene.
+2025-04-23 01:11:36,345 - INFO - Processing stats for player: kyle so gwapo.
+2025-04-23 01:11:36,347 - INFO - Processing stats for player: FUNDYJAGO
+2025-04-23 01:11:36,350 - INFO - Processing stats for player: Zrix
+2025-04-23 01:11:36,362 - INFO - Hero pick frequency: 10 heroes found
+2025-04-23 01:11:36,362 - INFO - Hero: Balmond, Picks: 10, Wins: 4, Winrate: 40.0%
+2025-04-23 01:11:36,362 - INFO - Hero: Badang, Picks: 10, Wins: 4, Winrate: 40.0%
+2025-04-23 01:11:36,362 - INFO - Hero: Barats, Picks: 10, Wins: 4, Winrate: 40.0%
+2025-04-23 01:11:36,362 - INFO - Hero: Chip, Picks: 10, Wins: 4, Winrate: 40.0%
+2025-04-23 01:11:36,362 - INFO - Hero: Chou, Picks: 10, Wins: 4, Winrate: 40.0%
+2025-04-23 01:11:36,362 - INFO - Hero: Aurora, Picks: 3, Wins: 3, Winrate: 100.0%
+2025-04-23 01:11:36,362 - INFO - Hero: Argus, Picks: 3, Wins: 3, Winrate: 100.0%
+2025-04-23 01:11:36,362 - INFO - Hero: Beatrix, Picks: 3, Wins: 3, Winrate: 100.0%
+2025-04-23 01:11:36,362 - INFO - Hero: Alice, Picks: 3, Wins: 3, Winrate: 100.0%
+2025-04-23 01:11:36,362 - INFO - Hero: Atlas, Picks: 3, Wins: 3, Winrate: 100.0%
+2025-04-23 01:11:36,363 - INFO - Found 75 player stats for team 1
+2025-04-23 01:11:36,396 - INFO - Direct calculation found 15 different heroes
+2025-04-23 01:11:36,396 - INFO - Direct: Balmond, Picks: 10, Wins: 4, Winrate: 40.0%
+2025-04-23 01:11:36,396 - INFO - Direct: Badang, Picks: 10, Wins: 4, Winrate: 40.0%
+2025-04-23 01:11:36,396 - INFO - Direct: Barats, Picks: 10, Wins: 4, Winrate: 40.0%
+2025-04-23 01:11:36,396 - INFO - Direct: Chip, Picks: 10, Wins: 4, Winrate: 40.0%
+2025-04-23 01:11:36,396 - INFO - Direct: Chou, Picks: 10, Wins: 4, Winrate: 40.0%
+2025-04-23 01:11:36,396 - INFO - Direct: Aurora, Picks: 3, Wins: 3, Winrate: 100.0%
+2025-04-23 01:11:36,396 - INFO - Direct: Argus, Picks: 3, Wins: 3, Winrate: 100.0%
+2025-04-23 01:11:36,396 - INFO - Direct: Beatrix, Picks: 3, Wins: 3, Winrate: 100.0%
+2025-04-23 01:11:36,396 - INFO - Direct: Alice, Picks: 3, Wins: 3, Winrate: 100.0%
+2025-04-23 01:11:36,396 - INFO - Direct: Atlas, Picks: 3, Wins: 3, Winrate: 100.0%
+2025-04-23 01:11:36,396 - INFO - Direct: Cici, Picks: 2, Wins: 2, Winrate: 100.0%
+2025-04-23 01:11:36,396 - INFO - Direct: Claude, Picks: 2, Wins: 2, Winrate: 100.0%
+2025-04-23 01:11:36,396 - INFO - Direct: Chang'e, Picks: 2, Wins: 2, Winrate: 100.0%
+2025-04-23 01:11:36,396 - INFO - Direct: Cecilion, Picks: 2, Wins: 2, Winrate: 100.0%
+2025-04-23 01:11:36,396 - INFO - Direct: Clint, Picks: 2, Wins: 2, Winrate: 100.0%
+2025-04-23 01:11:36,396 - INFO - Patching hero pick frequency calculation in StatisticsService
+2025-04-23 01:11:36,396 - INFO - 
+    # Replace the hero pick frequency block in StatisticsService.calculate_team_statistics with:
+    
+    # Hero pick frequency
+    hero_pick_frequency = []
+    try:
+        hero_pick_counts = {}
+        
+        # Collect all hero picks from player match stats
+        for stat in player_stats:
+            if stat.hero_played:
+                # Handle different formats of hero_played
+                if isinstance(stat.hero_played, Hero):
+                    hero_id = stat.hero_played.id
+                    hero_name = stat.hero_played.name
+                elif isinstance(stat.hero_played, int):
+                    hero_id = stat.hero_played
+                    hero_name = stat.hero_name or f"Hero {hero_id}"
+                else:
+                    # Try to extract id and name
+                    try:
+                        hero_id = getattr(stat.hero_played, 'id', stat.hero_played)
+                        hero_name = getattr(stat.hero_played, 'name', stat.hero_name or f"Hero {hero_id}")
+                    except:
+                        logger.warning(f"Could not extract hero data from {stat.hero_played}")
+                        continue
+                
+                if hero_id not in hero_pick_counts:
+                    hero_pick_counts[hero_id] = {
+                        'hero_id': hero_id,
+                        'hero_name': hero_name,
+                        'picks': 0,
+                        'wins': 0
+                    }
+                
+                hero_pick_counts[hero_id]['picks'] += 1
+                
+                # Check if this was a win
+                match = stat.match
+                if match and match.winning_team_id == team_id:
+                    hero_pick_counts[hero_id]['wins'] += 1
+        
+        # Convert to the expected format and calculate winrates
+        for hero_data in hero_pick_counts.values():
+            picks = hero_data['picks']
+            wins = hero_data['wins']
+            hero_pick_frequency.append({
+                'hero_id': hero_data['hero_id'],
+                'hero_name': hero_data['hero_name'],
+                'picks': picks,
+                'wins': wins,
+                'winrate': (wins / picks) * 100 if picks > 0 else 0
+            })
+        
+        # Sort by pick count and limit to top 10
+        hero_pick_frequency.sort(key=lambda x: x['picks'], reverse=True)
+        hero_pick_frequency = hero_pick_frequency[:10]
+        
+        logger.info(f"Found {len(hero_pick_frequency)} heroes played by team")
+    except Exception as e:
+        logger.error(f"Error calculating hero pick frequency: {str(e)}")
+        logger.error(traceback.format_exc())
+        # Ensure we at least have an empty list
+        hero_pick_frequency = []
+    
+2025-04-23 01:11:36,397 - INFO - ====== Hero Pick Stats Diagnosis Complete ======

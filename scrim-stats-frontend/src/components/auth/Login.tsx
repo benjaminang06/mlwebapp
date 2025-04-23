@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import {
@@ -10,12 +10,15 @@ import {
   Alert,
   Paper,
   CircularProgress,
-  Grid
+  Grid,
+  Slide,
+  Fade
 } from '@mui/material';
 
 const Login: React.FC = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [formError, setFormError] = useState<string | null>(null);
   const { login, isLoading, error } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -23,11 +26,32 @@ const Login: React.FC = () => {
   // Get the redirect path from location state or default to home
   const from = (location.state as any)?.from?.pathname || '/';
 
+  // Clear form errors when auth context error changes
+  useEffect(() => {
+    if (error) {
+      // Auto-dismiss the error after 8 seconds
+      const timer = setTimeout(() => {
+        setFormError(null);
+      }, 8000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Reset form errors
+    setFormError(null);
+    
     // Validate inputs
-    if (!username.trim() || !password.trim()) {
+    if (!username.trim()) {
+      setFormError('Username is required');
+      return;
+    }
+    
+    if (!password.trim()) {
+      setFormError('Password is required');
       return;
     }
 
@@ -38,6 +62,9 @@ const Login: React.FC = () => {
     }
   };
 
+  // Determine which error to display with priority to form errors
+  const displayError = formError || error;
+
   return (
     <Container maxWidth="sm">
       <Box sx={{ mt: 8 }}>
@@ -46,11 +73,19 @@ const Login: React.FC = () => {
             Login
           </Typography>
           
-          {error && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {error}
-            </Alert>
-          )}
+          <Fade in={!!displayError}>
+            <Box sx={{ mb: displayError ? 2 : 0 }}>
+              {displayError && (
+                <Alert 
+                  severity="error" 
+                  variant="filled"
+                  onClose={() => setFormError(null)}
+                >
+                  {displayError}
+                </Alert>
+              )}
+            </Box>
+          </Fade>
           
           <Box component="form" onSubmit={handleSubmit} noValidate>
             <TextField
@@ -65,6 +100,8 @@ const Login: React.FC = () => {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               disabled={isLoading}
+              error={formError === 'Username is required'}
+              helperText={formError === 'Username is required' ? 'Username is required' : ''}
             />
             
             <TextField
@@ -79,6 +116,8 @@ const Login: React.FC = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               disabled={isLoading}
+              error={formError === 'Password is required'}
+              helperText={formError === 'Password is required' ? 'Password is required' : ''}
             />
             
             <Button

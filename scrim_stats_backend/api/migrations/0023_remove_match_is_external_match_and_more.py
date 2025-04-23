@@ -7,7 +7,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("api", "0024_populate_sides"),
+        ("api", "0022_match_blue_side_team_match_red_side_team_and_more"),
     ]
 
     operations = [

@@ -5,7 +5,7 @@ import { MatchFormData, PlayerMatchStat } from '../../types/match.types';
 import { Player } from '../../types/player.types';
 import { Hero } from '../../types/hero.types';
 import { Team } from '../../types/team.types';
-import api from '../../services/api';
+import { api } from '../../services/api.service';
 import { getEmptyPlayerStat } from '../../utils/playerUtils';
 // --- NEW: Import Icons --- 
 import StarIcon from '@mui/icons-material/Star';

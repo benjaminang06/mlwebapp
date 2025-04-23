@@ -1,14 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { getMatchById, getPlayerStatsForMatch } from '../services/match';
+import { api } from '../services/api.service';
+import { getMatchById, getPlayerStatsForMatch, updateMatch, updatePlayerStat } from '../services/match.service';
 import { Match, PlayerMatchStat } from '../types/match.types';
 import { 
   Box, Typography, CircularProgress, Alert, Paper, Grid, 
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  Divider, Chip, Button, Tabs, Tab
+  Divider, Chip, Button, Tabs, Tab, TextField, MenuItem, Select, FormControl,
+  InputLabel, SelectChangeEvent
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import StarIcon from '@mui/icons-material/Star';
+import EditIcon from '@mui/icons-material/Edit';
+import SaveIcon from '@mui/icons-material/Save';
+import CancelIcon from '@mui/icons-material/Cancel';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -45,6 +50,11 @@ const MatchDetailPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [statsError, setStatsError] = useState<string | null>(null);
   const [tabValue, setTabValue] = useState(0);
+  const [editMode, setEditMode] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [editedMatch, setEditedMatch] = useState<Partial<Match> | null>(null);
+  const [editedPlayerStats, setEditedPlayerStats] = useState<PlayerMatchStat[]>([]);
 
   useEffect(() => {
     const fetchMatchDetails = async () => {
@@ -82,6 +92,24 @@ const MatchDetailPage: React.FC = () => {
 
     fetchMatchDetails();
   }, [matchId]);
+
+  // Initialize edit states when match and player stats are loaded
+  useEffect(() => {
+    if (match) {
+      setEditedMatch({
+        match_date: match.match_date,
+        scrim_type: match.scrim_type,
+        winning_team: match.winning_team,
+        general_notes: match.general_notes,
+      });
+    }
+  }, [match]);
+
+  useEffect(() => {
+    if (playerStats.length > 0) {
+      setEditedPlayerStats([...playerStats]);
+    }
+  }, [playerStats]);
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
@@ -127,11 +155,17 @@ const MatchDetailPage: React.FC = () => {
   };
 
   // Get hero name safely
-  const getHeroName = (hero: any) => {
-    if (!hero) return 'Unknown';
-    if (typeof hero === 'string') return hero;
-    if (typeof hero === 'number') return `Hero #${hero}`;
-    if (hero.name) return hero.name;
+  const getHeroName = (stat: PlayerMatchStat) => {
+    // First try to use hero_name from the API if available
+    if (stat.hero_name) return stat.hero_name;
+    
+    // Fallbacks for different hero_played representations
+    if (stat.hero_played === null || stat.hero_played === undefined) return 'Unknown';
+    if (typeof stat.hero_played === 'string') return stat.hero_played;
+    if (typeof stat.hero_played === 'number') return `Hero #${stat.hero_played}`;
+    // For object type, we need to handle differently since TypeScript doesn't know the shape
+    const heroObj = stat.hero_played as any;
+    if (typeof heroObj === 'object' && heroObj && 'name' in heroObj) return heroObj.name;
     return 'Unknown Hero';
   };
 
@@ -152,6 +186,109 @@ const MatchDetailPage: React.FC = () => {
     
     if (totalDeaths === 0) return (totalKills + totalAssists).toFixed(2);
     return ((totalKills + totalAssists) / totalDeaths).toFixed(2);
+  };
+
+  const handleEditClick = () => {
+    setEditMode(true);
+  };
+
+  const handleCancelEdit = () => {
+    // Reset edited values to original
+    if (match) {
+      setEditedMatch({
+        match_date: match.match_date,
+        scrim_type: match.scrim_type,
+        winning_team: match.winning_team,
+        general_notes: match.general_notes,
+      });
+    }
+    setEditedPlayerStats([...playerStats]);
+    setEditMode(false);
+    setSaveError(null);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!match || !matchId) return;
+    
+    try {
+      setSaving(true);
+      setSaveError(null);
+      
+      // Update match metadata
+      if (editedMatch) {
+        const updatedMatch = await updateMatch(matchId, editedMatch);
+        setMatch(updatedMatch);
+      }
+      
+      // Update player stats
+      for (const stat of editedPlayerStats) {
+        if (stat.stats_id) {
+          await updatePlayerStat(matchId, stat.stats_id, {
+            kills: stat.kills,
+            deaths: stat.deaths,
+            assists: stat.assists,
+            damage_dealt: stat.damage_dealt,
+            damage_taken: stat.damage_taken,
+            turret_damage: stat.turret_damage,
+            teamfight_participation: stat.teamfight_participation,
+            gold_earned: stat.gold_earned,
+            player_notes: stat.player_notes,
+          });
+        }
+      }
+      
+      // Refresh player stats
+      const refreshedStats = await getPlayerStatsForMatch(matchId);
+      setPlayerStats(refreshedStats);
+      
+      setEditMode(false);
+    } catch (err) {
+      console.error("Failed to save edits:", err);
+      setSaveError('Failed to save changes. Please try again.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleMatchFieldChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    if (editedMatch) {
+      setEditedMatch({
+        ...editedMatch,
+        [field]: e.target.value
+      });
+    }
+  };
+
+  const handleScrimTypeChange = (e: SelectChangeEvent) => {
+    if (editedMatch) {
+      setEditedMatch({
+        ...editedMatch,
+        scrim_type: e.target.value as 'SCRIMMAGE' | 'TOURNAMENT' | 'RANKED'
+      });
+    }
+  };
+
+  const handleWinningTeamChange = (e: SelectChangeEvent) => {
+    if (editedMatch) {
+      setEditedMatch({
+        ...editedMatch,
+        winning_team: e.target.value ? Number(e.target.value) : undefined
+      });
+    }
+  };
+
+  const handlePlayerStatChange = (statId: number | undefined, field: keyof PlayerMatchStat) => (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    if (!statId) return;
+    
+    const newValue = field === 'player_notes' ? e.target.value : Number(e.target.value);
+    
+    setEditedPlayerStats(prevStats => 
+      prevStats.map(stat => 
+        stat.stats_id === statId ? { ...stat, [field]: newValue } : stat
+      )
+    );
   };
 
   return (
@@ -180,28 +317,115 @@ const MatchDetailPage: React.FC = () => {
       {!loading && !error && match && (
         <>
           <Paper elevation={3} sx={{ p: 3, mb: 4 }}>
-            <Typography variant="h4" gutterBottom>
-              Match Details {match.match_id && `#${match.match_id}`}
-            </Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+              <Typography variant="h4" gutterBottom>
+                Match Details {match.match_id && `#${match.match_id}`}
+              </Typography>
+              {!editMode ? (
+                <Button 
+                  variant="outlined" 
+                  startIcon={<EditIcon />} 
+                  onClick={handleEditClick}
+                >
+                  Edit Match
+                </Button>
+              ) : (
+                <Box>
+                  <Button 
+                    variant="outlined" 
+                    color="error"
+                    startIcon={<CancelIcon />} 
+                    onClick={handleCancelEdit}
+                    sx={{ mr: 1 }}
+                    disabled={saving}
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    variant="contained" 
+                    color="primary"
+                    startIcon={<SaveIcon />} 
+                    onClick={handleSaveEdit}
+                    disabled={saving}
+                  >
+                    {saving ? 'Saving...' : 'Save Changes'}
+                  </Button>
+                </Box>
+              )}
+            </Box>
+            
+            {saveError && (
+              <Alert severity="error" sx={{ mb: 2 }}>
+                {saveError}
+              </Alert>
+            )}
+            
             <Divider sx={{ mb: 2 }} />
             
+            {/* Match Metadata Section */}
             <Grid container spacing={3}>
               <Grid item xs={12} md={6}>
                 <Typography variant="h6" gutterBottom>
                   General Information
                 </Typography>
                 <Box sx={{ mb: 2 }}>
-                  <Typography><strong>Date:</strong> {formatDate(match.match_date)}</Typography>
-                  <Typography><strong>Match Type:</strong> {match.scrim_type}</Typography>
-                  <Typography><strong>Outcome:</strong> <Chip 
-                    label={match.match_outcome} 
-                    color={match.match_outcome === 'VICTORY' ? 'success' : 'error'}
-                    size="small"
-                  /></Typography>
-                  <Typography><strong>Duration:</strong> {match.match_duration || 'Not recorded'}</Typography>
-                  <Typography><strong>Game #:</strong> {match.game_number}</Typography>
-                  {match.general_notes && (
-                    <Typography><strong>Notes:</strong> {match.general_notes}</Typography>
+                  {!editMode ? (
+                    <>
+                      <Typography><strong>Date:</strong> {formatDate(match.match_date)}</Typography>
+                      <Typography><strong>Match Type:</strong> {match.scrim_type}</Typography>
+                      <Typography><strong>Game Number:</strong> {match.game_number}</Typography>
+                      {match.match_duration && (
+                        <Typography><strong>Duration:</strong> {match.match_duration}</Typography>
+                      )}
+                      {match.general_notes && (
+                        <Typography><strong>Notes:</strong> {match.general_notes}</Typography>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <TextField
+                        label="Date"
+                        type="datetime-local"
+                        value={editedMatch?.match_date ? editedMatch.match_date.slice(0, 16) : ''}
+                        onChange={handleMatchFieldChange('match_date')}
+                        fullWidth
+                        margin="normal"
+                        InputLabelProps={{ shrink: true }}
+                      />
+                      
+                      <FormControl fullWidth margin="normal">
+                        <InputLabel id="match-type-label">Match Type</InputLabel>
+                        <Select
+                          labelId="match-type-label"
+                          value={editedMatch?.scrim_type || ''}
+                          onChange={handleScrimTypeChange}
+                          label="Match Type"
+                        >
+                          <MenuItem value="SCRIMMAGE">Scrimmage</MenuItem>
+                          <MenuItem value="TOURNAMENT">Tournament</MenuItem>
+                          <MenuItem value="RANKED">Ranked</MenuItem>
+                        </Select>
+                      </FormControl>
+                      
+                      <TextField
+                        label="Game Number"
+                        type="number"
+                        value={match.game_number}
+                        disabled
+                        fullWidth
+                        margin="normal"
+                      />
+                      
+                      <TextField
+                        label="Notes"
+                        multiline
+                        rows={4}
+                        value={editedMatch?.general_notes || ''}
+                        onChange={handleMatchFieldChange('general_notes')}
+                        fullWidth
+                        margin="normal"
+                      />
+                    </>
                   )}
                 </Box>
               </Grid>
@@ -212,358 +436,264 @@ const MatchDetailPage: React.FC = () => {
                 </Typography>
                 <Box sx={{ mb: 2 }}>
                   <Typography>
-                    <strong>Blue Side:</strong> {getTeamName(match.blue_side_team, match.blue_side_team, match.red_side_team)}
-                    {match.winning_team === match.blue_side_team && (
-                      <Chip label="Winner" color="success" size="small" sx={{ ml: 1 }} />
-                    )}
+                    <strong>Blue Side:</strong> {match.blue_side_team_details?.team_name || 'Unknown Team'}
                   </Typography>
                   <Typography>
-                    <strong>Red Side:</strong> {getTeamName(match.red_side_team, match.blue_side_team, match.red_side_team)}
-                    {match.winning_team === match.red_side_team && (
-                      <Chip label="Winner" color="success" size="small" sx={{ ml: 1 }} />
-                    )}
+                    <strong>Red Side:</strong> {match.red_side_team_details?.team_name || 'Unknown Team'}
                   </Typography>
                   
-                  {/* Display match score if available */}
-                  {match.score_details && (
-                    <Box sx={{ 
-                      mt: 2, 
-                      p: 1, 
-                      border: 1, 
-                      borderColor: 'divider',
-                      borderRadius: 1,
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center'
-                    }}>
-                      <Typography variant="h6" sx={{ mb: 1 }}>
-                        Final Score
-                      </Typography>
-                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
-                        <Typography variant="body1" fontWeight="bold" textAlign="right" sx={{ flex: 1 }}>
-                          {match.score_details.blue_side_team_name}
-                        </Typography>
-                        <Box 
-                          sx={{ 
-                            mx: 2, 
-                            px: 2, 
-                            py: 0.5, 
-                            borderRadius: 1, 
-                            bgcolor: 'grey.200',
-                            minWidth: '80px',
-                            textAlign: 'center'
-                          }}
-                        >
-                          <Typography variant="h6" fontWeight="bold">
-                            {match.score_details.blue_side_score} - {match.score_details.red_side_score}
-                          </Typography>
-                        </Box>
-                        <Typography variant="body1" fontWeight="bold" textAlign="left" sx={{ flex: 1 }}>
-                          {match.score_details.red_side_team_name}
-                        </Typography>
-                      </Box>
-                      <Typography variant="caption" color="text.secondary" sx={{ mt: 1 }}>
-                        Score based on total kills
-                      </Typography>
-                    </Box>
+                  {!editMode ? (
+                    <Typography>
+                      <strong>Winner:</strong> {match.winning_team ? 
+                        (match.winning_team === match.blue_side_team ? 
+                          match.blue_side_team_details?.team_name : 
+                          match.red_side_team_details?.team_name) : 
+                        'Not specified'}
+                    </Typography>
+                  ) : (
+                    <FormControl fullWidth margin="normal">
+                      <InputLabel id="winning-team-label">Winning Team</InputLabel>
+                      <Select
+                        labelId="winning-team-label"
+                        value={editedMatch?.winning_team?.toString() || ''}
+                        onChange={handleWinningTeamChange}
+                        label="Winning Team"
+                      >
+                        <MenuItem value="">Not specified</MenuItem>
+                        <MenuItem value={match.blue_side_team.toString()}>
+                          {match.blue_side_team_details?.team_name || 'Blue Side'}
+                        </MenuItem>
+                        <MenuItem value={match.red_side_team.toString()}>
+                          {match.red_side_team_details?.team_name || 'Red Side'}
+                        </MenuItem>
+                      </Select>
+                    </FormControl>
                   )}
                 </Box>
               </Grid>
             </Grid>
           </Paper>
-
-          <Paper elevation={3} sx={{ p: 3, mb: 4 }}>
-            <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-              <Tabs value={tabValue} onChange={handleTabChange} aria-label="player stats tabs">
-                <Tab label="All Players" />
-                <Tab label="Blue Team" />
-                <Tab label="Red Team" />
-              </Tabs>
-            </Box>
-
-            <TabPanel value={tabValue} index={0}>
-              <Typography variant="h5" gutterBottom>
-                Player Statistics
-              </Typography>
-              
-              {statsLoading && (
-                <Box sx={{ display: 'flex', justifyContent: 'center', my: 3 }}>
-                  <CircularProgress size={30} />
-                </Box>
-              )}
-              
-              {statsError && (
-                <Alert severity="warning" sx={{ my: 2 }}>
-                  {statsError}
-                </Alert>
-              )}
-              
-              {!statsLoading && !statsError && playerStats.length === 0 && (
-                <Typography color="text.secondary">
-                  No player statistics available for this match.
+          
+          {/* Player Statistics Section */}
+          <Paper elevation={3} sx={{ p: 3 }}>
+            <Typography variant="h5" gutterBottom>
+              Player Statistics
+            </Typography>
+            <Divider sx={{ mb: 3 }} />
+            
+            {statsLoading ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', my: 3 }}>
+                <CircularProgress />
+              </Box>
+            ) : statsError ? (
+              <Alert severity="error" sx={{ my: 2 }}>
+                {statsError}
+              </Alert>
+            ) : (
+              <Box>
+                {/* Blue Side Team Stats */}
+                <Typography variant="h6" sx={{ mb: 1 }}>
+                  {match.blue_side_team_details?.team_name || 'Blue Side'} (Blue Side)
                 </Typography>
-              )}
-              
-              {!statsLoading && !statsError && playerStats.length > 0 && (
-                <TableContainer component={Paper} sx={{ mb: 3 }}>
+                <TableContainer component={Paper} sx={{ mb: 4 }}>
                   <Table size="small">
                     <TableHead>
                       <TableRow>
                         <TableCell>Player</TableCell>
-                        <TableCell>Team</TableCell>
                         <TableCell>Role</TableCell>
                         <TableCell>Hero</TableCell>
-                        <TableCell align="right">K/D/A</TableCell>
-                        <TableCell align="right">KDA Ratio</TableCell>
-                        <TableCell align="right">DMG Dealt</TableCell>
-                        <TableCell align="right">DMG Taken</TableCell>
-                        <TableCell align="right">Turret DMG</TableCell>
-                        <TableCell>Awards</TableCell>
+                        <TableCell>KDA</TableCell>
+                        {editMode && (
+                          <>
+                            <TableCell>Kills</TableCell>
+                            <TableCell>Deaths</TableCell>
+                            <TableCell>Assists</TableCell>
+                            <TableCell>Damage Dealt</TableCell>
+                            <TableCell>Damage Taken</TableCell>
+                          </>
+                        )}
+                        {!editMode && (
+                          <>
+                            <TableCell>Damage Dealt</TableCell>
+                            <TableCell>Gold</TableCell>
+                            <TableCell>Notes</TableCell>
+                          </>
+                        )}
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {playerStats.map((stat) => (
-                        <TableRow key={stat.stats_id}>
-                          <TableCell>{stat.player_details?.current_ign || stat.ign || 'Unknown'}</TableCell>
-                          <TableCell>
-                            {stat.is_blue_side ? 'Blue Side' : 'Red Side'}
-                            {stat.is_our_team && ' (Our Team)'}
-                          </TableCell>
-                          <TableCell>{stat.role_played || 'N/A'}</TableCell>
-                          <TableCell>{getHeroName(stat.hero_played)}</TableCell>
-                          <TableCell align="right">{formatKDA(stat)}</TableCell>
-                          <TableCell align="right">{calculateKDA(stat)}</TableCell>
-                          <TableCell align="right">{stat.damage_dealt || 'N/A'}</TableCell>
-                          <TableCell align="right">{stat.damage_taken || 'N/A'}</TableCell>
-                          <TableCell align="right">{stat.turret_damage || 'N/A'}</TableCell>
-                          <TableCell>
-                            {match.mvp === stat.player_id && (
-                              <Chip 
-                                icon={<StarIcon />} 
-                                label="MVP"
-                                color="primary"
+                      {editMode ? 
+                        (editedPlayerStats.filter(stat => stat.is_blue_side).map(stat => (
+                          <TableRow key={stat.stats_id}>
+                            <TableCell>{stat.player_details?.current_ign || stat.ign}</TableCell>
+                            <TableCell>{stat.role_played || ''}</TableCell>
+                            <TableCell>{getHeroName(stat)}</TableCell>
+                            <TableCell>{formatKDA(stat)}</TableCell>
+                            <TableCell>
+                              <TextField
+                                type="number"
                                 size="small"
-                                sx={{ mr: 1 }}
+                                value={stat.kills}
+                                onChange={handlePlayerStatChange(stat.stats_id, 'kills')}
+                                inputProps={{ min: 0 }}
                               />
-                            )}
-                            {match.mvp_loss === stat.player_id && (
-                              <Chip 
-                                icon={<StarIcon />} 
-                                label="MVP Loss"
-                                color="secondary"
+                            </TableCell>
+                            <TableCell>
+                              <TextField
+                                type="number"
                                 size="small"
+                                value={stat.deaths}
+                                onChange={handlePlayerStatChange(stat.stats_id, 'deaths')}
+                                inputProps={{ min: 0 }}
                               />
-                            )}
-                            {stat.medal && (
-                              <Chip 
-                                label={stat.medal}
+                            </TableCell>
+                            <TableCell>
+                              <TextField
+                                type="number"
                                 size="small"
-                                color="default"
-                                variant="outlined"
+                                value={stat.assists}
+                                onChange={handlePlayerStatChange(stat.stats_id, 'assists')}
+                                inputProps={{ min: 0 }}
                               />
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      ))}
+                            </TableCell>
+                            <TableCell>
+                              <TextField
+                                type="number"
+                                size="small"
+                                value={stat.damage_dealt || 0}
+                                onChange={handlePlayerStatChange(stat.stats_id, 'damage_dealt')}
+                                inputProps={{ min: 0 }}
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <TextField
+                                type="number"
+                                size="small"
+                                value={stat.damage_taken || 0}
+                                onChange={handlePlayerStatChange(stat.stats_id, 'damage_taken')}
+                                inputProps={{ min: 0 }}
+                              />
+                            </TableCell>
+                          </TableRow>
+                        ))) : 
+                        (blueTeamStats.map(stat => (
+                          <TableRow key={stat.stats_id}>
+                            <TableCell>{stat.player_details?.current_ign || stat.ign}</TableCell>
+                            <TableCell>{stat.role_played || ''}</TableCell>
+                            <TableCell>{getHeroName(stat)}</TableCell>
+                            <TableCell>{formatKDA(stat)} ({calculateKDA(stat)})</TableCell>
+                            <TableCell>{stat.damage_dealt || 'N/A'}</TableCell>
+                            <TableCell>{stat.gold_earned || 'N/A'}</TableCell>
+                            <TableCell>{stat.player_notes || '-'}</TableCell>
+                          </TableRow>
+                        )))
+                      }
                     </TableBody>
                   </Table>
                 </TableContainer>
-              )}
-            </TabPanel>
-            
-            <TabPanel value={tabValue} index={1}>
-              <Typography variant="h5" gutterBottom>
-                Blue Team Statistics
-              </Typography>
-              
-              {statsLoading && (
-                <Box sx={{ display: 'flex', justifyContent: 'center', my: 3 }}>
-                  <CircularProgress size={30} />
-                </Box>
-              )}
-              
-              {!statsLoading && !statsError && blueTeamStats.length === 0 && (
-                <Typography color="text.secondary">
-                  No blue team statistics available.
+
+                {/* Red Side Team Stats */}
+                <Typography variant="h6" sx={{ mb: 1 }}>
+                  {match.red_side_team_details?.team_name || 'Red Side'} (Red Side)
                 </Typography>
-              )}
-              
-              {!statsLoading && !statsError && blueTeamStats.length > 0 && (
-                <>
-                  {/* Blue Team Summary */}
-                  <Box sx={{ mb: 3, p: 2, bgcolor: 'background.paper', borderRadius: 1, border: 1, borderColor: 'divider' }}>
-                    <Grid container spacing={2}>
-                      <Grid item xs={6} md={3}>
-                        <Typography variant="body2" color="text.secondary">Total Kills</Typography>
-                        <Typography variant="h6">{blueTeamStats.reduce((sum, stat) => sum + (stat.kills || 0), 0)}</Typography>
-                      </Grid>
-                      <Grid item xs={6} md={3}>
-                        <Typography variant="body2" color="text.secondary">Total Deaths</Typography>
-                        <Typography variant="h6">{blueTeamStats.reduce((sum, stat) => sum + (stat.deaths || 0), 0)}</Typography>
-                      </Grid>
-                      <Grid item xs={6} md={3}>
-                        <Typography variant="body2" color="text.secondary">Total Assists</Typography>
-                        <Typography variant="h6">{blueTeamStats.reduce((sum, stat) => sum + (stat.assists || 0), 0)}</Typography>
-                      </Grid>
-                      <Grid item xs={6} md={3}>
-                        <Typography variant="body2" color="text.secondary">Team KDA</Typography>
-                        <Typography variant="h6">{calculateTeamKDA(blueTeamStats)}</Typography>
-                      </Grid>
-                    </Grid>
-                  </Box>
-                  
-                  <TableContainer component={Paper} sx={{ mb: 3 }}>
-                    <Table size="small">
-                      <TableHead>
-                        <TableRow>
-                          <TableCell>Player</TableCell>
-                          <TableCell>Role</TableCell>
-                          <TableCell>Hero</TableCell>
-                          <TableCell align="right">K/D/A</TableCell>
-                          <TableCell align="right">KDA Ratio</TableCell>
-                          <TableCell align="right">DMG Dealt</TableCell>
-                          <TableCell align="right">DMG Taken</TableCell>
-                          <TableCell>Awards</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {blueTeamStats.map((stat) => (
+                <TableContainer component={Paper}>
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Player</TableCell>
+                        <TableCell>Role</TableCell>
+                        <TableCell>Hero</TableCell>
+                        <TableCell>KDA</TableCell>
+                        {editMode && (
+                          <>
+                            <TableCell>Kills</TableCell>
+                            <TableCell>Deaths</TableCell>
+                            <TableCell>Assists</TableCell>
+                            <TableCell>Damage Dealt</TableCell>
+                            <TableCell>Damage Taken</TableCell>
+                          </>
+                        )}
+                        {!editMode && (
+                          <>
+                            <TableCell>Damage Dealt</TableCell>
+                            <TableCell>Gold</TableCell>
+                            <TableCell>Notes</TableCell>
+                          </>
+                        )}
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {editMode ? 
+                        (editedPlayerStats.filter(stat => !stat.is_blue_side).map(stat => (
                           <TableRow key={stat.stats_id}>
-                            <TableCell>{stat.player_details?.current_ign || stat.ign || 'Unknown'}</TableCell>
-                            <TableCell>{stat.role_played || 'N/A'}</TableCell>
-                            <TableCell>{getHeroName(stat.hero_played)}</TableCell>
-                            <TableCell align="right">{formatKDA(stat)}</TableCell>
-                            <TableCell align="right">{calculateKDA(stat)}</TableCell>
-                            <TableCell align="right">{stat.damage_dealt || 'N/A'}</TableCell>
-                            <TableCell align="right">{stat.damage_taken || 'N/A'}</TableCell>
+                            <TableCell>{stat.player_details?.current_ign || stat.ign}</TableCell>
+                            <TableCell>{stat.role_played || ''}</TableCell>
+                            <TableCell>{getHeroName(stat)}</TableCell>
+                            <TableCell>{formatKDA(stat)}</TableCell>
                             <TableCell>
-                              {match.mvp === stat.player_id && (
-                                <Chip 
-                                  icon={<StarIcon />} 
-                                  label="MVP"
-                                  color="primary"
-                                  size="small"
-                                  sx={{ mr: 1 }}
-                                />
-                              )}
-                              {stat.medal && (
-                                <Chip 
-                                  label={stat.medal}
-                                  size="small"
-                                  color="default"
-                                  variant="outlined"
-                                />
-                              )}
+                              <TextField
+                                type="number"
+                                size="small"
+                                value={stat.kills}
+                                onChange={handlePlayerStatChange(stat.stats_id, 'kills')}
+                                inputProps={{ min: 0 }}
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <TextField
+                                type="number"
+                                size="small"
+                                value={stat.deaths}
+                                onChange={handlePlayerStatChange(stat.stats_id, 'deaths')}
+                                inputProps={{ min: 0 }}
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <TextField
+                                type="number"
+                                size="small"
+                                value={stat.assists}
+                                onChange={handlePlayerStatChange(stat.stats_id, 'assists')}
+                                inputProps={{ min: 0 }}
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <TextField
+                                type="number"
+                                size="small"
+                                value={stat.damage_dealt || 0}
+                                onChange={handlePlayerStatChange(stat.stats_id, 'damage_dealt')}
+                                inputProps={{ min: 0 }}
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <TextField
+                                type="number"
+                                size="small"
+                                value={stat.damage_taken || 0}
+                                onChange={handlePlayerStatChange(stat.stats_id, 'damage_taken')}
+                                inputProps={{ min: 0 }}
+                              />
                             </TableCell>
                           </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-                </>
-              )}
-            </TabPanel>
-            
-            <TabPanel value={tabValue} index={2}>
-              <Typography variant="h5" gutterBottom>
-                Red Team Statistics
-              </Typography>
-              
-              {statsLoading && (
-                <Box sx={{ display: 'flex', justifyContent: 'center', my: 3 }}>
-                  <CircularProgress size={30} />
-                </Box>
-              )}
-              
-              {!statsLoading && !statsError && redTeamStats.length === 0 && (
-                <Typography color="text.secondary">
-                  No red team statistics available.
-                </Typography>
-              )}
-              
-              {!statsLoading && !statsError && redTeamStats.length > 0 && (
-                <>
-                  {/* Red Team Summary */}
-                  <Box sx={{ mb: 3, p: 2, bgcolor: 'background.paper', borderRadius: 1, border: 1, borderColor: 'divider' }}>
-                    <Grid container spacing={2}>
-                      <Grid item xs={6} md={3}>
-                        <Typography variant="body2" color="text.secondary">Total Kills</Typography>
-                        <Typography variant="h6">{redTeamStats.reduce((sum, stat) => sum + (stat.kills || 0), 0)}</Typography>
-                      </Grid>
-                      <Grid item xs={6} md={3}>
-                        <Typography variant="body2" color="text.secondary">Total Deaths</Typography>
-                        <Typography variant="h6">{redTeamStats.reduce((sum, stat) => sum + (stat.deaths || 0), 0)}</Typography>
-                      </Grid>
-                      <Grid item xs={6} md={3}>
-                        <Typography variant="body2" color="text.secondary">Total Assists</Typography>
-                        <Typography variant="h6">{redTeamStats.reduce((sum, stat) => sum + (stat.assists || 0), 0)}</Typography>
-                      </Grid>
-                      <Grid item xs={6} md={3}>
-                        <Typography variant="body2" color="text.secondary">Team KDA</Typography>
-                        <Typography variant="h6">{calculateTeamKDA(redTeamStats)}</Typography>
-                      </Grid>
-                    </Grid>
-                  </Box>
-                
-                  <TableContainer component={Paper} sx={{ mb: 3 }}>
-                    <Table size="small">
-                      <TableHead>
-                        <TableRow>
-                          <TableCell>Player</TableCell>
-                          <TableCell>Role</TableCell>
-                          <TableCell>Hero</TableCell>
-                          <TableCell align="right">K/D/A</TableCell>
-                          <TableCell align="right">KDA Ratio</TableCell>
-                          <TableCell align="right">DMG Dealt</TableCell>
-                          <TableCell align="right">DMG Taken</TableCell>
-                          <TableCell>Awards</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {redTeamStats.map((stat) => (
+                        ))) : 
+                        (redTeamStats.map(stat => (
                           <TableRow key={stat.stats_id}>
-                            <TableCell>{stat.player_details?.current_ign || stat.ign || 'Unknown'}</TableCell>
-                            <TableCell>{stat.role_played || 'N/A'}</TableCell>
-                            <TableCell>{getHeroName(stat.hero_played)}</TableCell>
-                            <TableCell align="right">{formatKDA(stat)}</TableCell>
-                            <TableCell align="right">{calculateKDA(stat)}</TableCell>
-                            <TableCell align="right">{stat.damage_dealt || 'N/A'}</TableCell>
-                            <TableCell align="right">{stat.damage_taken || 'N/A'}</TableCell>
-                            <TableCell>
-                              {match.mvp === stat.player_id && (
-                                <Chip 
-                                  icon={<StarIcon />} 
-                                  label="MVP"
-                                  color="primary"
-                                  size="small"
-                                  sx={{ mr: 1 }}
-                                />
-                              )}
-                              {match.mvp_loss === stat.player_id && (
-                                <Chip 
-                                  icon={<StarIcon />} 
-                                  label="MVP Loss"
-                                  color="secondary"
-                                  size="small"
-                                />
-                              )}
-                              {stat.medal && (
-                                <Chip 
-                                  label={stat.medal}
-                                  size="small"
-                                  color="default"
-                                  variant="outlined"
-                                />
-                              )}
-                            </TableCell>
+                            <TableCell>{stat.player_details?.current_ign || stat.ign}</TableCell>
+                            <TableCell>{stat.role_played || ''}</TableCell>
+                            <TableCell>{getHeroName(stat)}</TableCell>
+                            <TableCell>{formatKDA(stat)} ({calculateKDA(stat)})</TableCell>
+                            <TableCell>{stat.damage_dealt || 'N/A'}</TableCell>
+                            <TableCell>{stat.gold_earned || 'N/A'}</TableCell>
+                            <TableCell>{stat.player_notes || '-'}</TableCell>
                           </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-                </>
-              )}
-            </TabPanel>
+                        )))
+                      }
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </Box>
+            )}
           </Paper>
         </>
       )}

@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
-import api from '../services/api';
+import { api, AuthService } from '../services/api.service';
 
 // Define the shape of our authentication context
 interface AuthContextType {
@@ -9,6 +9,7 @@ interface AuthContextType {
   login: (username: string, password: string) => Promise<boolean>;
   logout: () => void;
   register: (username: string, email: string, password: string, confirmPassword: string, firstName?: string, lastName?: string) => Promise<boolean>;
+  refreshAuthToken: () => Promise<boolean>;
 }
 
 // Create the context with a default value
@@ -19,6 +20,7 @@ const AuthContext = createContext<AuthContextType>({
   login: async () => false,
   logout: () => {},
   register: async () => false,
+  refreshAuthToken: async () => false,
 });
 
 // Custom hook for using the auth context
@@ -33,43 +35,108 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Function to refresh the token
+  const refreshAuthToken = async (): Promise<boolean> => {
+    const refreshToken = localStorage.getItem('refreshToken');
+    
+    if (!refreshToken) {
+      return false;
+    }
+    
+    try {
+      const response = await api.post('/api/token/refresh/', { refresh: refreshToken });
+      const { access } = response.data;
+      
+      // Store the new access token
+      localStorage.setItem('token', access);
+      return true;
+    } catch (error) {
+      console.error('Token refresh failed:', error);
+      return false;
+    }
+  };
+
   // Check if we have a token when the component mounts
   useEffect(() => {
+    // Use AbortController to handle cleanup of pending requests
+    const abortController = new AbortController();
+    const signal = abortController.signal;
+    let isMounted = true;
+
     const checkAuth = async () => {
       const token = localStorage.getItem('token');
       
       if (!token) {
-        setIsAuthenticated(false);
-        setIsLoading(false);
+        if (isMounted) {
+          setIsAuthenticated(false);
+          setIsLoading(false);
+        }
         return;
       }
 
       try {
         // Validate the token by making a request to a user info endpoint
-        // Replace '/api/user/' with your actual user endpoint
-        await api.get('/api/teams/'); // Use a valid authenticated endpoint
-        setIsAuthenticated(true);
+        // Pass the signal to allow cancellation
+        await api.get('/api/teams/', { signal });
+        
+        if (isMounted) {
+          setIsAuthenticated(true);
+        }
       } catch (error: any) {
+        // Ignore errors from aborted requests
+        if (error.name === 'AbortError' || !isMounted) {
+          return;
+        }
+        
         // Only invalidate if it's an authentication error (e.g., 401)
         if (error.response && error.response.status === 401) {
           console.error('Auth validation failed (401): Token likely expired or invalid.', error);
+          
+          // Try to refresh the token
+          const refreshSuccessful = await refreshAuthToken();
+          
+          if (refreshSuccessful && isMounted) {
+            // If refresh was successful, try the original request again
+            try {
+              await api.get('/api/teams/', { signal });
+              setIsAuthenticated(true);
+              setIsLoading(false);
+              return;
+            } catch (retryError: any) {
+              // Ignore if the component unmounted during retry
+              if (retryError.name === 'AbortError' || !isMounted) {
+                return;
+              }
+              console.error('Auth validation still failed after token refresh:', retryError);
+            }
+          }
+          
+          // If we get here, refresh failed or retry request failed
           localStorage.removeItem('token');
-          localStorage.removeItem('refreshToken'); // Also remove refresh token
-          setIsAuthenticated(false);
-          setError('Your session has expired. Please login again.');
+          localStorage.removeItem('refreshToken');
+          
+          if (isMounted) {
+            setIsAuthenticated(false);
+            setError('Your session has expired. Please login again.');
+          }
         } else {
           // Log other errors but don't necessarily invalidate the session
-          // Could be a network issue or temporary server problem
           console.error('Auth validation check encountered an error (not 401):', error);
-          // Decide if we want to set an error message without logging out
-          // setError('Could not verify session. Network issue?'); 
         }
       } finally {
-        setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     };
 
     checkAuth();
+
+    // Cleanup function
+    return () => {
+      isMounted = false;
+      abortController.abort();
+    };
   }, []);
 
   // Registration function
@@ -220,7 +287,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         error,
         login,
         logout,
-        register
+        register,
+        refreshAuthToken
       }}
     >
       {children}

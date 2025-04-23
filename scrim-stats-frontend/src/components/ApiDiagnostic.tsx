@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Button, Typography, Paper, List, ListItem, ListItemText, Chip, CircularProgress } from '@mui/material';
-import { checkApiStatus, checkEndpoint } from '../services/api';
+import { api, checkApiStatus, checkEndpoint } from '../services/api.service';
 
 interface EndpointStatus {
   endpoint: string;

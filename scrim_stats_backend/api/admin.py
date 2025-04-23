@@ -1,7 +1,6 @@
 from django.contrib import admin
 from django import forms
 from django.utils import timezone
-from django.utils.formats import date_format
 from .models import (
     Team, 
     Player, 
@@ -16,17 +15,13 @@ from .models import (
     Hero
 )
 from .forms import MatchAdminForm, ScrimGroupAdminForm  # Import both custom forms
-from django.http import HttpResponse
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, get_object_or_404
 from django.urls import path
-from django.db import models
 from django.contrib import messages
 from django.forms import formset_factory, BaseFormSet
 from django.db import transaction
 from django.http import HttpResponseRedirect
 from django.utils.safestring import mark_safe
-from django.urls import reverse
-from django.utils.html import format_html
 
 # Register Team model
 @admin.register(Team)

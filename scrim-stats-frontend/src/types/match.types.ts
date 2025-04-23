@@ -20,6 +20,14 @@ export interface User {
   last_name: string;
 }
 
+export interface MatchScoreDetails {
+  blue_side_score: number;
+  red_side_score: number;
+  blue_side_team_name: string;
+  red_side_team_name: string;
+  score_by: string;
+}
+
 export interface Match {
   match_id: number;
   scrim_group?: ScrimGroup;
@@ -32,16 +40,14 @@ export interface Match {
   blue_side_team_details?: Team;
   red_side_team_details?: Team;
   match_duration?: string;
-  is_external_match?: boolean;
   scrim_type: 'SCRIMMAGE' | 'TOURNAMENT' | 'RANKED';
   match_outcome: 'VICTORY' | 'DEFEAT';
   mvp?: number;
   mvp_loss?: number;
-  score_details?: any;
+  score_details?: MatchScoreDetails;
   winning_team?: number;
   general_notes?: string;
   game_number: number;
-  team_side: 'BLUE' | 'RED';
   created_at?: string;
   updated_at?: string;
   blue_side_team: number;
@@ -50,27 +56,28 @@ export interface Match {
 
 export interface PlayerMatchStat {
   stats_id?: number;
-  match?: number;
+  match: number;
+  player: number;
   player_details?: Player;
-  player_id?: number;
-  team?: number;
-  ign?: string;
-  role_played?: string | null;
-  hero_played?: Hero | string | number | null | undefined;
-  kills?: number;
-  deaths?: number;
-  assists?: number;
-  kda?: number | null;
+  team: number;
+  ign: string;
+  role_played: string;
+  hero_played: number | null;
+  hero_name?: string;
+  kills: number;
+  deaths: number;
+  assists: number;
+  kda?: number;
   damage_dealt?: number | null;
   damage_taken?: number | null;
   turret_damage?: number | null;
   teamfight_participation?: number | null;
   gold_earned?: number | null;
   player_notes?: string | null;
-  is_our_team?: boolean;
+  is_our_team: boolean;
   created_at?: string;
   updated_at?: string;
-  is_blue_side?: boolean;
+  is_blue_side: boolean;
   medal?: string | null;
   pick_order?: number | null;
 }

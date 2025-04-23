@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import {
@@ -10,8 +10,13 @@ import {
   Alert,
   Paper,
   CircularProgress,
-  Grid
+  Grid,
+  Fade
 } from '@mui/material';
+
+type FieldError = {
+  [key: string]: string | null;
+};
 
 const Register: React.FC = () => {
   const [username, setUsername] = useState('');
@@ -21,37 +26,75 @@ const Register: React.FC = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [formError, setFormError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<FieldError>({});
   const { register, isLoading, error } = useAuth();
   const navigate = useNavigate();
+
+  // Clear form errors when auth context error changes
+  useEffect(() => {
+    if (error) {
+      // Auto-dismiss the error after 8 seconds
+      const timer = setTimeout(() => {
+        setFormError(null);
+      }, 8000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
+
+  const validateFields = (): boolean => {
+    // Reset errors
+    setFieldErrors({});
+    setFormError(null);
+    
+    const errors: FieldError = {};
+    let isValid = true;
+    
+    // Validate username
+    if (!username.trim()) {
+      errors.username = 'Username is required';
+      isValid = false;
+    }
+    
+    // Validate email
+    if (!email.trim()) {
+      errors.email = 'Email is required';
+      isValid = false;
+    } else {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        errors.email = 'Please enter a valid email address';
+        isValid = false;
+      }
+    }
+    
+    // Validate password
+    if (!password) {
+      errors.password = 'Password is required';
+      isValid = false;
+    } else if (password.length < 8) {
+      errors.password = 'Password must be at least 8 characters long';
+      isValid = false;
+    }
+    
+    // Validate confirm password
+    if (!confirmPassword) {
+      errors.confirmPassword = 'Please confirm your password';
+      isValid = false;
+    } else if (password !== confirmPassword) {
+      errors.confirmPassword = 'Passwords do not match';
+      isValid = false;
+    }
+    
+    setFieldErrors(errors);
+    return isValid;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Reset form errors
-    setFormError(null);
-    
-    // Validate inputs
-    if (!username.trim() || !email.trim() || !password.trim() || !confirmPassword.trim()) {
-      setFormError('All fields are required');
-      return;
-    }
-    
-    // Check if passwords match
-    if (password !== confirmPassword) {
-      setFormError('Passwords do not match');
-      return;
-    }
-    
-    // Basic email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      setFormError('Please enter a valid email address');
-      return;
-    }
-    
-    // Password strength check
-    if (password.length < 8) {
-      setFormError('Password must be at least 8 characters long');
+    // Validate all fields
+    if (!validateFields()) {
       return;
     }
 
@@ -62,6 +105,9 @@ const Register: React.FC = () => {
     }
   };
 
+  // Determine which error to display with priority to form errors
+  const displayError = formError || error;
+
   return (
     <Container maxWidth="sm">
       <Box sx={{ mt: 8 }}>
@@ -70,11 +116,19 @@ const Register: React.FC = () => {
             Create Account
           </Typography>
           
-          {(error || formError) && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {formError || error}
-            </Alert>
-          )}
+          <Fade in={!!displayError}>
+            <Box sx={{ mb: displayError ? 2 : 0 }}>
+              {displayError && (
+                <Alert 
+                  severity="error" 
+                  variant="filled"
+                  onClose={() => setFormError(null)}
+                >
+                  {displayError}
+                </Alert>
+              )}
+            </Box>
+          </Fade>
           
           <Box component="form" onSubmit={handleSubmit} noValidate>
             <TextField
@@ -89,6 +143,8 @@ const Register: React.FC = () => {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               disabled={isLoading}
+              error={!!fieldErrors.username}
+              helperText={fieldErrors.username || ''}
             />
             
             <TextField
@@ -103,6 +159,8 @@ const Register: React.FC = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={isLoading}
+              error={!!fieldErrors.email}
+              helperText={fieldErrors.email || ''}
             />
             
             <Grid container spacing={2}>
@@ -146,6 +204,8 @@ const Register: React.FC = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               disabled={isLoading}
+              error={!!fieldErrors.password}
+              helperText={fieldErrors.password || ''}
             />
             
             <TextField
@@ -160,6 +220,8 @@ const Register: React.FC = () => {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               disabled={isLoading}
+              error={!!fieldErrors.confirmPassword}
+              helperText={fieldErrors.confirmPassword || ''}
             />
             
             <Button

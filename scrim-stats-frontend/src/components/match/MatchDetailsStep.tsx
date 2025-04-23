@@ -4,6 +4,8 @@ import { Box, Grid, TextField, Switch, FormControlLabel, Typography, Paper, Form
 import { MatchFormData } from '../../types/match.types'; // Adjust path
 import { Team } from '../../types/team.types'; // Adjust path
 import NewTeamDialog from './NewTeamDialog'; // Import dialog
+import { useForm } from '../../hooks';
+import { ApiErrorAlert } from '../common';
 
 interface MatchDetailsStepProps {
   formik: FormikProps<MatchFormData>;
@@ -98,6 +100,75 @@ const MatchDetailsStep: React.FC<MatchDetailsStepProps> = ({
       // Updated value for red victory to align with logic
       outcomeMenuItems.push(<MenuItem key="red_victory" value="DEFEAT">{`${redLabel} Victory`}</MenuItem>); 
     }
+
+  // Replace existing validation with useForm validation
+  const { validateField, validateForm } = useForm({
+    validationRules: {
+      match_date: [
+        { rule: 'required', message: 'Match date is required' },
+      ],
+      our_team: [
+        { rule: 'required', message: 'Our team selection is required' },
+      ],
+      opponent_team: [
+        { rule: 'required', message: 'Opponent team selection is required' },
+        { 
+          rule: 'custom', 
+          validator: (value, formValues) => value !== formValues.our_team, 
+          message: 'Opponent team cannot be the same as our team' 
+        },
+      ],
+      scrim_type: [
+        { rule: 'required', message: 'Match type is required' },
+      ],
+      game_number: [
+        { rule: 'required', message: 'Game number is required' },
+        { rule: 'number', message: 'Game number must be a valid number' },
+        { 
+          rule: 'custom', 
+          validator: (value) => parseInt(value) > 0, 
+          message: 'Game number must be greater than 0' 
+        },
+      ],
+    }
+  });
+
+  // Custom handleNext function that validates form before proceeding
+  const handleNext = () => {
+    // Validate all fields
+    const formErrors = validateForm({
+      match_date: values.match_datetime,
+      our_team: values.our_team,
+      opponent_team: values.opponent_team,
+      scrim_type: values.scrim_type,
+      game_number: values.game_number
+    });
+
+    // If there are validation errors, update the errors state
+    if (Object.keys(formErrors).length > 0) {
+      // Update parent component's errors state
+      Object.entries(formErrors).forEach(([field, message]) => {
+        handleBlur({
+          target: { name: field, value: values[field] || '' }
+        } as React.FocusEvent<HTMLInputElement>);
+      });
+      return;
+    }
+
+    // Proceed if validation passes
+    // Implement the logic to proceed to the next step
+  };
+
+  // Add validateOnBlur function
+  const validateOnBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    const errorMessage = validateField(name, value, values);
+    
+    // Call the original handleBlur with the validated result
+    handleBlur({
+      target: { name, value }
+    } as React.FocusEvent<HTMLInputElement>, errorMessage);
+  };
 
   return (
     <Box sx={{ p: 2 }}>
@@ -243,7 +314,7 @@ const MatchDetailsStep: React.FC<MatchDetailsStepProps> = ({
         <Paper elevation={2} sx={{ p: 2, mb: 3 }}>
           <Typography variant="subtitle1" gutterBottom>Match Configuration & Outcome</Typography>
           <Grid container spacing={2}>
-              <Grid item xs={12} md={4}>
+              <Grid item xs={12} md={6}>
                   <FormControl fullWidth error={touched.scrim_type && Boolean(errors.scrim_type)}>
                     <InputLabel id={generateId("scrim_type-label")}>Scrim Type</InputLabel>
                     <Select name="scrim_type" labelId={generateId("scrim_type-label")} id={generateId("scrim_type")} value={values.scrim_type} label="Scrim Type" onChange={handleChange} >
@@ -252,10 +323,7 @@ const MatchDetailsStep: React.FC<MatchDetailsStepProps> = ({
                     {touched.scrim_type && errors.scrim_type && ( <Typography color="error" variant="caption">{errors.scrim_type as string}</Typography> )}
                   </FormControl>
               </Grid>
-              <Grid item xs={12} md={4}>
-                   <TextField name="game_number" label="Game Number" id={generateId("game_number")} type="number" value={values.game_number} onChange={handleChange} fullWidth InputProps={{ inputProps: { min: 1 } }} error={touched.game_number && Boolean(errors.game_number)} helperText={touched.game_number && errors.game_number as string} />
-              </Grid>
-              <Grid item xs={12} md={4}>
+              <Grid item xs={12} md={6}>
                   <FormControl fullWidth error={touched.match_result && Boolean(errors.match_result)} sx={{ mb: 2 }}>
                     <InputLabel id={generateId("match_result-label")}>Match Outcome / Winner</InputLabel>
                     <Select labelId={generateId("match_result-label")} id={generateId("match_result")} name="match_result" value={values.match_result} label="Match Outcome / Winner" onChange={handleOutcomeChange} >
@@ -263,6 +331,11 @@ const MatchDetailsStep: React.FC<MatchDetailsStepProps> = ({
                     </Select>
                     {touched.match_result && errors.match_result && <Typography color="error" variant="caption">{errors.match_result as string}</Typography>}
                   </FormControl>
+                  {/* Hidden game number field - no longer displayed to users but kept in form data */}
+                  <input type="hidden" name="game_number" value={values.game_number} />
+                  <Typography variant="caption" color="text.secondary" display="block">
+                    Game numbers are automatically calculated based on existing matches between these teams in the same 8-hour window.
+                  </Typography>
               </Grid>
               <Grid item xs={12}>
                   <TextField name="general_notes" label="General Notes" id={generateId("general_notes")} multiline rows={4} value={values.general_notes} onChange={handleChange} fullWidth error={touched.general_notes && Boolean(errors.general_notes)} helperText={touched.general_notes && errors.general_notes as string} />
@@ -301,6 +374,20 @@ const MatchDetailsStep: React.FC<MatchDetailsStepProps> = ({
           )}
         </Paper>
         {/* --- END NEW SECTION --- */}
+
+        {/* Add ApiErrorAlert at the top if there are API errors */}
+        {errors.apiError && (
+          <ApiErrorAlert error={errors.apiError} />
+        )}
+
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 3 }}>
+          <Button
+            variant="outlined"
+            onClick={handleNext}
+          >
+            Next
+          </Button>
+        </Box>
     </Box>
   );
 };

@@ -1,4 +1,4 @@
-import api from './api';
+import { api } from './api.service';
 import { DraftFormData, Draft, DraftBan, DraftPick } from '../types/draft';
 import { Hero } from '../types/hero.types';
 import { PaginatedResponse } from '../types/api';

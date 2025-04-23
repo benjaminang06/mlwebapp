@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
 from django.core.exceptions import ValidationError
+import json
 
 class Team(models.Model):
     """
@@ -26,6 +27,32 @@ class Team(models.Model):
     
     def __str__(self):
         return self.team_name
+    
+    def save(self, *args, **kwargs):
+        # Validate team_name is provided and not empty
+        if not self.team_name or self.team_name.strip() == '':
+            raise ValidationError("Team name is required.")
+            
+        # Validate team_abbreviation is provided and not empty
+        if not self.team_abbreviation or self.team_abbreviation.strip() == '':
+            raise ValidationError("Team abbreviation is required.")
+            
+        # Ensure team abbreviation doesn't exceed max length
+        if len(self.team_abbreviation) > 10:
+            self.team_abbreviation = self.team_abbreviation[:10]
+            
+        # Ensure team category is valid - update to match frontend values
+        valid_categories = ['COLLEGIATE', 'AMATEUR', 'PRO']
+        # Convert to uppercase for case-insensitive comparison
+        if self.team_category:
+            # If it's in lowercase/capitalized format, convert to uppercase
+            if self.team_category in ['Collegiate', 'Amateur', 'Pro']:
+                self.team_category = self.team_category.upper()
+            # Now validate
+            if self.team_category not in valid_categories:
+                raise ValidationError(f"Team category must be one of: {', '.join(valid_categories)}")
+        
+        super().save(*args, **kwargs)
     
     def is_managed_by(self, user):
         """Check if this team is managed by the given user with appropriate roles"""
@@ -68,26 +95,15 @@ class Player(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     
     def __str__(self):
-        return self.current_ign
-
-    # These methods will be replaced by direct calls to the service classes
-    # from views or other appropriate places
-    
-    def create_alias_from_current_ign(self):
-        """Create an alias from the current IGN before changing it"""
-        if self.current_ign:
-            PlayerAlias.objects.create(
-                player=self,
-                alias=self.current_ign
-            )
-        return self
+        role_display = f" ({self.primary_role})" if self.primary_role else ""
+        return f"{self.current_ign}{role_display}"
     
     def get_current_team_history(self):
-        """Get the player's current team history entry (with no left_date)"""
+        """Get the player's current team history record (with no left_date)"""
         return self.team_history.filter(left_date=None).first()
-
+    
     def get_awards_count(self, award_type):
-        """Get count of a specific award type for this player"""
+        """Count number of awards of a specific type received by this player"""
         return self.awards.filter(award_type=award_type).count()
 
 class PlayerAlias(models.Model):
@@ -233,30 +249,35 @@ class Match(models.Model):
         if self.blue_side_team_id == self.red_side_team_id:
              raise ValidationError("Blue side team and Red side team cannot be the same.")
              
-        # Determine outcome based on winning team
+        # Set match_outcome based on winning_team and our_team (if present)
+        # This is a derived/computed value, not stored separately
         if self.winning_team_id:
-            if self.winning_team_id == self.blue_side_team_id:
-                # Logic to determine if 'our_team' context applies and won
-                if self.our_team_id == self.blue_side_team_id:
+            if self.our_team_id:
+                # Only set match_outcome from our team's perspective if we have context
+                if self.winning_team_id == self.our_team_id:
                     self.match_outcome = 'VICTORY'
-                elif self.our_team_id == self.red_side_team_id:
-                     self.match_outcome = 'DEFEAT'
-                else: # No 'our_team' context or our_team was not playing
-                     # For external matches, set outcome from blue side perspective
-                     self.match_outcome = 'VICTORY'  # Blue side won
-            elif self.winning_team_id == self.red_side_team_id:
-                if self.our_team_id == self.red_side_team_id:
-                    self.match_outcome = 'VICTORY'
-                elif self.our_team_id == self.blue_side_team_id:
-                    self.match_outcome = 'DEFEAT'
                 else:
-                     # For external matches, set outcome from blue side perspective
-                     self.match_outcome = 'DEFEAT'  # Red side won
+                    self.match_outcome = 'DEFEAT'
             else:
-                 # Winning team is neither blue nor red? Should not happen.
-                 self.match_outcome = None
+                # If no our_team context, leave match_outcome as null
+                # This avoids the confusing situation where match_outcome is set
+                # from blue side perspective for external matches
+                self.match_outcome = None
         else:
-            self.match_outcome = None # No winner specified
+            # No winner specified
+            self.match_outcome = None 
+            
+        # Auto-calculate game number if this is a new match (no ID yet)
+        # or if scrim_group was just assigned and game_number is still the default
+        if (not self.pk or kwargs.get('update_fields') == ['scrim_group']) and self.scrim_group:
+            # For existing match where we're just updating scrim_group, we recalculate game number
+            if self.pk and kwargs.get('update_fields') == ['scrim_group']:
+                existing_count = Match.objects.filter(scrim_group=self.scrim_group).count()
+                self.game_number = existing_count + 1
+            # For new match being saved for the first time with a scrim_group
+            elif not self.pk and not kwargs.get('update_fields'):
+                # We'll calculate after save since the scrim_group might be assigned after initial save
+                pass
             
         super().save(*args, **kwargs)
         
@@ -278,19 +299,40 @@ class Match(models.Model):
         blue_side_kills = sum(stat.kills for stat in player_stats if stat.team_id == self.blue_side_team_id)
         red_side_kills = sum(stat.kills for stat in player_stats if stat.team_id == self.red_side_team_id)
         
-        # Create score details object
+        # Get team names, ensuring they're not None
+        blue_team_name = self.blue_side_team.team_name if self.blue_side_team else 'Blue Team'
+        red_team_name = self.red_side_team.team_name if self.red_side_team else 'Red Team'
+        
+        # Create score details object matching the frontend expected structure (MatchScoreDetails interface)
         score_details = {
             'blue_side_score': blue_side_kills,
             'red_side_score': red_side_kills,
-            'blue_side_team_name': self.blue_side_team.team_name if self.blue_side_team else 'Blue Team',
-            'red_side_team_name': self.red_side_team.team_name if self.red_side_team else 'Red Team',
+            'blue_side_team_name': blue_team_name,
+            'red_side_team_name': red_team_name,
             'score_by': 'kills'  # Indicates how score was calculated
         }
         
-        # Update the model
+        # Update the model's field
         self.score_details = score_details
-        # Use update to avoid recursion
-        Match.objects.filter(pk=self.pk).update(score_details=score_details)
+        
+        # Use direct update to avoid recursion and save just the score_details field
+        # Use a raw update to ensure the JSON is stored correctly
+        from django.db import connection
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                UPDATE api_match 
+                SET score_details = %s 
+                WHERE match_id = %s
+                """,
+                [
+                    json.dumps(score_details),
+                    self.pk
+                ]
+            )
+        
+        # Log the update for debugging purposes
+        print(f"Updated match {self.pk} score details: {score_details}")
 
     def get_mvp(self):
         """Returns the manually selected MVP for this match."""
@@ -528,3 +570,32 @@ class Hero(models.Model):
     
     class Meta:
         ordering = ['name']
+
+class MatchEditHistory(models.Model):
+    """
+    Tracks edit history for matches and player statistics.
+    Allows restoring previous versions and audit logging.
+    """
+    EDIT_TYPE_CHOICES = [
+        ('MATCH_METADATA', 'Match Metadata Edit'),
+        ('PLAYER_STATS', 'Player Statistics Edit'),
+        ('MATCH_RESTORE', 'Match Restore'),
+        ('PLAYER_STATS_RESTORE', 'Player Statistics Restore'),
+    ]
+    
+    edit_id = models.AutoField(primary_key=True)
+    match = models.ForeignKey(Match, on_delete=models.CASCADE, related_name='edit_history')
+    edited_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='match_edits')
+    previous_values = models.TextField(help_text="JSON string of previous values")
+    new_values = models.TextField(help_text="JSON string of new values")
+    edit_type = models.CharField(max_length=30, choices=EDIT_TYPE_CHOICES)
+    edit_reason = models.TextField(blank=True, null=True)
+    related_player_stat_id = models.IntegerField(null=True, blank=True, help_text="ID of the related player stat for player stat edits")
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"{self.edit_type} on {self.match} by {self.edited_by} at {self.created_at}"
+    
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name_plural = "Match edit histories"

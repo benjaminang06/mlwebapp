@@ -7,6 +7,7 @@ import { Box, Button, Typography, AppBar, Toolbar } from '@mui/material';
 import MatchUploadPage from './pages/MatchUploadPage'; // Import the page component
 import MatchListPage from './pages/MatchListPage'; // <-- Corrected path
 import MatchDetailPage from './pages/MatchDetailPage'; // <-- Corrected path
+import TeamStatisticsPage from './pages/TeamStatisticsPage'; // Add import for team statistics page
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
 import ProtectedRoute from './components/auth/ProtectedRoute';
@@ -40,6 +41,9 @@ const Navigation = () => {
           </Button>
           <Button color="inherit" component={Link} to="/matches">
             Matches
+          </Button>
+          <Button color="inherit" component={Link} to="/team-statistics">
+            Team Stats
           </Button>
           <Button color="inherit" component={Link} to="/upload-match">
             Upload Match
@@ -80,6 +84,7 @@ function App() {
                         <li><a href="/login">Login</a></li>
                         <li><a href="/register">Register</a></li>
                         <li><a href="/upload-match">Upload Match (Protected)</a></li>
+                        <li><a href="/team-statistics">Team Statistics</a></li>
                         <li><a href="/diagnostics">API Diagnostics</a></li>
                       </ul>
                     </div>
@@ -110,6 +115,14 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <MatchDetailPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/team-statistics"
+                  element={
+                    <ProtectedRoute>
+                      <TeamStatisticsPage />
                     </ProtectedRoute>
                   }
                 />

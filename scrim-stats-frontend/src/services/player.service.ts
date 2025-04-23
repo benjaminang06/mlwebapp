@@ -1,4 +1,4 @@
-import api from './api';
+import { api } from './api.service';
 import { Player } from '../types/player.types';
 
 export const getPlayers = async (): Promise<Player[]> => {

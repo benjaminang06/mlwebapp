@@ -7,7 +7,11 @@ from .views import (
     ManagedTeamListView,
     RegisterView,
     TeamPlayersView,
-    PlayerMatchStatViewSet
+    PlayerMatchStatViewSet,
+    PlayerLookupView,
+    TeamRoleManagementView,
+    VerifyMatchPlayersView,
+    TeamStatisticsView
 )
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
@@ -35,5 +39,6 @@ urlpatterns = [
     path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('teams/<int:pk>/players/', TeamPlayersView.as_view(), name='team-players'),
+    path('statistics/team/<int:team_id>/', TeamStatisticsView.as_view(), name='team-statistics'),
     path('', include(router.urls)),
 ] 

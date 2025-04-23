@@ -1,4 +1,4 @@
-import api from './api';
+import { api } from './api.service';
 import { ScrimGroup } from '../types/match.types';
 
 // Circuit breaker implementation

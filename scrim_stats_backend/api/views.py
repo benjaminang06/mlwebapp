@@ -1,42 +1,79 @@
-from django.shortcuts import render
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status, viewsets, permissions, filters, generics
-from django.db.models import Count, Q, Avg, Sum, Max, Min, F, ExpressionWrapper, FloatField, Case, When, Value, IntegerField
+from django.shortcuts import render, get_object_or_404
+from rest_framework import viewsets, permissions, filters, status, generics, mixins
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.decorators import action
-from .models import Team, Player, Match, PlayerMatchStat, PlayerAlias, PlayerTeamHistory, ScrimGroup, FileUpload, TeamManagerRole, Draft, DraftBan, DraftPick, Hero
-from .serializers import TeamSerializer, PlayerSerializer, PlayerAliasSerializer, MatchSerializer, ScrimGroupSerializer, PlayerMatchStatSerializer, FileUploadSerializer, UserSerializer, TeamManagerRoleSerializer, DraftSerializer, DraftBanSerializer, DraftPickSerializer, HeroSerializer
-from .permissions import IsTeamManager, IsTeamMember
-from django.contrib.auth.models import User
-from django.http import JsonResponse
-from django.contrib.admin.views.decorators import staff_member_required
-from .utils import get_player_role_stats, get_hero_pairing_stats
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny
+from rest_framework.decorators import api_view, permission_classes, action
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.renderers import JSONRenderer
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from django.contrib.admin.views.decorators import staff_member_required
+from django.utils import timezone
+from django.http import JsonResponse
+from django.db.models import Q, Sum, Count, Avg, Case, When, Value, IntegerField, F
+from django.db import transaction
+from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
-from services.player_services import PlayerService
-from services.match_services import MatchStatsService
-from services.match_service import MatchService
 from django.middleware.csrf import get_token
 from django.views.decorators.csrf import ensure_csrf_cookie
-from rest_framework.pagination import PageNumberPagination
-from rest_framework import mixins # Import mixins
-from django.utils import timezone # Added timezone
+from django.conf import settings
+import logging
+from collections import defaultdict
+import os
+import datetime
+import traceback
+
+from .models import Team, Player, PlayerAlias, ScrimGroup, Match, PlayerMatchStat, FileUpload, PlayerTeamHistory, TeamManagerRole, MatchAward, Hero, Draft, DraftBan, DraftPick
+from .serializers import (
+    TeamSerializer, PlayerSerializer, PlayerAliasSerializer, ScrimGroupSerializer, 
+    MatchSerializer, PlayerMatchStatSerializer, FileUploadSerializer, 
+    UserSerializer, PlayerTeamHistorySerializer, TeamManagerRoleSerializer,
+    PlayerMatchStatCreateSerializer, HeroSerializer, DraftSerializer, 
+    DraftBanSerializer, DraftPickSerializer
+)
+from .permissions import IsTeamManager, IsTeamMember
+from .utils import get_player_role_stats, get_hero_pairing_stats
+from services.player_services import PlayerService
+from services.match_services import MatchStatsService
+from services.award_services import AwardService
+from services.team_services import TeamService
+from services.scrim_group_services import ScrimGroupService
+from services.hero_services import HeroService
+from services.statistics_services import StatisticsService
 
 # Create your views here.
 
 class PlayerMatchStatViewSet(mixins.CreateModelMixin,
+                           mixins.ListModelMixin,
+                           mixins.RetrieveModelMixin,
+                           mixins.UpdateModelMixin,
                            viewsets.GenericViewSet):
     """
-    API endpoint allowing creation of PlayerMatchStat entries.
-    Only implements the 'create' action needed by the frontend form.
+    API endpoint for PlayerMatchStat entries.
+    Supports:
+    - Creating new player match stats
+    - Listing player stats with filtering
+    - Retrieving individual player stats
+    - Updating player stats (PATCH/PUT)
     """
     queryset = PlayerMatchStat.objects.all()
     serializer_class = PlayerMatchStatSerializer
     permission_classes = [permissions.IsAuthenticated]
     renderer_classes = [JSONRenderer]  # Only use JSON renderer, not HTML
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    filterset_fields = ['match', 'player', 'team']
+    ordering_fields = ['stats_id', 'kills', 'deaths', 'assists', 'kda', 'damage_dealt']
+    ordering = ['stats_id']
+    
+    def get_permissions(self):
+        """
+        Custom permissions:
+        - List/retrieve: Any authenticated user
+        - Create/update: Team managers only
+        """
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            return [IsTeamManager()]
+        return [permissions.IsAuthenticated()]
 
 class TeamViewSet(viewsets.ModelViewSet):
     """
@@ -69,30 +106,20 @@ class TeamViewSet(viewsets.ModelViewSet):
     def statistics(self, request, pk=None):
         """Get aggregated statistics for a team"""
         team = self.get_object()
-        # TODO: Update this query based on the new Match model structure (blue/red teams)
-        # The current filter(team=team) likely won't work anymore.
-        matches = Match.objects.filter(Q(blue_side_team=team) | Q(red_side_team=team)) # Tentative fix
         
-        # Calculate aggregated statistics
-        stats = {
-            'total_matches': matches.count(),
-            # TODO: Update win/loss logic based on 'winning_team' field
-            'wins': matches.filter(winning_team=team).count(), # Tentative fix
-            'losses': matches.exclude(winning_team=team).filter(winning_team__isnull=False).count(), # Tentative fix
-        }
-        # Handle division by zero
-        stats['win_rate'] = (stats['wins'] / stats['total_matches']) * 100 if stats['total_matches'] > 0 else 0
-
+        # Use the TeamService to get comprehensive stats
+        stats = TeamService.get_team_stats(team)
+        
         return Response(stats)
 
     @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
     def add_player(self, request, pk=None):
-        """
-        Adds a new player to the specified team.
-        Creates a Player record and a PlayerTeamHistory record linking them.
-        Expects {'ign': 'NewPlayerIGN', 'primary_role': 'ROLE'} in request body.
-        """
+        """Add a player to a team via the API"""
         team = self.get_object()
+        
+        # Check permissions (need to be team manager to add players)
+        self.check_object_permissions(request, team)
+        
         ign = request.data.get('ign')
         primary_role = request.data.get('primary_role') # Optional
 
@@ -109,38 +136,12 @@ class TeamViewSet(viewsets.ModelViewSet):
         #         status=status.HTTP_400_BAD_REQUEST
         #     )
 
-        # Check if player with this IGN already exists *anywhere*? 
-        # For now, we allow creating potentially duplicate IGNs across different teams or even same team?
-        # More robust logic might involve checking existing players first.
-        
         try:
-            # Create the new player
-            new_player = Player.objects.create(
-                current_ign=ign,
-                primary_role=primary_role # Will be null if not provided
-            )
-            
-            # Determine if the new player should be a starter for the given role
-            make_starter = False
-            if primary_role: # Only consider for starter if role is provided
-                has_existing_starter = PlayerTeamHistory.objects.filter(
-                    team=team,
-                    left_date=None, # Ensure the history record is active
-                    is_starter=True,
-                    player__primary_role=primary_role # Check the role on the linked player
-                ).exists()
-                make_starter = not has_existing_starter # Make starter if no existing starter for this role
-
-            # Link the player to this team via history
-            PlayerTeamHistory.objects.create(
-                player=new_player,
-                team=team,
-                joined_date=timezone.now().date(), # Corrected: Use joined_date
-                is_starter=make_starter # Set starter status based on check
-            )
+            # Use TeamService to add player to the team
+            player, created = TeamService.add_player_to_team(team, ign, primary_role)
             
             # Serialize the newly created player data
-            serializer = PlayerSerializer(new_player, context={'request': request})
+            serializer = PlayerSerializer(player, context={'request': request})
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         except Exception as e:
@@ -223,8 +224,12 @@ class PlayerLookupView(APIView):
         if team_id:
             try:
                 team = Team.objects.get(pk=team_id)
-                # Find exact matches in the specified team
-                team_players = Player.objects.filter(team=team, current_ign=ign)
+                # Find exact matches in the specified team using team_history
+                team_players = Player.objects.filter(
+                    current_ign=ign,
+                    team_history__team=team,
+                    team_history__left_date=None
+                )
                 if team_players.exists():
                     results['exact_matches'] = [{
                         'player_id': player.player_id,
@@ -241,34 +246,66 @@ class PlayerLookupView(APIView):
             # Check for alias matches (players who previously used this IGN)
             aliases = PlayerAlias.objects.filter(alias=ign)
             if aliases.exists():
-                results['alias_matches'] = [{
-                    'player_id': alias.player.player_id,
-                    'current_ign': alias.player.current_ign,
-                    'previous_ign': alias.alias,
-                    'team_id': alias.player.team.team_id,
-                    'team_name': alias.player.team.team_name,
-                    'match_type': 'alias'
-                } for alias in aliases]
+                results['alias_matches'] = []
+                for alias in aliases:
+                    # Get the player's current team through team_history
+                    current_team = None
+                    current_team_history = alias.player.team_history.filter(left_date=None).first()
+                    if current_team_history:
+                        current_team = current_team_history.team
+                    
+                    if current_team:
+                        results['alias_matches'].append({
+                            'player_id': alias.player.player_id,
+                            'current_ign': alias.player.current_ign,
+                            'previous_ign': alias.alias,
+                            'team_id': current_team.team_id,
+                            'team_name': current_team.team_name,
+                            'match_type': 'alias'
+                        })
+                    else:
+                        # Player has no current team
+                        results['alias_matches'].append({
+                            'player_id': alias.player.player_id,
+                            'current_ign': alias.player.current_ign,
+                            'previous_ign': alias.alias,
+                            'team_id': None,
+                            'team_name': 'No Current Team',
+                            'match_type': 'alias'
+                        })
             
             # Check for players with this IGN in other teams
             other_players = Player.objects.filter(current_ign=ign)
             if team_id:
-                other_players = other_players.exclude(team_id=team_id)
+                # Exclude players from the specified team
+                other_players = other_players.exclude(
+                    team_history__team_id=team_id,
+                    team_history__left_date=None
+                )
             
             if other_players.exists():
-                results['other_team_matches'] = [{
-                    'player_id': player.player_id,
-                    'ign': player.current_ign,
-                    'team_id': player.team.team_id,
-                    'team_name': player.team.team_name,
-                    'match_type': 'other_team'
-                } for player in other_players]
+                results['other_team_matches'] = []
+                for player in other_players:
+                    # Get the player's current team through team_history
+                    current_team = None
+                    current_team_history = player.team_history.filter(left_date=None).first()
+                    if current_team_history:
+                        current_team = current_team_history.team
+                        
+                        results['other_team_matches'].append({
+                            'player_id': player.player_id,
+                            'ign': player.current_ign,
+                            'team_id': current_team.team_id,
+                            'team_name': current_team.team_name,
+                            'match_type': 'other_team'
+                        })
         
         # Also determine if this is a first-time match against this team
         if team_id:
+            # Check if we need to update this query to use blue_side_team and red_side_team
             # Count previous matches against this team
             previous_matches = Match.objects.filter(
-                Q(our_team_id=team_id) | Q(opponent_team_id=team_id)
+                Q(blue_side_team_id=team_id) | Q(red_side_team_id=team_id)
             ).count()
             
             results['is_first_match'] = previous_matches == 0
@@ -287,263 +324,112 @@ class VerifyMatchPlayersView(APIView):
         
         try:
             match = Match.objects.get(pk=match_id)
-            our_team = match.our_team
-            opponent_team = match.opponent_team
         except Match.DoesNotExist:
             return Response({"error": "Match not found"}, status=status.HTTP_404_NOT_FOUND)
         
-        # Verify permissions
-        if not our_team.is_managed_by(request.user):
-            return Response(
-                {"error": "You can only submit stats for teams you manage"}, 
-                status=status.HTTP_403_FORBIDDEN
-            )
+        # Use the service to verify and process the players
+        success, result = MatchStatsService.verify_and_process_match_players(
+            match=match,
+            team_stats=team_stats,
+            opponent_stats=opponent_stats,
+            user=request.user
+        )
         
-        # Process player verification
-        players_to_verify = []
+        if not success:
+            # If the result is a string, it's an error message
+            if isinstance(result, str):
+                return Response({"error": result}, status=status.HTTP_400_BAD_REQUEST)
+            # Otherwise it's a players_to_verify object
+            return Response(result, status=status.HTTP_202_ACCEPTED)
+            
+        # Success, return the stats created
+        return Response(result, status=status.HTTP_201_CREATED)
         
-        # Process our team's stats - these should be mostly known players
-        for stat in team_stats:
-            player_action = self._resolve_player(stat, our_team)
-            if player_action.get('needs_verification'):
-                players_to_verify.append({**player_action, 'for_team': 'our_team'})
-        
-        # Process opponent team stats - more likely to have new players
-        for stat in opponent_stats:
-            player_action = self._resolve_player(stat, opponent_team)
-            if player_action.get('needs_verification'):
-                players_to_verify.append({**player_action, 'for_team': 'opponent_team'})
-        
-        if players_to_verify:
-            # Return players needing verification
-            return Response({
-                'match_id': match_id,
-                'players_to_verify': players_to_verify,
-                'needs_verification': True
-            })
-        else:
-            # All players resolved, create stats
-            self._create_stats(match, team_stats, opponent_stats)
-            return Response({'success': True, 'message': 'All stats recorded'})
-    
     def put(self, request, format=None):
-        """Handle verified player decisions"""
+        """
+        Handle final verification and stat creation
+        after any necessary player verification.
+        """
         match_id = request.data.get('match_id')
         verified_players = request.data.get('verified_players', [])
         team_stats = request.data.get('team_stats', [])
         opponent_stats = request.data.get('opponent_stats', [])
         
+        # First process the verified players (creates and updates)
+        for player_data in verified_players:
+            # Create or update players based on verification responses
+            action = player_data.get('action')
+            if action == 'create_new':
+                # Create a new player and update the stats
+                from services.player_services import PlayerService
+                team_id = player_data.get('team_id')
+                try:
+                    team = Team.objects.get(pk=team_id)
+                    player, created = PlayerService.get_or_create_player_for_team(
+                        ign=player_data.get('ign'),
+                        team=team,
+                        role=player_data.get('role_played')
+                    )
+                    # Update the player_id in stats
+                    self._update_player_in_stats(
+                        player.player_id,
+                        player_data.get('ign'),
+                        team_stats,
+                        opponent_stats
+                    )
+                except Team.DoesNotExist:
+                    return Response(
+                        {"error": f"Team with ID {team_id} not found"}, 
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+            elif action == 'use_existing':
+                # Update the player_id in stats
+                self._update_player_in_stats(
+                    player_data.get('player_id'),
+                    player_data.get('ign'),
+                    team_stats,
+                    opponent_stats
+                )
+        
+        # Then process the match with updated stats
         try:
             match = Match.objects.get(pk=match_id)
         except Match.DoesNotExist:
             return Response({"error": "Match not found"}, status=status.HTTP_404_NOT_FOUND)
         
-        # Process each verification decision
-        for player_data in verified_players:
-            ign = player_data.get('ign')
-            action = player_data.get('action')
-            team_id = player_data.get('team_id')
+        # Use the service to create the stats
+        from services.match_services import MatchStatsService
+        try:
+            stats_created = MatchStatsService._create_stats(
+                match=match,
+                team_stats=team_stats,
+                opponent_stats=opponent_stats
+            )
+            return Response({
+                "message": "Stats created successfully",
+                "stats_created": stats_created
+            }, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            # Log the exception
+            print(f"Error creating stats: {e}")
+            return Response(
+                {"error": f"An error occurred while creating stats: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
             
-            try:
-                team = Team.objects.get(pk=team_id)
-            except Team.DoesNotExist:
-                return Response({"error": f"Team not found: {team_id}"}, 
-                              status=status.HTTP_400_BAD_REQUEST)
-            
-            if action == 'create_new':
-                # Create brand new player
-                player, _ = Player.get_or_create_for_team(
-                    ign=ign,
-                    team=team,
-                    role=player_data.get('role')
-                )
-                # Update player ID in stats data
-                self._update_player_in_stats(player.player_id, ign, team_stats, opponent_stats)
-                
-            elif action == 'use_existing':
-                # Use an existing player (either current or with changed IGN)
-                existing_id = player_data.get('existing_player_id')
-                player = Player.objects.get(pk=existing_id)
-                
-                # Check if we need to update the IGN
-                if player.current_ign != ign:
-                    player.change_ign(ign)
-                
-                # Update player ID in stats data
-                self._update_player_in_stats(player.player_id, ign, team_stats, opponent_stats)
-                
-            elif action == 'transfer_player':
-                # Handle player transfer between teams
-                existing_id = player_data.get('existing_player_id')
-                player = Player.objects.get(pk=existing_id)
-                
-                # Transfer player to the new team
-                player.transfer_to_team(team)
-                
-                # Update the IGN if needed
-                if player.current_ign != ign:
-                    player.change_ign(ign)
-                
-                # Update player ID in stats data
-                self._update_player_in_stats(player.player_id, ign, team_stats, opponent_stats)
-        
-        # Create all stats now that players are verified
-        self._create_stats(match, team_stats, opponent_stats)
-        return Response({'success': True, 'message': 'All stats recorded after verification'})
-    
-    def _resolve_player(self, stat_data, team):
-        """
-        Resolve player identity for a stat entry.
-        Returns action to take - either player is identified or needs verification.
-        """
-        ign = stat_data.get('ign')
-        player_id = stat_data.get('player_id')
-        
-        # If player_id is provided and valid, player is already identified
-        if player_id:
-            try:
-                player = Player.objects.get(pk=player_id)
-                stat_data['resolved_player'] = player
-                return {'resolved': True}
-            except Player.DoesNotExist:
-                # Invalid player_id, need to proceed with identification
-                pass
-        
-        # Try to find by current IGN in this team
-        players = Player.objects.filter(team=team, current_ign=ign)
-        if players.exists():
-            # Found an exact match on the team
-            player = players.first()
-            stat_data['resolved_player'] = player
-            stat_data['player_id'] = player.player_id
-            return {'resolved': True}
-        
-        # No exact match on team, check for aliases or other teams
-        aliases = PlayerAlias.objects.filter(alias=ign)
-        other_teams = Player.objects.filter(current_ign=ign).exclude(team=team)
-        
-        if not aliases.exists() and not other_teams.exists():
-            # Brand new player, needs verification
-            return {
-                'needs_verification': True,
-                'ign': ign,
-                'team_id': team.team_id,
-                'possible_actions': ['create_new'],
-                'original_stat': stat_data
-            }
-        
-        # Potential matches found, needs verification with options
-        possible_actions = ['create_new']
-        potential_matches = []
-        
-        # Add alias matches
-        for alias in aliases:
-            potential_matches.append({
-                'player_id': alias.player.player_id,
-                'current_ign': alias.player.current_ign,
-                'previous_ign': alias.alias,
-                'team_id': alias.player.team.team_id,
-                'team_name': alias.player.team.team_name,
-                'match_type': 'alias'
-            })
-            possible_actions.append('use_existing')
-        
-        # Add players from other teams
-        for player in other_teams:
-            potential_matches.append({
-                'player_id': player.player_id,
-                'current_ign': player.current_ign,
-                'team_id': player.team.team_id,
-                'team_name': player.team.team_name,
-                'match_type': 'other_team'
-            })
-            possible_actions.append('transfer_player')
-        
-        return {
-            'needs_verification': True,
-            'ign': ign,
-            'team_id': team.team_id,
-            'possible_actions': list(set(possible_actions)),  # Remove duplicates
-            'potential_matches': potential_matches,
-            'original_stat': stat_data
-        }
-    
     def _update_player_in_stats(self, player_id, ign, team_stats, opponent_stats):
-        """Update player_id in the stats data based on IGN"""
-        # Check team stats
+        """Update player ID in stats arrays based on IGN"""
+        # Update team stats
         for stat in team_stats:
-            if stat.get('ign') == ign and not stat.get('player_id'):
+            if stat.get('ign') == ign:
                 stat['player_id'] = player_id
-        
-        # Check opponent stats
+                stat['is_new_player'] = False
+                
+        # Update opponent stats
         for stat in opponent_stats:
-            if stat.get('ign') == ign and not stat.get('player_id'):
+            if stat.get('ign') == ign:
                 stat['player_id'] = player_id
-    
-    def _create_stats(self, match, team_stats, opponent_stats):
-        """Create all player stats once players are verified"""
-        # Process our team's stats
-        for stat in team_stats:
-            player_id = stat.get('player_id')
-            if not player_id:
-                continue  # Skip entries without player_id
-                
-            try:
-                player = Player.objects.get(pk=player_id)
-                
-                PlayerMatchStat.objects.create(
-                    match=match,
-                    player=player,
-                    team=match.our_team,
-                    role_played=stat.get('role_played'),
-                    hero_played=stat.get('hero_played'),
-                    kills=stat.get('kills', 0),
-                    deaths=stat.get('deaths', 0),
-                    assists=stat.get('assists', 0),
-                    damage_dealt=stat.get('damage_dealt'),
-                    damage_taken=stat.get('damage_taken'),
-                    turret_damage=stat.get('turret_damage'),
-                    teamfight_participation=stat.get('teamfight_participation'),
-                    gold_earned=stat.get('gold_earned'),
-                    player_notes=stat.get('player_notes'),
-                    computed_kda=stat.get('computed_kda', 0)
-                )
-            except Player.DoesNotExist:
-                # Log error but continue processing other stats
-                print(f"Error: Player {player_id} not found")
-        
-        # Process opponent team's stats
-        for stat in opponent_stats:
-            player_id = stat.get('player_id')
-            if not player_id:
-                continue  # Skip entries without player_id
-                
-            try:
-                player = Player.objects.get(pk=player_id)
-                
-                PlayerMatchStat.objects.create(
-                    match=match,
-                    player=player,
-                    team=match.opponent_team,
-                    role_played=stat.get('role_played'),
-                    hero_played=stat.get('hero_played'),
-                    kills=stat.get('kills', 0),
-                    deaths=stat.get('deaths', 0),
-                    assists=stat.get('assists', 0),
-                    damage_dealt=stat.get('damage_dealt'),
-                    damage_taken=stat.get('damage_taken'),
-                    turret_damage=stat.get('turret_damage'),
-                    teamfight_participation=stat.get('teamfight_participation'),
-                    gold_earned=stat.get('gold_earned'),
-                    player_notes=stat.get('player_notes'),
-                    computed_kda=stat.get('computed_kda', 0)
-                )
-            except Player.DoesNotExist:
-                # Log error but continue processing other stats
-                print(f"Error: Player {player_id} not found")
-        
-        # Process the match with the service layer
-        MatchStatsService.process_match_save(match)
+                stat['is_new_player'] = False
 
 class PlayerViewSet(viewsets.ModelViewSet):
     """
@@ -574,10 +460,16 @@ class PlayerViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
             
-        # Use the service instead of the direct model method
-        PlayerService.change_player_ign(player, new_ign)
-        
-        return Response(PlayerSerializer(player).data)
+        try:
+            # Use the service for all IGN change logic
+            updated_player = PlayerService.change_player_ign(player, new_ign)
+            return Response(PlayerSerializer(updated_player).data)
+        except Exception as e:
+            # Handle any errors that might occur
+            return Response(
+                {"error": f"Failed to change IGN: {str(e)}"}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
     
     @action(detail=True, methods=['get'])
     def match_history(self, request, pk=None):
@@ -617,12 +509,56 @@ class ScrimGroupViewSet(viewsets.ModelViewSet):
     ordering = ['-start_date']  # Default ordering
     renderer_classes = [JSONRenderer]  # Only use JSON renderer, not HTML
     
+    def get_permissions(self):
+        """
+        Custom permissions:
+        - List/retrieve: Any authenticated user
+        - Create/update/delete: Team managers only
+        """
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            return [IsTeamManager()]
+        return [permissions.IsAuthenticated()]
+
     def get_queryset(self):
-        """Only return scrim groups the user submitted if they're not admin"""
-        user = self.request.user
-        if user.is_staff:
-            return ScrimGroup.objects.all()
-        return ScrimGroup.objects.filter(matches__submitted_by=user).distinct()
+        """Optionally filter by date range"""
+        queryset = ScrimGroup.objects.all()
+        
+        start_date = self.request.query_params.get('start_date')
+        end_date = self.request.query_params.get('end_date')
+        
+        if start_date:
+            queryset = queryset.filter(start_date__gte=start_date)
+        if end_date:
+            queryset = queryset.filter(start_date__lte=end_date)
+            
+        return queryset
+        
+    @action(detail=True, methods=['get'])
+    def stats(self, request, pk=None):
+        """Get statistics for a scrim group"""
+        from services.scrim_group_services import ScrimGroupService
+        
+        scrim_group = self.get_object()
+        stats = ScrimGroupService.get_scrim_group_stats(scrim_group)
+        
+        return Response(stats)
+        
+    @action(detail=True, methods=['get'])
+    def matches(self, request, pk=None):
+        """Get all matches in a scrim group"""
+        from services.scrim_group_services import ScrimGroupService
+        
+        scrim_group = self.get_object()
+        matches = ScrimGroupService.get_matches_in_group(scrim_group)
+        
+        # Use pagination
+        page = self.paginate_queryset(matches)
+        if page is not None:
+            serializer = MatchSerializer(page, many=True, context={'request': request})
+            return self.get_paginated_response(serializer.data)
+            
+        serializer = MatchSerializer(matches, many=True, context={'request': request})
+        return Response(serializer.data)
 
 class MatchViewSet(viewsets.ModelViewSet):
     """
@@ -636,6 +572,46 @@ class MatchViewSet(viewsets.ModelViewSet):
     search_fields = ['blue_side_team__team_name', 'red_side_team__team_name', 'our_team__team_name', 'scrim_group__scrim_group_name'] # Updated search fields
     ordering_fields = ['match_date']
     renderer_classes = [JSONRenderer]  # Only use JSON renderer, not HTML
+    
+    def get_permissions(self):
+        """
+        Custom permissions:
+        - List/retrieve: Any authenticated user
+        - Create/update/delete: Team managers only
+        - Actions like statistics: Any authenticated user
+        """
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            return [IsTeamManager()]
+        return [permissions.IsAuthenticated()]
+
+    def retrieve(self, request, *args, **kwargs):
+        """
+        Ensure score_details is up-to-date when retrieving a single match
+        """
+        instance = self.get_object()
+        # Update score details before returning the match
+        instance.update_score_details()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+    
+    def list(self, request, *args, **kwargs):
+        """
+        Ensure score_details is up-to-date for all matches in the list
+        """
+        queryset = self.filter_queryset(self.get_queryset())
+        
+        # Update score details for each match in the queryset
+        for match in queryset:
+            if match.score_details is None:
+                match.update_score_details()
+        
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
     def get_queryset(self):
         """
@@ -661,12 +637,26 @@ class MatchViewSet(viewsets.ModelViewSet):
         """
         Customize the creation process to set submitted_by and assign ScrimGroup.
         """
+        # Import required services
+        from services.match_services import MatchStatsService
+        from services.scrim_group_services import ScrimGroupService
+        
         # Set the submitter to the current user
         match_instance = serializer.save(submitted_by=self.request.user)
         
-        # Assign the ScrimGroup using the service
-        match_service = MatchService()
-        match_service.assign_scrim_group_for_match(match_instance)
+        # Assign the ScrimGroup using the ScrimGroupService
+        if match_instance.blue_side_team and match_instance.red_side_team:
+            teams = [match_instance.blue_side_team, match_instance.red_side_team]
+            scrim_group = ScrimGroupService.find_or_create_scrim_group(
+                teams=teams,
+                match_date=match_instance.match_date,
+                scrim_type=match_instance.scrim_type
+            )
+            match_instance.scrim_group = scrim_group
+            match_instance.save(update_fields=['scrim_group'])
+        
+        # Process the match after creation
+        MatchStatsService.process_match_save(match_instance)
 
     @action(detail=False, methods=['get'])
     def suggest_game_number(self, request):
@@ -721,9 +711,28 @@ class MatchViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def recent(self, request):
         """Get recent matches with aggregated statistics"""
-        # Get the last 10 matches
-        matches = self.get_queryset()[:10]
+        # Get the queryset (already filtered by permissions)
+        matches = self.get_queryset()
         
+        # Apply pagination
+        page = self.paginate_queryset(matches)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            # Basic stats
+            wins = sum(1 for match in page if match.match_outcome == 'Win')
+            total = len(page)
+            win_rate = wins / total if total > 0 else 0
+            
+            response_data = {
+                'win_rate': win_rate,
+                'record': f"{wins}-{total - wins}",
+                'matches': serializer.data
+            }
+            
+            return self.get_paginated_response(response_data)
+        
+        # If no pagination requested, limit to last 10 matches
+        matches = matches[:10]
         # Basic stats
         wins = matches.filter(match_outcome='Win').count()
         total = matches.count()
@@ -736,6 +745,67 @@ class MatchViewSet(viewsets.ModelViewSet):
         }
         
         return Response(response_data)
+        
+    @action(detail=True, methods=['get'], url_path='player-stats')
+    def player_stats(self, request, pk=None):
+        """
+        Get player match statistics for a specific match.
+        Used to populate match detail player stat tables.
+        """
+        match = self.get_object()
+        
+        # Get all player stats for this match
+        stats = PlayerMatchStat.objects.filter(match=match).select_related('player', 'team', 'hero_played')
+        
+        # Use pagination if needed
+        page = self.paginate_queryset(stats)
+        if page is not None:
+            serializer = PlayerMatchStatSerializer(page, many=True, context={'request': request})
+            return self.get_paginated_response(serializer.data)
+            
+        serializer = PlayerMatchStatSerializer(stats, many=True, context={'request': request})
+        return Response(serializer.data)
+        
+    @action(detail=True, methods=['patch'], url_path='update-player-stats/(?P<stat_id>[^/.]+)')
+    def update_player_stats(self, request, pk=None, stat_id=None):
+        """
+        Update player match statistics for a specific match.
+        Used for editing player stats directly from the match detail page.
+        """
+        match = self.get_object()
+        
+        # Find the player stats to update
+        try:
+            player_stat = PlayerMatchStat.objects.get(pk=stat_id, match=match)
+        except PlayerMatchStat.DoesNotExist:
+            return Response(
+                {"error": f"PlayerMatchStat with ID {stat_id} not found for this match"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        # Check ownership or permissions
+        if not request.user.is_staff:
+            team_ids = TeamManagerRole.objects.filter(user=request.user).values_list('team_id', flat=True)
+            if player_stat.team_id not in team_ids and match.submitted_by != request.user:
+                return Response(
+                    {"error": "You don't have permission to update this player's stats"},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+        
+        # Update the player stats using the MatchStatsService
+        try:
+            updated_stat = MatchStatsService.update_player_stats(
+                stat_id, 
+                request.data,
+                request.user
+            )
+            serializer = PlayerMatchStatSerializer(updated_stat, context={'request': request})
+            return Response(serializer.data)
+        except Exception as e:
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
 class RegisterView(generics.CreateAPIView):
     """
@@ -774,7 +844,7 @@ class TeamRoleManagementView(APIView):
             if not TeamManagerRole.objects.filter(
                 user=request.user,
                 team=team,
-                role_level__in=['MANAGER', 'ADMIN']
+                role__in=['head_coach', 'assistant', 'analyst']
             ).exists() and not request.user.is_staff:
                 return Response(
                     {"error": "You don't have permission to manage roles for this team"},
@@ -804,7 +874,7 @@ class TeamRoleManagementView(APIView):
             if not TeamManagerRole.objects.filter(
                 user=request.user,
                 team=team,
-                role_level__in=['MANAGER', 'ADMIN']
+                role__in=['head_coach', 'assistant', 'analyst']
             ).exists() and not request.user.is_staff:
                 return Response(
                     {"error": "You don't have permission to manage roles for this team"},
@@ -912,6 +982,117 @@ class HeroViewSet(viewsets.ModelViewSet):
     serializer_class = HeroSerializer
     renderer_classes = [JSONRenderer]  # Only use JSON renderer, not HTML
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    
+    def get_queryset(self):
+        """Use HeroService to get all heroes"""
+        from services.hero_services import HeroService
+        return HeroService.get_all_heroes()
+        
+    @action(detail=False, methods=['get'])
+    def popular(self, request):
+        """Get the most popular heroes by pick count"""
+        from services.hero_services import HeroService
+        
+        # If pagination is requested
+        if request.query_params.get('paginate', 'false').lower() == 'true':
+            # Get all heroes ordered by pick count
+            heroes = HeroService.get_popular_heroes(None)  # None for no limit
+            
+            # Apply pagination
+            page = self.paginate_queryset(heroes)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                return self.get_paginated_response(serializer.data)
+        
+        # Otherwise use the limit parameter
+        limit = request.query_params.get('limit', 10)
+        try:
+            limit = int(limit)
+        except ValueError:
+            limit = 10
+            
+        heroes = HeroService.get_popular_heroes(limit)
+        serializer = self.get_serializer(heroes, many=True)
+        return Response(serializer.data)
+        
+    @action(detail=False, methods=['get'])
+    def banned(self, request):
+        """Get the most banned heroes"""
+        from services.hero_services import HeroService
+        
+        # If pagination is requested
+        if request.query_params.get('paginate', 'false').lower() == 'true':
+            # Get all heroes ordered by ban count
+            heroes = HeroService.get_most_banned_heroes(None)  # None for no limit
+            
+            # Apply pagination
+            page = self.paginate_queryset(heroes)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                return self.get_paginated_response(serializer.data)
+        
+        # Otherwise use the limit parameter
+        limit = request.query_params.get('limit', 10)
+        try:
+            limit = int(limit)
+        except ValueError:
+            limit = 10
+            
+        heroes = HeroService.get_most_banned_heroes(limit)
+        serializer = self.get_serializer(heroes, many=True)
+        return Response(serializer.data)
+        
+    @action(detail=False, methods=['get'])
+    def statistics(self, request):
+        """Get comprehensive hero statistics"""
+        from services.hero_services import HeroService
+        
+        # Get hero statistics
+        hero_stats = HeroService.get_hero_statistics()
+        
+        # If pagination is requested
+        if request.query_params.get('paginate', 'false').lower() == 'true':
+            # Convert to paginated response
+            paginator = self.pagination_class()
+            paginator.request = request
+            paginator.request.query_params = request.query_params.copy()
+            
+            page = paginator.paginate_queryset(hero_stats, request)
+            if page is not None:
+                return paginator.get_paginated_response(page)
+        
+        # Otherwise return all stats
+        return Response(hero_stats)
+        
+    @action(detail=True, methods=['get'])
+    def pairings(self, request, pk=None):
+        """Get heroes that pair well with this hero"""
+        from services.hero_services import HeroService
+        
+        # If pagination is requested
+        if request.query_params.get('paginate', 'false').lower() == 'true':
+            # Get all pairings without limit
+            pairing_stats = HeroService.get_hero_pairings(pk, None)
+            
+            # Convert to paginated response
+            paginator = self.pagination_class()
+            paginator.request = request
+            paginator.request.query_params = request.query_params.copy()
+            
+            page = paginator.paginate_queryset(pairing_stats, request)
+            if page is not None:
+                return paginator.get_paginated_response(page)
+        
+        # Otherwise use the limit parameter
+        limit = request.query_params.get('limit', 5)
+        try:
+            limit = int(limit)
+        except ValueError:
+            limit = 5
+            
+        pairing_stats = HeroService.get_hero_pairings(pk, limit)
+        # Return all pairing stats
+        return Response(pairing_stats)
 
 class DraftViewSet(viewsets.ModelViewSet):
     """
@@ -1044,3 +1225,44 @@ class ManagedTeamListView(generics.ListAPIView):
         user = self.request.user
         queryset = Team.objects.filter(manager_roles__user=user).distinct()
         return queryset
+
+class TeamStatisticsView(APIView):
+    """
+    API endpoint for team statistics
+    """
+    def get(self, request, team_id):
+        """
+        Get statistics for a specific team
+        """
+        try:
+            # Convert team_id to int to avoid injection issues
+            team_id = int(team_id)
+            
+            statistics = StatisticsService.calculate_team_statistics(team_id)
+            
+            if not statistics:
+                return Response(
+                    {"error": "Team not found"}, 
+                    status=status.HTTP_404_NOT_FOUND
+                )
+                
+            return Response(statistics)
+        except ValueError:
+            return Response(
+                {"error": "Invalid team ID format"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        except Exception as e:
+            # Log the error
+            logger = logging.getLogger(__name__)
+            logger.error(f"Error in TeamStatisticsView: {str(e)}")
+            logger.error(traceback.format_exc())
+            
+            # Return a friendly error response
+            return Response(
+                {
+                    "error": "An error occurred while fetching team statistics",
+                    "detail": str(e) if settings.DEBUG else "Please try again later"
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

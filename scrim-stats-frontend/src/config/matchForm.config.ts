@@ -95,89 +95,82 @@ const step0Schema = Yup.object({
   match_result: Yup.string()
     .required('Match result is required')
     // Validation for match_result depends on whether it's external or not
-    .when('is_external_match', {
-      is: false, // Internal Match
-      // Must be VICTORY or DEFEAT
-      then: (schema) => schema.oneOf(['VICTORY', 'DEFEAT', 'DRAW'], 'Outcome must be VICTORY, DEFEAT, or DRAW').required('Match outcome is required'),
-      // External Match: Value could be team ID or specific strings like BLUE_VICTORY/RED_VICTORY/DRAW
-      // Requires at least some selection
-      otherwise: (schema) => schema.min(1, 'Winning team selection is required').required('Match outcome is required') 
+    .when('is_external_match', ([is_external_match]) => {
+      return is_external_match
+        ? Yup.string().min(1, 'Winning team selection is required').required('Match outcome is required')
+        : Yup.string().oneOf(['VICTORY', 'DEFEAT', 'DRAW'], 'Outcome must be VICTORY, DEFEAT, or DRAW').required('Match outcome is required');
     }),
-    // Use functions in 'when' for better type inference and clarity
-  our_team: Yup.string().when('is_external_match', {
-    is: (is_external_match: boolean) => is_external_match === false, // Explicit boolean check
-    then: (schema) => schema.required('Our team is required'),
-    otherwise: (schema) => schema.notRequired(), // Optional or empty string if external
+  our_team: Yup.string().when('is_external_match', ([is_external_match]) => {
+    return is_external_match
+      ? Yup.string().notRequired()
+      : Yup.string().required('Our team is required');
   }),
-  opponent_team: Yup.string().when(['is_external_match', 'is_new_opponent'], {
-    is: (is_external_match: boolean, is_new_opponent: boolean) => !is_external_match && !is_new_opponent,
-    then: (schema) => schema.required('Opponent team is required'),
-    otherwise: (schema) => schema.notRequired(),
+  opponent_team: Yup.string().when(['is_external_match', 'is_new_opponent'], ([is_external_match, is_new_opponent]) => {
+    return !is_external_match && !is_new_opponent
+      ? Yup.string().required('Opponent team is required')
+      : Yup.string().notRequired();
   }),
-  team_1: Yup.string().when(['is_external_match', 'team_1_new'], {
-    is: (is_external_match: boolean, team_1_new: boolean) => is_external_match && !team_1_new,
-    then: (schema) => schema.required('Blue Side Team is required'),
-    otherwise: (schema) => schema.notRequired(),
+  team_1: Yup.string().when('is_external_match', ([is_external_match]) => {
+    return is_external_match
+      ? Yup.string().required('Team 1 is required')
+      : Yup.string().notRequired();
   }),
-  team_2: Yup.string().when(['is_external_match', 'team_2_new'], {
-    is: (is_external_match: boolean, team_2_new: boolean) => is_external_match && !team_2_new,
-    then: (schema) => schema.required('Red Side Team is required'),
-    // Add check to prevent selecting same team as team_1
-    otherwise: (schema) => schema.notRequired().test('notequal', 'Red team cannot be the same as Blue team', function(value) {
-        return String(this.parent.team_1) !== String(value);
-    }),
+  team_2: Yup.string().when('is_external_match', ([is_external_match]) => {
+    return is_external_match
+      ? Yup.string().required('Team 2 is required')
+      : Yup.string().notRequired();
   }),
-  opponent_team_name: Yup.string().when(['is_external_match', 'is_new_opponent'], {
-    is: (is_external_match: boolean, is_new_opponent: boolean) => !is_external_match && is_new_opponent,
-    then: (schema) => schema.required('Opponent team name is required'),
-    otherwise: (schema) => schema.notRequired(),
+  opponent_team_name: Yup.string().when(['is_external_match', 'is_new_opponent'], ([is_external_match, is_new_opponent]) => {
+    return is_external_match === false && is_new_opponent === true
+      ? Yup.string().required('Opponent team name is required').min(3, 'Name must be at least 3 characters')
+      : Yup.string().notRequired();
   }),
-  opponent_team_abbreviation: Yup.string().when(['is_external_match', 'is_new_opponent'], {
-    is: (is_external_match: boolean, is_new_opponent: boolean) => !is_external_match && is_new_opponent,
-    then: (schema) => schema.required('Opponent team abbreviation is required').max(10, 'Max 10 chars'),
-    otherwise: (schema) => schema.notRequired(),
+  opponent_team_abbreviation: Yup.string().when(['is_external_match', 'is_new_opponent'], ([is_external_match, is_new_opponent]) => {
+    return !is_external_match && is_new_opponent
+      ? Yup.string().required('Abbreviation is required').min(2, 'Abbreviation too short').max(5, 'Abbreviation too long')
+      : Yup.string().notRequired();
   }),
-  opponent_category: Yup.string().when(['is_external_match', 'is_new_opponent'], {
-    is: (is_external_match: boolean, is_new_opponent: boolean) => !is_external_match && is_new_opponent,
-    then: (schema) => schema.required('Opponent category is required'),
-    otherwise: (schema) => schema.notRequired(),
+  opponent_category: Yup.string().when(['is_external_match', 'is_new_opponent'], ([is_external_match, is_new_opponent]) => {
+    return !is_external_match && is_new_opponent
+      ? Yup.string().required('Opponent category is required')
+      : Yup.string().notRequired();
   }),
-  team_1_name: Yup.string().when(['is_external_match', 'team_1_new'], {
-    is: (is_external_match: boolean, team_1_new: boolean) => is_external_match && team_1_new,
-    then: (schema) => schema.required('Blue Side Team name is required'),
-    otherwise: (schema) => schema.notRequired(),
+  team_1_name: Yup.string().when(['is_external_match', 'team_1_new'], ([is_external_match, team_1_new]) => {
+    return is_external_match && team_1_new
+      ? Yup.string().required('Team 1 name is required').min(3, 'Name too short')
+      : Yup.string().notRequired();
   }),
-  team_1_abbreviation: Yup.string().when(['is_external_match', 'team_1_new'], {
-    is: (is_external_match: boolean, team_1_new: boolean) => is_external_match && team_1_new,
-    then: (schema) => schema.required('Blue Side Team abbreviation is required').max(10, 'Max 10 chars'),
-    otherwise: (schema) => schema.notRequired(),
+  team_1_abbreviation: Yup.string().when(['is_external_match', 'team_1_new'], ([is_external_match, team_1_new]) => {
+    return is_external_match && team_1_new
+      ? Yup.string().required('Abbreviation is required').min(2, 'Abbreviation too short').max(5, 'Abbreviation too long')
+      : Yup.string().notRequired();
   }),
-  team_1_category: Yup.string().when(['is_external_match', 'team_1_new'], {
-    is: (is_external_match: boolean, team_1_new: boolean) => is_external_match && team_1_new,
-    then: (schema) => schema.required('Blue Side Team category is required'),
-    otherwise: (schema) => schema.notRequired(),
+  team_1_category: Yup.string().when(['is_external_match', 'team_1_new'], ([is_external_match, team_1_new]) => {
+    return is_external_match && team_1_new
+      ? Yup.string().required('Blue Side Team category is required')
+      : Yup.string().notRequired();
   }),
-  team_2_name: Yup.string().when(['is_external_match', 'team_2_new'], {
-    is: (is_external_match: boolean, team_2_new: boolean) => is_external_match && team_2_new,
-    then: (schema) => schema.required('Red Side Team name is required'),
-    otherwise: (schema) => schema.notRequired(),
+  team_2_name: Yup.string().when(['is_external_match', 'team_2_new'], ([is_external_match, team_2_new]) => {
+    return is_external_match && team_2_new
+      ? Yup.string().required('Team 2 name is required').min(3, 'Name too short')
+      : Yup.string().notRequired();
   }),
-  team_2_abbreviation: Yup.string().when(['is_external_match', 'team_2_new'], {
-    is: (is_external_match: boolean, team_2_new: boolean) => is_external_match && team_2_new,
-    then: (schema) => schema.required('Red Side Team abbreviation is required').max(10, 'Max 10 chars'),
-    otherwise: (schema) => schema.notRequired(),
+  team_2_abbreviation: Yup.string().when(['is_external_match', 'team_2_new'], ([is_external_match, team_2_new]) => {
+    return is_external_match && team_2_new
+      ? Yup.string().required('Abbreviation is required').min(2, 'Abbreviation too short').max(5, 'Abbreviation too long')
+      : Yup.string().notRequired();
   }),
-  team_2_category: Yup.string().when(['is_external_match', 'team_2_new'], {
-    is: (is_external_match: boolean, team_2_new: boolean) => is_external_match && team_2_new,
-    then: (schema) => schema.required('Red Side Team category is required'),
-    otherwise: (schema) => schema.notRequired(),
+  team_2_category: Yup.string().when(['is_external_match', 'team_2_new'], ([is_external_match, team_2_new]) => {
+    return is_external_match && team_2_new
+      ? Yup.string().required('Red Side Team category is required')
+      : Yup.string().notRequired();
   }),
   scrim_type: Yup.string().required('Scrim type is required').oneOf(['SCRIMMAGE', 'TOURNAMENT', 'RANKED'], 'Must be a valid scrim type'),
-  game_number: Yup.number().required('Game number is required').positive('Must be positive').integer('Must be an integer'),
-  team_side: Yup.string().when('is_external_match', {
-    is: false,
-    then: (schema) => schema.required('Team side is required').oneOf(['BLUE', 'RED'], 'Must be either BLUE or RED'),
-    otherwise: (schema) => schema.notRequired(), // Optional if external
+  game_number: Yup.number().notRequired().default(1), // Now automatically determined
+  team_side: Yup.string().when('is_external_match', ([is_external_match]) => {
+    return is_external_match
+      ? Yup.string().notRequired()
+      : Yup.string().required('Team side is required').oneOf(['BLUE', 'RED'], 'Must be either BLUE or RED');
   }),
   match_duration_hours: Yup.number()
       .transform((value) => (isNaN(value) || value === null || value === undefined) ? 0 : value) // Default to 0 if empty/invalid
@@ -236,8 +229,87 @@ const step3Schema = Yup.object({
 const step4Schema = Yup.object({});
 
 // Export array of schemas
-export const matchValidationSchema = [
+export const stepValidationSchemas = [
   step0Schema, // Index 0
   step2Schema, // Index 1 (Player Stats)
   step4Schema, // Index 2 (Review)
 ]; 
+
+// Complete validation schema
+export const matchValidationSchema = Yup.object().shape({
+    match_datetime: Yup.string().required('Match date and time is required'),
+    match_duration_hours: Yup.number().required('Hours is required').min(0, 'Must be positive'),
+    match_duration_minutes: Yup.number().required('Minutes is required').min(0, 'Must be positive'),
+    match_duration_seconds: Yup.number().required('Seconds is required').min(0, 'Must be positive'),
+    match_result: Yup.string().required('Match result is required'),
+    
+    // Teams validation
+    is_external_match: Yup.boolean().required('Match type must be specified'),
+    
+    // For external matches
+    team_1: Yup.string().when('is_external_match', ([is_external_match]) => {
+      return is_external_match
+        ? Yup.string().required('Team 1 is required')
+        : Yup.string().notRequired();
+    }),
+    team_2: Yup.string().when('is_external_match', ([is_external_match]) => {
+      return is_external_match
+        ? Yup.string().required('Team 2 is required')
+        : Yup.string().notRequired();
+    }),
+    
+    // For internal matches
+    our_team: Yup.string().when('is_external_match', ([is_external_match]) => {
+      return is_external_match
+        ? Yup.string().notRequired()
+        : Yup.string().required('Our team is required');
+    }),
+    opponent_team: Yup.string().when('is_external_match', ([is_external_match]) => {
+      return is_external_match
+        ? Yup.string().notRequired()
+        : Yup.string().required('Opponent team is required');
+    }),
+    
+    // For new opponent team
+    opponent_team_name: Yup.string().when(['is_external_match', 'is_new_opponent'], ([is_external_match, is_new_opponent]) => {
+      return is_external_match === false && is_new_opponent === true
+        ? Yup.string().required('Opponent team name is required').min(3, 'Name too short')
+        : Yup.string().notRequired();
+    }),
+    opponent_team_abbreviation: Yup.string().when(['is_external_match', 'is_new_opponent'], ([is_external_match, is_new_opponent]) => {
+      return !is_external_match && is_new_opponent
+        ? Yup.string().required('Abbreviation is required').min(2, 'Abbreviation too short').max(5, 'Abbreviation too long')
+        : Yup.string().notRequired();
+    }),
+    
+    // For new teams in external matches
+    team_1_name: Yup.string().when(['is_external_match', 'team_1_new'], ([is_external_match, team_1_new]) => {
+      return is_external_match && team_1_new
+        ? Yup.string().required('Team 1 name is required').min(3, 'Name too short')
+        : Yup.string().notRequired();
+    }),
+    team_1_abbreviation: Yup.string().when(['is_external_match', 'team_1_new'], ([is_external_match, team_1_new]) => {
+      return is_external_match && team_1_new
+        ? Yup.string().required('Abbreviation is required').min(2, 'Abbreviation too short').max(5, 'Abbreviation too long')
+        : Yup.string().notRequired();
+    }),
+    team_2_name: Yup.string().when(['is_external_match', 'team_2_new'], ([is_external_match, team_2_new]) => {
+      return is_external_match && team_2_new
+        ? Yup.string().required('Team 2 name is required').min(3, 'Name too short')
+        : Yup.string().notRequired();
+    }),
+    team_2_abbreviation: Yup.string().when(['is_external_match', 'team_2_new'], ([is_external_match, team_2_new]) => {
+      return is_external_match && team_2_new
+        ? Yup.string().required('Abbreviation is required').min(2, 'Abbreviation too short').max(5, 'Abbreviation too long')
+        : Yup.string().notRequired();
+    }),
+    
+    // Required for both types of matches
+    scrim_type: Yup.string().required('Scrim type is required'),
+    game_number: Yup.number().notRequired().default(1), // Now automatically determined, but keep for compatibility
+    team_side: Yup.string().when('is_external_match', ([is_external_match]) => {
+      return is_external_match
+        ? Yup.string().notRequired()
+        : Yup.string().required('Team side is required').oneOf(['BLUE', 'RED'], 'Must be either BLUE or RED');
+    })
+}); 

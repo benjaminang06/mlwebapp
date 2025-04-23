@@ -89,8 +89,8 @@ class PlayerService:
         Returns:
             The updated player
         """
-        # Create alias for the old IGN using the model's helper method
-        player.create_alias_from_current_ign()
+        # Create alias for the old IGN using our service method
+        PlayerService.create_alias_from_current_ign(player)
         
         # Update to new IGN
         player.current_ign = new_ign
@@ -194,3 +194,33 @@ class PlayerService:
                 'history': list(player.team_history.all())
             }
         }
+
+    @staticmethod
+    def create_alias_from_current_ign(player):
+        """
+        Create an alias from a player's current IGN.
+        This should be called before updating a player's IGN to preserve history.
+        
+        Args:
+            player: The Player object to create an alias for
+            
+        Returns:
+            The created PlayerAlias object or None if the player doesn't have a current IGN
+        """
+        if not player.current_ign:
+            return None
+            
+        # Check if this IGN already exists as an alias
+        existing_alias = PlayerAlias.objects.filter(
+            player=player,
+            alias=player.current_ign
+        ).first()
+        
+        if existing_alias:
+            return existing_alias
+            
+        # Create a new alias for the current IGN
+        return PlayerAlias.objects.create(
+            player=player,
+            alias=player.current_ign
+        )

@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Formik, FormikProps } from 'formik';
 import { Box, Stepper, Step, StepLabel, Button, Typography, Paper, FormControl, InputLabel, Select, MenuItem, TextField, Alert, Snackbar, Switch, FormControlLabel, CircularProgress, Dialog, DialogTitle, DialogContent, DialogActions, Grid, SelectChangeEvent, RadioGroup, FormControlLabel as MuiFormControlLabel, Radio, Autocomplete } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { Match, PlayerMatchStat, ScrimGroup, MatchFormData } from '../../types/match.types';
 import { Player } from '../../types/player.types';
 import { Team } from '../../types/team.types';
-import api from '../../services/api';
+import { api } from '../../services/api.service';
 import { useAuth } from '../../context/AuthContext';
 import AuthStatus from '../common/AuthStatus';
 import DraftForm from './DraftForm';
@@ -17,6 +17,7 @@ import { initialMatchValues, matchValidationSchema } from '../../config/matchFor
 import { getId } from '../../utils/formUtils';
 import MatchDetailsStep from './MatchDetailsStep';
 import ReviewStep from './ReviewStep';
+import { suggestGameNumber } from '../../services/match.service';
 
 // --- NEW: Define a key for session storage ---
 const FORM_STATE_KEY = 'matchUploadFormState';
@@ -50,6 +51,47 @@ export const getEmptyPlayerStat = (isOurTeam: boolean): Partial<PlayerMatchStat>
   medal: null,
 });
 
+/**
+ * Match payload type for API submission
+ */
+interface MatchPayload {
+  match_date: string | null;
+  scrim_type: string;
+  game_number: number;
+  match_duration: string | null;
+  general_notes: string | null;
+  mvp: number | null;
+  mvp_loss: number | null;
+  blue_side_team: number | null;
+  red_side_team: number | null;
+  our_team: number | null;
+  winning_team: number | null;
+  score_details?: Record<string, unknown> | null;
+  scrim_group?: number | null;
+}
+
+/**
+ * Player stat payload type for API submission
+ */
+interface PlayerStatPayload {
+  match: number;
+  player: number;
+  team: number;
+  role_played: string | null;
+  hero_played: number;
+  kills: number;
+  deaths: number;
+  assists: number;
+  kda: number | null;
+  medal: string | null;
+  damage_dealt: number | null;
+  damage_taken: number | null;
+  turret_damage: number | null;
+  gold_earned: number | null;
+  player_notes: string | null;
+  teamfight_participation: number | null;
+}
+
 const MatchUploadForm: React.FC = () => {
   const [activeStep, setActiveStep] = useState<number>(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -70,6 +112,14 @@ const MatchUploadForm: React.FC = () => {
   const [loadedInitialValues, setLoadedInitialValues] = useState<MatchFormData | null>(null);
   const [isLoadingInitialValues, setIsLoadingInitialValues] = useState(true);
   // --- END NEW ---
+  
+  // Add specific loading states for different API operations
+  const [isLoadingTeams, setIsLoadingTeams] = useState(false);
+  const [isLoadingHeroes, setIsLoadingHeroes] = useState(false);
+  const [isCreatingTeam, setIsCreatingTeam] = useState(false);
+  const [isUpdatingGameNumber, setIsUpdatingGameNumber] = useState(false);
+
+  const formikRef = useRef<FormikProps<MatchFormData> | null>(null);
 
   useEffect(() => {
     // --- UPDATED: Load initial values, active step, AND includeDraftInfo from sessionStorage ---
@@ -111,12 +161,15 @@ const MatchUploadForm: React.FC = () => {
     // --- END UPDATE ---
 
     const fetchHeroes = async () => {
+      setIsLoadingHeroes(true);
       try {
         const heroes: Hero[] = await draftService.getHeroes();
         setAvailableHeroes(heroes);
       } catch (error) {
         console.error('Error fetching heroes:', error);
         setConnectionAlert({ show: true, message: 'Failed to load hero list.', severity: 'warning' });
+      } finally {
+        setIsLoadingHeroes(false);
       }
     };
     fetchHeroes();
@@ -124,7 +177,7 @@ const MatchUploadForm: React.FC = () => {
   
   useEffect(() => {
     const fetchTeams = async () => {
-      setIsSubmitting(true);
+      setIsLoadingTeams(true);
       try {
         const results = await Promise.allSettled([
           api.get<{ count: number, next: string | null, previous: string | null, results: Team[] }>('/api/teams/'),
@@ -160,7 +213,7 @@ const MatchUploadForm: React.FC = () => {
         console.error('Generic error fetching teams:', error);
         setConnectionAlert({ show: true, message: 'Failed to load essential team data. Please check connection and refresh.', severity: 'error' });
       } finally {
-          setIsSubmitting(false);
+        setIsLoadingTeams(false);
       }
     };
     
@@ -185,6 +238,7 @@ const MatchUploadForm: React.FC = () => {
 
   const handleAddNewTeam = async (teamData: Partial<Team>, formik: FormikProps<MatchFormData>, teamType: 'opponent' | 'team1' | 'team2') => {
     setConnectionAlert({ show: false, message: '', severity: 'info' });
+    setIsCreatingTeam(true);
     try {
       const response = await api.post<Team>('/api/teams/', {
         team_name: teamData.team_name,
@@ -235,6 +289,8 @@ const MatchUploadForm: React.FC = () => {
             }
         }
       setConnectionAlert({ show: true, message: `Team creation failed: ${errorMsg}`, severity: 'error' });
+    } finally {
+      setIsCreatingTeam(false);
     }
   };
   
@@ -314,7 +370,7 @@ const MatchUploadForm: React.FC = () => {
     }
     
     // Construct the final payload with only the necessary fields
-    const finalPayload: { [key: string]: any } = {
+    const finalPayload: MatchPayload = {
       match_date: values.match_datetime ? new Date(values.match_datetime).toISOString() : null,
       scrim_type: values.scrim_type,
       game_number: values.game_number,
@@ -376,7 +432,7 @@ const MatchUploadForm: React.FC = () => {
             }
 
             // Ensure payload keys match PlayerMatchStatSerializer writeable fields/model fields
-            const playerStatPayload: { [key: string]: any } = {
+            const playerStatPayload: PlayerStatPayload = {
               match: matchId, // FIX: Use the correct matchId from the created match
               player: playerId, // Serializer expects 'player', maps to player_id
               team: teamId,
@@ -508,19 +564,33 @@ const MatchUploadForm: React.FC = () => {
     }
   };
 
-  // --- UPDATED: Helper function to save form state including active step and draft flag ---
+  // --- Helper function to save form state including active step and draft flag ---
   const saveFormState = (values: MatchFormData, step: number, draftFlag: boolean | null) => {
-      try {
-          const stateToSave: SavedFormState = { values, activeStep: step, includeDraftInfo: draftFlag };
-          const stateString = JSON.stringify(stateToSave);
-          sessionStorage.setItem(FORM_STATE_KEY, stateString);
-          // console.log("Saved form state to sessionStorage:", stateToSave); // Less verbose logging
-      } catch (error) {
-          console.error("Error saving form state to sessionStorage:", error);
-          // Optionally show a warning to the user
+    try {
+      // Make a simpler copy to avoid circular references
+      const simplifiedValues = JSON.parse(JSON.stringify({
+        ...values,
+        // Clear out complex objects that might cause issues
+        players: [] // Don't need to store the full players list
+      }));
+      
+      const stateToSave: SavedFormState = { 
+        values: simplifiedValues, 
+        activeStep: step, 
+        includeDraftInfo: draftFlag 
+      };
+      
+      sessionStorage.setItem(FORM_STATE_KEY, JSON.stringify(stateToSave));
+    } catch (error) {
+      console.error("Error saving form state to sessionStorage:", error);
+      
+      // Only show alerts outside of development
+      const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      if (!isDevelopment) {
+        alert('There was an issue saving your form progress. Please complete the form in one session.');
       }
+    }
   };
-  // --- END UPDATE ---
 
   // --- UPDATED: FormikPersistence component now also depends on active step and includeDraftInfo ---
   const FormikPersistence = (props: { 
@@ -538,6 +608,47 @@ const MatchUploadForm: React.FC = () => {
     return null; // This component doesn't render anything itself
   };
   // --- END UPDATE ---
+
+  // Function to update game number automatically
+  const updateGameNumber = async (values: MatchFormData) => {
+    if (!values.our_team || !values.match_datetime || !values.scrim_type) {
+      return;
+    }
+    
+    setIsUpdatingGameNumber(true);
+    try {
+      // Get the opponent team ID based on the match type
+      let opponentTeamId: number | undefined;
+      
+      if (values.is_external_match) {
+        // For external matches, our_team might not be defined
+        opponentTeamId = Number(values.opponent_team);
+      } else {
+        opponentTeamId = Number(values.opponent_team);
+      }
+      
+      if (!opponentTeamId) {
+        console.log('No opponent team ID found, skipping game number update');
+        return;
+      }
+      
+      const result = await suggestGameNumber(
+        Number(values.our_team),
+        opponentTeamId,
+        values.match_datetime,
+        values.scrim_type
+      );
+      
+      if (result && typeof result === 'number') {
+        formikRef.current?.setFieldValue('game_number', result);
+      }
+    } catch (error) {
+      console.error('Error getting game number suggestion:', error);
+      // No need to show alert for this minor issue
+    } finally {
+      setIsUpdatingGameNumber(false);
+    }
+  };
 
   if (!isAuthenticated) {
        return (
@@ -573,98 +684,100 @@ const MatchUploadForm: React.FC = () => {
   // --- END UPDATE ---
 
   return (
-    <Box sx={{ width: '100%', p: 2 }}>
-       <Typography variant="h4" gutterBottom align="center">Upload New Match</Typography>
-      <Formik<MatchFormData>
-        initialValues={loadedInitialValues || initialMatchValues}
-        validationSchema={matchValidationSchema[activeStep + (includeDraftInfo ? 0 : 1)]}
-        onSubmit={handleSubmit}
-        enableReinitialize
-      >
-        {(formikProps: FormikProps<MatchFormData>) => (
-          <form onSubmit={formikProps.handleSubmit}> 
-
-            <FormikPersistence 
-                formik={formikProps} 
-                currentStep={activeStep} 
-                draftFlag={includeDraftInfo}
-            />
-
-            <Stepper activeStep={activeStep} alternativeLabel sx={{ mb: 4 }}>
-              {steps
-                  .map((label, index) => {
-                    if (!includeDraftInfo && label === 'Draft Info') {
-                       return null;
-                    }
-                    return (
-                       <Step key={label}>
-                          <StepLabel>{label}</StepLabel>
-                       </Step>
-                    );
-                  })
-                  .filter(Boolean)
-              }
-            </Stepper>
-            
-            <Box sx={{ minHeight: '400px', mb: 3 }}>
-                 {isSubmitting && activeStep !== steps.length -1 && <CircularProgress size={25} sx={{ position: 'absolute', top: '150px', right: '50px' }}/>}
-              {renderStepContent(activeStep, formikProps)} 
-            </Box>
-
-            {activeStep < steps.length - 1 && (
-                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 3 }}>
-                  <Button 
-                      disabled={activeStep === 0 || isSubmitting} 
-                      onClick={handleBack} 
-                      variant="outlined"
-                  >
-                      Back
-                  </Button>
-                  <Button 
-                      variant="contained" 
-                      color="primary" 
-                      onClick={handleNext}
-                      disabled={isSubmitting}
-                  >
-                      Next
-                  </Button>
-                 </Box>
-            )}
-
-            {activeStep === steps.length - 1 && (
-              <Button 
-                variant="contained" 
-                color="primary" 
-                onClick={() => formikProps.submitForm()}
-                disabled={isSubmitting || !formikProps.isValid || !formikProps.dirty}
-              >
-                {isSubmitting ? <CircularProgress size={24} /> : 'Submit Match'}
-              </Button>
-            )}
-
-          </form>
+    <Box sx={{ width: '100%', p: 3 }}>
+      <AuthStatus />
+      <Paper sx={{ p: 3, mb: 3 }}>
+        <Typography variant="h4" gutterBottom>Submit Match Data</Typography>
+        
+        {/* Loading indicators for data fetching */}
+        {(isLoadingInitialValues || isLoadingTeams || isLoadingHeroes) && (
+          <Box sx={{ display: 'flex', justifyContent: 'center', my: 2 }}>
+            <CircularProgress />
+            <Typography variant="body1" sx={{ ml: 2 }}>
+              {isLoadingInitialValues ? 'Loading form...' : 
+               isLoadingTeams ? 'Loading teams...' : 
+               'Loading heroes...'}
+            </Typography>
+          </Box>
         )}
-      </Formik>
+        
+        <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
+          {steps.map((label) => (
+            <Step key={label}>
+              <StepLabel>{label}</StepLabel>
+            </Step>
+          ))}
+        </Stepper>
+        
+        {loadedInitialValues && (
+        <Formik
+          initialValues={loadedInitialValues}
+          validationSchema={matchValidationSchema}
+          onSubmit={handleSubmit}
+          innerRef={(formik) => {
+            formikRef.current = formik;
+          }}
+        >
+          {(formikProps) => (
+            <>
+              <FormikPersistence formik={formikProps} currentStep={activeStep} draftFlag={includeDraftInfo} />
+              {renderStepContent(activeStep, formikProps)}
+              
+              <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
+                <Button
+                  color="primary"
+                  disabled={activeStep === 0 || isSubmitting}
+                  onClick={handleBack}
+                  sx={{ mr: 1 }}
+                >
+                  Back
+                </Button>
+                <Box sx={{ flex: '1 1 auto' }} />
+                
+                {activeStep === steps.length - 1 ? (
+                  <Button 
+                    variant="contained" 
+                    color="primary" 
+                    onClick={() => formikProps.handleSubmit()}
+                    disabled={isSubmitting || formikProps.isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <CircularProgress size={24} sx={{ mr: 1 }} />
+                        Submitting...
+                      </>
+                    ) : 'Submit'}
+                  </Button>
+                ) : (
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={handleNext}
+                    disabled={isSubmitting || formikProps.isSubmitting}
+                  >
+                    Next
+                  </Button>
+                )}
+              </Box>
+            </>
+          )}
+        </Formik>
+        )}
+      </Paper>
       
       <Snackbar 
-          open={connectionAlert.show} 
-          autoHideDuration={6000} 
-          onClose={() => setConnectionAlert({...connectionAlert, show: false})}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        open={connectionAlert.show} 
+        autoHideDuration={6000} 
+        onClose={() => setConnectionAlert({...connectionAlert, show: false})}
       >
         <Alert 
-            onClose={() => setConnectionAlert({...connectionAlert, show: false})} 
-            severity={connectionAlert.severity} 
-            sx={{ width: '100%' }}
-            variant="filled"
+          onClose={() => setConnectionAlert({...connectionAlert, show: false})} 
+          severity={connectionAlert.severity}
+          sx={{ width: '100%' }}
         >
           {connectionAlert.message}
         </Alert>
       </Snackbar>
-      
-       <Box sx={{ position: 'absolute', top: 16, right: 16 }}>
-         <AuthStatus />
-       </Box>
     </Box>
   );
 };

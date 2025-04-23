@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from .models import Team, Player, PlayerAlias, ScrimGroup, Match, PlayerMatchStat, FileUpload, PlayerTeamHistory, TeamManagerRole, Hero, Draft, DraftBan, DraftPick
 from django.utils import timezone
 from django.contrib.auth.password_validation import validate_password
+from services.player_services import PlayerService
 
 class UserSerializer(serializers.ModelSerializer):
     """Serializer for the User model, used for authentication and user info"""
@@ -151,7 +152,7 @@ class PlayerMatchStatCreateSerializer(serializers.Serializer):
                 raise serializers.ValidationError("Specified player does not exist")
         
         # Otherwise, try to identify the player by IGN for this team
-        player = Player.find_by_ign(ign=ign, team=team)
+        player = PlayerService.find_player_by_ign(ign=ign, team=team)
         
         if player:
             # We found a potential match
@@ -172,11 +173,13 @@ class PlayerMatchStatSerializer(serializers.ModelSerializer):
     )
     hero_played = serializers.PrimaryKeyRelatedField(
         queryset=Hero.objects.all(),
-        write_only=True
+        write_only=True,
+        required=False,
+        allow_null=True
     )
     is_our_team = serializers.SerializerMethodField()
     player_ign = serializers.CharField(source='player.current_ign', read_only=True)
-    hero_name = serializers.CharField(source='hero_played.name', read_only=True)
+    hero_name = serializers.CharField(source='hero_played.name', read_only=True, required=False)
     is_blue_side = serializers.SerializerMethodField()
     
     class Meta:
@@ -200,31 +203,55 @@ class PlayerMatchStatSerializer(serializers.ModelSerializer):
         ]
     
     def get_is_our_team(self, obj):
-        """Determine if this player is on 'our team'"""
+        """Determine if this player stat is for 'our team'"""
+        # Fix method to handle null cases safely
+        if not obj.match or not obj.team:
+            return False
+            
+        # If the match has no 'our_team' context, return False
         if not obj.match.our_team:
             return False
+            
+        # Check if this player's team is the match's 'our_team'
         return obj.team.team_id == obj.match.our_team.team_id
     
     def get_is_blue_side(self, obj):
-        """Determine if this player is on the blue side team"""
+        """Determine if this player stat is for the blue side team"""
         if not obj.match or not obj.team:
-            return None
-        return obj.team.team_id == obj.match.blue_side_team.team_id
+            return False
+            
+        return obj.team.team_id == obj.match.blue_side_team_id
     
     def validate(self, data):
-        # KDA Calculation removed from validate
+        """Validate that the player's team matches either blue_side_team or red_side_team of the match"""
+        match = data.get('match')
+        team = data.get('team')
+        
+        if match and team:
+            # Team must be either blue_side_team or red_side_team
+            if team.team_id != match.blue_side_team_id and team.team_id != match.red_side_team_id:
+                raise serializers.ValidationError(
+                    "Player's team must be either the blue side team or red side team of the match."
+                )
+        
+        # Validate KDA values
+        kills = data.get('kills', 0)
+        deaths = data.get('deaths', 0)
+        assists = data.get('assists', 0)
+        
+        # Ensure kills, deaths, assists are non-negative
+        if kills < 0:
+            raise serializers.ValidationError({"kills": "Kills cannot be negative."})
+        if deaths < 0:
+            raise serializers.ValidationError({"deaths": "Deaths cannot be negative."})
+        if assists < 0:
+            raise serializers.ValidationError({"assists": "Assists cannot be negative."})
+            
         return data
     
     def create(self, validated_data):
-        """Create a player match stat record and update match score details"""
-        # Create the stat record
-        stat = PlayerMatchStat.objects.create(**validated_data)
-        
-        # Trigger score details recalculation (if needed - this method doesn't exist)
-        # match = stat.match
-        # match.calculate_score_details()
-        
-        return stat
+        # Let the model handle setting role_played from player.primary_role if needed
+        return super().create(validated_data)
 
 class ScrimGroupSerializer(serializers.ModelSerializer):
     """Serializer for scrim groups (collections of related matches)"""
@@ -290,7 +317,7 @@ class MatchSerializer(serializers.ModelSerializer):
             
             # Direct Model Fields (Writable)
             'match_date', 'match_duration', 'scrim_type', 
-            'general_notes', 'game_number', 
+            'score_details', 'general_notes', 'game_number', 
             
             # Writable FKs (defined above or handled by name convention)
             'blue_side_team', 'red_side_team', 'our_team',
@@ -321,6 +348,7 @@ class MatchSerializer(serializers.ModelSerializer):
         instance.match_date = validated_data.get('match_date', instance.match_date)
         instance.match_duration = validated_data.get('match_duration', instance.match_duration)
         instance.scrim_type = validated_data.get('scrim_type', instance.scrim_type)
+        instance.score_details = validated_data.get('score_details', instance.score_details)
         instance.general_notes = validated_data.get('general_notes', instance.general_notes)
         instance.game_number = validated_data.get('game_number', instance.game_number)
         instance.scrim_group = validated_data.get('scrim_group', instance.scrim_group)
