@@ -32,7 +32,6 @@ We centralize every scrim and tournament match into a relational database so tha
 - **Player Statistics Entry:**  
   - Five fixed rows each for “Our Team” and “Enemy Team,” prefilled from previous sessions with override options  
   - Fields: hero played, kills/deaths/assists (raw + computed KDA), damage dealt/taken, turret damage, teamfight participation, gold earned, player notes.  
-- **File Uploads:** Drag-and-drop JPEG/PNG (and PDF) uploads linked to each match, with thumbnail previews.
 
 ### 2. Recent Matches  
 - **Filterable Views:** Preset (Past Week/Month/3 Months) and custom date ranges; filter by team, opponent type.  
